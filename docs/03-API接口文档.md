@@ -1,7 +1,7 @@
 # 橘猫智酷商城小程序 API 接口文档
 
 **版本**：1.0  
-**BaseURL**：生产 `https://mp.goomooplay.com/api`，开发可配为 `http://127.0.1.23/api`  
+**BaseURL**：生产 `https://api.goomooplay.com/api`，开发可配为 `http://127.0.1.23/api`  
 **鉴权**：除登录、设置等公开接口外，请求头需带 `Authorization: {token}`（小程序登录后获得）
 
 **统一响应**：
