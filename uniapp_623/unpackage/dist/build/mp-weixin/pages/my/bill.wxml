@@ -1,0 +1,1 @@
+<view class="data-v-7f9d581e"><view wx:if="{{a}}" class="empty-state data-v-7f9d581e"><image class="empty-icon data-v-7f9d581e" src="{{b}}" mode="widthFix"/><text class="empty-text data-v-7f9d581e">什么都没有呢~</text></view></view>

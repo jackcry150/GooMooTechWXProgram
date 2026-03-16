@@ -1,0 +1,107 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta content="webkit|ie-comp|ie-stand" name="renderer">
+    <meta content="IE=edge,chrome=1" http-equiv="X-UA-Compatible">
+    <meta content="width=device-width,initial-scale=1,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no" name="viewport"/>
+    <link href="/static/h-ui/css/H-ui.min.css" rel="stylesheet" type="text/css"/>
+    <link href="/static/h-ui.admin/css/H-ui.admin.css" rel="stylesheet" type="text/css"/>
+    <link href="/static/Hui-iconfont/1.0.8/iconfont.css" rel="stylesheet" type="text/css"/>
+    <link href="/static/h-ui.admin/skin/default/skin.css" rel="stylesheet" type="text/css"/>
+    <link href="/static/h-ui.admin/css/style.css" rel="stylesheet" type="text/css"/>
+    <title>订单发货</title>
+</head>
+<body>
+<div class="page-container" style="padding: 20px;">
+    <form class="form form-horizontal" id="shipForm">
+        <input type="hidden" name="id" value="{$orderInfo.id}">
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-3">订单号：</label>
+            <div class="formControls col-xs-8 col-sm-9">
+                <span>{$orderInfo.orderNo}</span>
+            </div>
+        </div>
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-3">订单金额：</label>
+            <div class="formControls col-xs-8 col-sm-9">
+                <span>¥{$orderInfo.totalPrice}</span>
+            </div>
+        </div>
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-3"><span class="c-red">*</span>物流公司名称：</label>
+            <div class="formControls col-xs-8 col-sm-9">
+                <input class="input-text" data-verify="物流公司名称不能为空" id="freightName" name="freightName" type="text" value="" placeholder="请输入物流公司名称">
+            </div>
+        </div>
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-3">物流公司编码：</label>
+            <div class="formControls col-xs-8 col-sm-9">
+                <input class="input-text" id="freightCode" name="freightCode" type="text" value="" placeholder="请输入物流公司编码（可选）">
+            </div>
+        </div>
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-3"><span class="c-red">*</span>物流单号：</label>
+            <div class="formControls col-xs-8 col-sm-9">
+                <input class="input-text" data-verify="物流单号不能为空" id="freightNo" name="freightNo" type="text" value="" placeholder="请输入物流单号">
+            </div>
+        </div>
+        <div class="row cl">
+            <div class="col-9 col-offset-3">
+                <input class="btn btn-primary radius" id="submitBtn" type="button" value="&nbsp;&nbsp;确认发货&nbsp;&nbsp;">
+            </div>
+        </div>
+    </form>
+</div>
+<!--_footer 作为公共模版分离出去-->
+<script src="/static/js/jquery.min.js" type="text/javascript"></script>
+<script src="/static/layer/2.4/layer.js" type="text/javascript"></script>
+<script src="/static/h-ui/js/H-ui.min.js" type="text/javascript"></script>
+<script src="/static/h-ui.admin/js/H-ui.admin.js" type="text/javascript"></script>
+<!--/_footer 作为公共模版分离出去-->
+<script>
+    $(function () {
+        $('#submitBtn').click(function () {
+            const content = $("#shipForm").serializeArray();
+            let flag = 0;
+            
+            $.each(content, function (i, item) {
+                let id = $('#' + content[i].name);
+                let verify = id.data("verify");
+                if (item['value'] == '' && verify != '') {
+                    layer.msg(verify, {time: 1000});
+                    id.focus();
+                    flag = 1;
+                    return false;
+                } else {
+                    flag = 0;
+                }
+            });
+            
+            if (!flag) {
+                $.ajax({
+                    type: 'POST',
+                    url: '/adm/order/ship',
+                    data: content,
+                    dataType: 'json',
+                    success: function (data) {
+                        if (data.code == 1) {
+                            layer.msg(data.msg, {time: 1000}, function () {
+                                var index = parent.layer.getFrameIndex(window.name);
+                                parent.layer.close(index);
+                            });
+                        } else {
+                            layer.msg(data.msg, {time: 2000});
+                        }
+                    }
+                });
+                return false;
+            }
+        });
+    });
+</script>
+</body>
+</html>
+
+
+

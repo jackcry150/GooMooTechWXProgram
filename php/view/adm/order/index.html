@@ -1,0 +1,235 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta content="webkit|ie-comp|ie-stand" name="renderer">
+    <meta content="IE=edge,chrome=1" http-equiv="X-UA-Compatible">
+    <meta content="width=device-width,initial-scale=1,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no" name="viewport"/>
+    <link href="/static/h-ui/css/H-ui.min.css" rel="stylesheet" type="text/css"/>
+    <link href="/static/h-ui.admin/css/H-ui.admin.css" rel="stylesheet" type="text/css"/>
+    <link href="/static/Hui-iconfont/1.0.8/iconfont.css" rel="stylesheet" type="text/css"/>
+    <link href="/static/h-ui.admin/skin/default/skin.css" rel="stylesheet" type="text/css"/>
+    <title>订单列表</title>
+</head>
+<body>
+<nav class="breadcrumb">
+    <i class="Hui-iconfont">&#xe67f;</i> 首页
+    <span class="c-gray en">&gt;</span> 订单管理
+    <span class="c-gray en">&gt;</span> 订单列表
+    <a class="btn btn-success radius r" href="javascript:location.replace(location.href);" style="line-height:1.6em;margin-top:3px" title="刷新"><i class="Hui-iconfont">&#xe68f;</i></a>
+</nav>
+<div class="page-container">
+    <div class="text-c">
+        <form action="" method="get">
+            <input class="input-text" name="orderNo" id="orderNo" placeholder="订单号" style="width:150px" type="text" value="{$orderNo}">
+            <input class="input-text" name="nickName" id="nickName" placeholder="用户昵称" style="width:150px" type="text" value="{$nickName}">
+            <input class="input-text" name="phone" id="phone" placeholder="手机号" style="width:150px" type="text" value="{$phone}">
+            <input class="input-text" name="productName" id="productName" placeholder="产品名称" style="width:150px" type="text" value="{$productName}">
+            <span class="select-box inline">
+                <select class="select" name="status" id="status">
+                    <option value="">全部状态</option>
+                    {foreach name="orderStatus" item="v" key="k"}
+                    <option value="{$k}" {if $k == $status} selected {/if}>{$v}</option>
+                    {/foreach}
+                </select>
+            </span>
+            <button class="btn btn-success radius" type="submit"><i class="Hui-iconfont">&#xe665;</i> 搜索</button>
+        </form>
+    </div>
+    <div class="mt-10">
+        <table class="table table-border table-bordered table-hover table-bg">
+            <thead>
+            <tr class="text-c">
+                <th>订单ID</th>
+                <th>订单号</th>
+                <th>用户昵称</th>
+                <th>手机号</th>
+                <th>商品信息</th>
+                <th>收货地址</th>
+                <th>订单金额</th>
+                <th>订单状态</th>
+                <th>退款状态</th>
+                <th>物流信息</th>
+                <th>创建时间</th>
+                <th>操作</th>
+            </tr>
+            </thead>
+            <tbody>
+            {if condition="empty($list)"}
+            <tr class="text-c">
+                <td colspan="12">暂无数据</td>
+            </tr>
+            {else /}
+            {foreach name="list" item="v"}
+            <tr class="text-c">
+                <td>{$v.id}</td>
+                <td>{$v.orderNo}</td>
+                <td>{$v.nickName}</td>
+                <td>{$v.phone}</td>
+                <td class="text-l">
+                    {foreach name="v.productList" item="p"}
+                    <div style="margin-bottom: 5px;">
+                        <span>{$p.title}-{$p.subtitle} x {$p.quantity}</span>
+                    </div>
+                    {/foreach}
+                </td>
+                <td class="text-l">
+                    {if condition="!empty($v.addressInfo)"}
+                    {$v.addressInfo.name|default=''} {$v.addressInfo.phone|default=''}<br>
+                    {$v.addressInfo.province|default=''}{$v.addressInfo.city|default=''}{$v.addressInfo.area|default=''}{$v.addressInfo.detail|default=''}
+                    {else /}
+                    -
+                    {/if}
+                </td>
+                <td>¥{$v.totalPrice}</td>
+                <td>
+                    <span style="color: {$v.statusColor}; font-weight: bold;">{$v.statusText}</span>
+                </td>
+                <td>
+                    {if condition="$v.refundStatus > 0"}
+                    <span style="color: {if condition='$v.refundStatus == 1'}#f39c12{elseif condition='$v.refundStatus == 2' /}#1ccf00{else /}#dc0000{/if};">{$v.refundStatusText}</span>
+                    {else /}
+                    <span style="color: #999;">{$v.refundStatusText}</span>
+                    {/if}
+                </td>
+                <td class="text-l">
+                    {if condition="$v.freightName"}
+                    <div>物流公司名称：{$v.freightName}</div>
+                    <div>物流公司编码：{$v.freightCode|default='-'}</div>
+                    <div>物流单号：{$v.freightNo}</div>
+                    <div>发货时间：{$v.freightTime}</div>
+                    {else /}
+                    <span>-</span>
+                    {/if}
+                </td>
+                <td>{$v.createDate}</td>
+                <td class="td-manage">
+                    <a title="详情" href="javascript:;" onclick="showOrderDetail({$v.id})" style="text-decoration:none;">详情</a>
+                    {if condition="$v.status == 2"}
+                    &nbsp;|&nbsp;<a title="发货" href="javascript:;" onclick="shipOrder({$v.id})" style="text-decoration:none;color:#1ab394;">发货</a>
+                    {/if}
+                    {if condition="$v.refundStatus == 1"}
+                    &nbsp;|&nbsp;<a title="同意退款" href="javascript:;" onclick="refundAgree({$v.id})" style="text-decoration:none;color:#1ccf00;">同意退款</a>
+                    &nbsp;|&nbsp;<a title="拒绝退款" href="javascript:;" onclick="refundRefuse({$v.id})" style="text-decoration:none;color:#dc0000;">拒绝退款</a>
+                    {/if}
+                </td>
+            </tr>
+            {/foreach}
+            {/if}
+            </tbody>
+        </table>
+        <div class="pages">{$page|raw}
+            <div style="clear:both;"></div>
+        </div>
+    </div>
+</div>
+<!--_footer 作为公共模版分离出去-->
+<script type="text/javascript" src="/static/js/jquery.min.js"></script>
+<script type="text/javascript" src="/static/layer/2.4/layer.js"></script>
+<script type="text/javascript" src="/static/h-ui/js/H-ui.min.js"></script>
+<script type="text/javascript" src="/static/h-ui.admin/js/H-ui.admin.js"></script>
+<!--/_footer 作为公共模版分离出去-->
+<script>
+    // 查看订单详情
+    function showOrderDetail(id) {
+        layer.open({
+            type: 2,
+            title: '订单详情',
+            shadeClose: true,
+            shade: 0.3,
+            maxmin: true,
+            area: ['900px', '700px'],
+            content: '/adm/order/detail?id=' + id
+        });
+    }
+    
+    // 发货
+    function shipOrder(id) {
+        layer.open({
+            type: 2,
+            title: '订单发货',
+            shadeClose: true,
+            shade: 0.3,
+            maxmin: true,
+            area: ['600px', '400px'],
+            content: '/adm/order/ship?id=' + id,
+            end: function() {
+                location.reload();
+            }
+        });
+    }
+    
+    // 同意退款
+    function refundAgree(id) {
+        layer.confirm('确定同意该订单的退款申请吗？', {
+            btn: ['确定', '取消'],
+            icon: 3,
+            title: '提示'
+        }, function(index) {
+            layer.prompt({
+                formType: 2,
+                title: '退款备注',
+                area: ['400px', '150px'],
+                placeholder: '请输入退款备注（可选）'
+            }, function(value, index2) {
+                $.ajax({
+                    type: 'POST',
+                    url: '/adm/order/refundAgree',
+                    data: {
+                        id: id,
+                        refundRemark: value
+                    },
+                    dataType: 'json',
+                    success: function(data) {
+                        if (data.code == 1) {
+                            layer.msg(data.msg, {time: 1000}, function() {
+                                location.reload();
+                            });
+                        } else {
+                            layer.msg(data.msg, {time: 2000});
+                        }
+                        layer.close(index2);
+                        layer.close(index);
+                    }
+                });
+            });
+        });
+    }
+    
+    // 拒绝退款
+    function refundRefuse(id) {
+        layer.prompt({
+            formType: 2,
+            title: '拒绝退款原因',
+            area: ['400px', '150px'],
+            placeholder: '请输入拒绝退款的原因（必填）'
+        }, function(value, index) {
+            if (!value || value.trim() == '') {
+                layer.msg('请填写拒绝退款的原因', {time: 2000});
+                return;
+            }
+            $.ajax({
+                type: 'POST',
+                url: '/adm/order/refundRefuse',
+                data: {
+                    id: id,
+                    refundRemark: value
+                },
+                dataType: 'json',
+                success: function(data) {
+                    if (data.code == 1) {
+                        layer.msg(data.msg, {time: 1000}, function() {
+                            location.reload();
+                        });
+                    } else {
+                        layer.msg(data.msg, {time: 2000});
+                    }
+                    layer.close(index);
+                }
+            });
+        });
+    }
+</script>
+</body>
+</html>
+

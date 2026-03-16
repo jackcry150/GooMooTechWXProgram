@@ -1,0 +1,16 @@
+
+.customer.data-v-02222c4a {
+		min-height: 100vh;
+		display: flex;
+		flex-direction: column;
+		flex-wrap: nowrap;
+		align-items: center;
+}
+.list.data-v-02222c4a {
+		width: 86%;
+		padding: 40rpx 0;
+}
+.list-image.data-v-02222c4a {
+		width: 100%;
+		height: auto;
+}

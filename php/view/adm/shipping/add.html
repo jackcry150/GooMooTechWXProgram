@@ -1,0 +1,211 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta content="webkit|ie-comp|ie-stand" name="renderer">
+    <meta content="IE=edge,chrome=1" http-equiv="X-UA-Compatible">
+    <meta content="width=device-width,initial-scale=1,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no" name="viewport"/>
+    <link href="/static/h-ui/css/H-ui.min.css" rel="stylesheet" type="text/css"/>
+    <link href="/static/h-ui.admin/css/H-ui.admin.css" rel="stylesheet" type="text/css"/>
+    <link href="/static/Hui-iconfont/1.0.8/iconfont.css" rel="stylesheet" type="text/css"/>
+    <link href="/static/h-ui.admin/skin/default/skin.css" id="skin" rel="stylesheet" type="text/css"/>
+    <link href="/static/h-ui.admin/css/style.css" rel="stylesheet" type="text/css"/>
+    <title>添加运费模板</title>
+</head>
+<body>
+<div class="page-container">
+    <form class="form form-horizontal" id="addForm">
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-3" for="name">模板名称：</label>
+            <div class="formControls col-xs-8 col-sm-9">
+                <input class="input-text" data-verify="模板名称不能为空" id="name" name="name" type="text" value="">
+            </div>
+        </div>
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-3">计费方式：</label>
+            <div class="formControls col-xs-8 col-sm-9">
+                <span class="select-box">
+                    <select class="select" data-verify="选择计费方式" id="type" name="type" onchange="changeShippingType()">
+                        <option value="">请选择</option>
+                        <option value="1">按件计费</option>
+                        <option value="2">按重量计费</option>
+                    </select>
+                </span>
+            </div>
+        </div>
+        
+        <!-- 按件计费 -->
+        <div id="pieceDiv" style="display:none;">
+            <div class="row cl">
+                <label class="form-label col-xs-4 col-sm-3" for="firstPiece">首件数：</label>
+                <div class="formControls col-xs-8 col-sm-9">
+                    <input class="input-text" data-verify="首件数不能为空" id="firstPiece" name="firstPiece" type="number" value="1" min="1" required>
+                    <span class="c-gray">件</span>
+                </div>
+            </div>
+            <div class="row cl">
+                <label class="form-label col-xs-4 col-sm-3" for="firstFee">首件费用：</label>
+                <div class="formControls col-xs-8 col-sm-9">
+                    <input class="input-text" data-verify="首件费用不能为空" id="firstFee" name="firstFee" type="number" value="0" min="0" step="0.01" required>
+                    <span class="c-gray">元</span>
+                </div>
+            </div>
+            <div class="row cl">
+                <label class="form-label col-xs-4 col-sm-3" for="continuePiece">续件数：</label>
+                <div class="formControls col-xs-8 col-sm-9">
+                    <input class="input-text" id="continuePiece" name="continuePiece" type="number" value="1" min="1">
+                    <span class="c-gray">件</span>
+                </div>
+            </div>
+            <div class="row cl">
+                <label class="form-label col-xs-4 col-sm-3" for="continueFee">续件费用：</label>
+                <div class="formControls col-xs-8 col-sm-9">
+                    <input class="input-text" id="continueFee" name="continueFee" type="number" value="0" min="0" step="0.01">
+                    <span class="c-gray">元</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 按重量计费 -->
+        <div id="weightDiv" style="display:none;">
+            <div class="row cl">
+                <label class="form-label col-xs-4 col-sm-3" for="firstWeight">首重：</label>
+                <div class="formControls col-xs-8 col-sm-9">
+                    <input class="input-text" id="firstWeight" name="firstWeight" type="number" value="1" min="0.01" step="0.01">
+                    <span class="c-gray">kg</span>
+                </div>
+            </div>
+            <div class="row cl">
+                <label class="form-label col-xs-4 col-sm-3" for="firstFeeWeight">首重费用：</label>
+                <div class="formControls col-xs-8 col-sm-9">
+                    <input class="input-text" id="firstFeeWeight" name="firstFee" type="number" value="0" min="0" step="0.01">
+                    <span class="c-gray">元</span>
+                </div>
+            </div>
+            <div class="row cl">
+                <label class="form-label col-xs-4 col-sm-3" for="continueWeight">续重：</label>
+                <div class="formControls col-xs-8 col-sm-9">
+                    <input class="input-text" id="continueWeight" name="continueWeight" type="number" value="1" min="0.01" step="0.01">
+                    <span class="c-gray">kg</span>
+                </div>
+            </div>
+            <div class="row cl">
+                <label class="form-label col-xs-4 col-sm-3" for="continueFeeWeight">续重费用：</label>
+                <div class="formControls col-xs-8 col-sm-9">
+                    <input class="input-text" id="continueFeeWeight" name="continueFee" type="number" value="0" min="0" step="0.01">
+                    <span class="c-gray">元</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="row cl">
+            <div class="col-9 col-offset-3">
+                <input class="btn btn-primary radius" id="add" type="button" value="&nbsp;&nbsp;提交&nbsp;&nbsp;">
+            </div>
+        </div>
+    </form>
+</div>
+<!--_footer 作为公共模版分离出去-->
+<script src="/static/js/jquery.min.js" type="text/javascript"></script>
+<script src="/static/layer/2.4/layer.js" type="text/javascript"></script>
+<script src="/static/h-ui/js/H-ui.min.js" type="text/javascript"></script>
+<script src="/static/h-ui.admin/js/H-ui.admin.js" type="text/javascript"></script>
+<!--/_footer 作为公共模版分离出去-->
+<script type="text/javascript">
+    function changeShippingType() {
+        var type = $('#type').val();
+        if (type == '1') {
+            $('#pieceDiv').show();
+            $('#weightDiv').hide();
+        } else if (type == '2') {
+            $('#pieceDiv').hide();
+            $('#weightDiv').show();
+        } else {
+            $('#pieceDiv').hide();
+            $('#weightDiv').hide();
+        }
+    }
+    
+    $(function () {
+        $('#add').click(function () {
+            const content = $("#addForm").serializeArray();
+            let flag = 0;
+            const type = $('#type').val();
+            
+            // 验证计费方式
+            if (!type) {
+                layer.msg('请选择计费方式', {time: 1000});
+                return false;
+            }
+            
+            // 验证按件计费必填项
+            if (type == '1') {
+                const firstPiece = $('#firstPiece').val();
+                const firstFee = $('#firstFee').val();
+                if (!firstPiece || firstPiece <= 0) {
+                    layer.msg('首件数不能为空！', {time: 1000});
+                    $('#firstPiece').focus();
+                    return false;
+                }
+                if (!firstFee || firstFee < 0) {
+                    layer.msg('首件费用不能为空！', {time: 1000});
+                    $('#firstFee').focus();
+                    return false;
+                }
+            }
+            
+            // 验证按重量计费必填项
+            if (type == '2') {
+                const firstWeight = $('#firstWeight').val();
+                const firstFeeWeight = $('#firstFeeWeight').val();
+                if (!firstWeight || firstWeight <= 0) {
+                    layer.msg('首重不能为空！', {time: 1000});
+                    $('#firstWeight').focus();
+                    return false;
+                }
+                if (!firstFeeWeight || firstFeeWeight < 0) {
+                    layer.msg('首重费用不能为空！', {time: 1000});
+                    $('#firstFeeWeight').focus();
+                    return false;
+                }
+            }
+            
+            $.each(content, function (i, item) {
+                let id = $('#' + content[i].name);
+                let verify = id.data("verify");
+                if (item['value'] == '' && verify != '') {
+                    layer.msg(verify, {time: 1000});
+                    id.focus();
+                    flag = 1;
+                    return false;
+                } else {
+                    flag = 0;
+                }
+            });
+            
+            if (!flag) {
+                $.ajax({
+                    type: 'POST',
+                    url: '/adm/shipping/add',
+                    data: content,
+                    dataType: 'json',
+                    success: function (data) {
+                        if (data.code == 1) {
+                            layer.msg(data.msg, {time: 1000}, function () {
+                                window.parent.location.reload();
+                                layer_close();
+                            });
+                        } else {
+                            layer.msg(data.msg, {time: 2000});
+                            return false;
+                        }
+                    }
+                });
+                return false;
+            }
+        });
+    });
+</script>
+</body>
+</html>
+

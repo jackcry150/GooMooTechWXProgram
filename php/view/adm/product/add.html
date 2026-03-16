@@ -1,0 +1,554 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta content="webkit|ie-comp|ie-stand" name="renderer">
+    <meta content="IE=edge,chrome=1" http-equiv="X-UA-Compatible">
+    <meta content="width=device-width,initial-scale=1,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no" name="viewport"/>
+    <link href="/static/h-ui/css/H-ui.min.css" rel="stylesheet" type="text/css"/>
+    <link href="/static/h-ui.admin/css/H-ui.admin.css" rel="stylesheet" type="text/css"/>
+    <link href="/static/Hui-iconfont/1.0.8/iconfont.css" rel="stylesheet" type="text/css"/>
+    <link href="/static/h-ui.admin/skin/default/skin.css" id="skin" rel="stylesheet" type="text/css"/>
+    <link href="/static/h-ui.admin/css/style.css" rel="stylesheet" type="text/css"/>
+    <script language="javascript" src="/static/laydate/laydate.js" type="text/javascript"></script>
+    <style>
+        .preview-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 15px;
+            margin-top: 10px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            min-height: 100px;
+        }
+
+        .preview-item {
+            position: relative;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            border: 2px solid #ddd;
+        }
+
+        .preview-item.selected {
+            border-color: #1ab394;
+        }
+
+        .preview-img {
+            width: 100%;
+            height: 120px;
+            object-fit: cover;
+            cursor: pointer;
+        }
+
+        .preview-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .preview-item:hover .preview-overlay {
+            display: flex;
+        }
+
+        .delete-btn {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: #e74c3c;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            font-size: 18px;
+        }
+
+        .gallery-select-btn {
+            margin-bottom: 10px;
+        }
+
+        .gallery-modal {
+            display: none;
+            position: fixed;
+            z-index: 10000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+
+        .gallery-modal-content {
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 90%;
+            max-width: 1200px;
+            max-height: 80vh;
+            overflow-y: auto;
+            border-radius: 8px;
+        }
+
+        .gallery-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .gallery-filter {
+            margin-bottom: 20px;
+        }
+
+        .gallery-images {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 15px;
+        }
+
+        .gallery-image-item {
+            position: relative;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .gallery-image-item:hover {
+            border-color: #1ab394;
+        }
+
+        .gallery-image-item.selected {
+            border-color: #1ab394;
+            background: #e8f5e9;
+        }
+
+        .gallery-image-item img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+        }
+
+        .gallery-image-name {
+            padding: 5px;
+            font-size: 12px;
+            text-align: center;
+            background: #f5f5f5;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+    </style>
+    <title>添加</title>
+</head>
+<body>
+<div class="page-container">
+    <form class="form form-horizontal" id="addForm">
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-3" for="title">商品ID：</label>
+            <div class="formControls col-xs-8 col-sm-9">
+                <input class="input-text" data-verify="" id="productId" name="productId" type="number" value="{$productId}">
+                <font color="#ff0000">如果是管家婆同步的商品此处不要修改，此商品订单会自动同步到管家婆；如果订单不需要同步到管家婆，次出不填。</font>
+            </div>
+        </div>
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-3" for="title">全称：</label>
+            <div class="formControls col-xs-8 col-sm-9">
+                <input class="input-text" data-verify="全称不能为空" id="title" name="title" type="text" value="{$fullName}">
+            </div>
+        </div>
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-3" for="subtitle">简称：</label>
+            <div class="formControls col-xs-8 col-sm-9">
+                <input class="input-text" data-verify="简称不能为空" id="subtitle" name="subtitle" type="text" value="{$name}">
+            </div>
+        </div>
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-3">类型：</label>
+            <div class="formControls col-xs-8 col-sm-9">
+                <span class="select-box">
+				<select class="select" data-verify="选择类型" id="type" name="type">
+                    {foreach name="productType" key="k" item="v"}
+                    <option value="{$k}">{$v}</option>
+                {/foreach}
+				</select>
+				</span>
+            </div>
+        </div>
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-3">商品状态：</label>
+            <div class="formControls col-xs-8 col-sm-9">
+                <span class="select-box">
+				<select class="select" id="status" name="status">
+                    {foreach name="statusType" key="k" item="v"}
+                    <option value="{$k}" {if $k == 1} selected {/if}>{$v}</option>
+                {/foreach}
+				</select>
+				</span>
+                <font color="#999999">新商品默认上架，可在商品列表中随时调整</font>
+            </div>
+        </div>
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-3">主图：</label>
+            <div class="formControls col-xs-8 col-sm-9">
+                <button type="button" class="btn btn-primary radius gallery-select-btn" onclick="openGalleryModal('mainImage')">选择主图</button>
+                <div class="preview-container" id="mainImagePreview"></div>
+                <input type="hidden" id="image" name="image" data-verify="主图不能为空">
+            </div>
+        </div>
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-3" for="price">价格：</label>
+            <div class="formControls col-xs-8 col-sm-9">
+                <input class="input-text" data-verify="价格不能为空" id="price" name="price" type="number" value="{$price}">
+            </div>
+        </div>
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-3" for="stock">库存：</label>
+            <div class="formControls col-xs-8 col-sm-9">
+                <input class="input-text" data-verify="库存不能为空" id="stock" name="stock" type="number" value="0" min="0">
+                商品库存数量
+            </div>
+        </div>
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-3" for="limitStock">库存限售：</label>
+            <div class="formControls col-xs-8 col-sm-9">
+                <input class="input-text" id="limitStock" name="limitStock" type="number" value="0" min="0">
+                0表示不限售，大于0表示每人限购数量
+            </div>
+        </div>
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-3" for="price">定金：</label>
+            <div class="formControls col-xs-8 col-sm-9">
+                <input class="input-text" data-verify="定金不能为空" id="deposit" name="deposit" type="number" value="0">
+                现货填0
+            </div>
+        </div>
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-3" for="deduct">最大抵扣：</label>
+            <div class="formControls col-xs-8 col-sm-9">
+                <input class="input-text" data-verify="价格不能为空" id="deduct" name="deduct" type="number" value="0">
+                最大可抵扣金额，不抵扣填0
+            </div>
+        </div>
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-3" for="version">版本：</label>
+            <div class="formControls col-xs-8 col-sm-9">
+                <input class="input-text" data-verify="版本不能为空" id="version" name="version" type="text" value="">
+                多个版本使用英文（,）分开
+            </div>
+        </div>
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-3" for="proportion">比例：</label>
+            <div class="formControls col-xs-8 col-sm-9">
+                <input class="input-text" id="proportion" name="proportion" type="text" value="" placeholder="例如：1:1、1:2等">
+            </div>
+        </div>
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-3" for="dimensions">尺寸：</label>
+            <div class="formControls col-xs-8 col-sm-9">
+                <input class="input-text" id="dimensions" name="dimensions" type="text" value="" placeholder="例如：30cm×40cm">
+            </div>
+        </div>
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-3" for="material">材质：</label>
+            <div class="formControls col-xs-8 col-sm-9">
+                <input class="input-text" id="material" name="material" type="text" value="" placeholder="例如：纸质、布质等">
+            </div>
+        </div>
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-3" for="copyright">版权所属：</label>
+            <div class="formControls col-xs-8 col-sm-9">
+                <input class="input-text" id="copyright" name="copyright" type="text" value="" placeholder="版权所属方">
+            </div>
+        </div>
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-3" for="splitReceiverId">分账接收方ID：</label>
+            <div class="formControls col-xs-8 col-sm-9">
+                <input class="input-text" id="splitReceiverId" name="splitReceiverId" type="text" value="" placeholder="分账接收方ID">
+                <font color="#999999">斗拱开户时生成，示例：6666000123120001；不填则不分帐</font>
+            </div>
+        </div>
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-3" for="splitRatio">分账比例：</label>
+            <div class="formControls col-xs-8 col-sm-9">
+                <input class="input-text" data-verify="分账比例不能为空" id="splitRatio" name="splitRatio" type="number" value="0" min="0" max="100" step="0.01" placeholder="示例：23.50 表示23.50%">
+                <font color="#999999">必填项，单位：%；示例值23.50表示23.50%，0表示不分帐</font>
+            </div>
+        </div>
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-3">详情图：</label>
+            <div class="formControls col-xs-8 col-sm-9">
+                <button type="button" class="btn btn-primary radius gallery-select-btn" onclick="openGalleryModal('content')">选择详情图</button>
+                <div class="preview-container" id="contentPreview"></div>
+                <input type="hidden" id="content" name="content" data-verify="详情图不能为空">
+            </div>
+        </div>
+
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-3">购买须知：</label>
+            <div class="formControls col-xs-8 col-sm-9">
+                <button type="button" class="btn btn-primary radius gallery-select-btn" onclick="openGalleryModal('purchaseNotice')">选择购买须知</button>
+                <div class="preview-container" id="purchaseNoticePreview"></div>
+                <input type="hidden" id="purchaseNotice" name="purchaseNotice" data-verify="购买须知不能为空">
+            </div>
+        </div>
+
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-3" for="startTime">开始时间：</label>
+            <div class="formControls col-xs-8 col-sm-9">
+                <input class="input-text" data-verify="开始时间不能为空" id="startTime" name="startTime" onClick="laydate({istime: true, format: 'YYYY-MM-DD hh:mm:ss'})" type="text" value="">
+            </div>
+        </div>
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-3" for="endTime">结束时间：</label>
+            <div class="formControls col-xs-8 col-sm-9">
+                <input class="input-text" data-verify="结束时间不能为空" id="endTime" name="endTime" onClick="laydate({istime: true, format: 'YYYY-MM-DD hh:mm:ss'})" type="text" value="">
+            </div>
+        </div>
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-3">推荐：</label>
+            <div class="formControls col-xs-8 col-sm-9">
+                <span class="select-box">
+				<select class="select" data-verify="选择推荐" id="mode" name="mode">
+                    {foreach name="productMode" key="k" item="v"}
+                    <option value="{$k}">{$v}</option>
+                {/foreach}
+				</select>
+				</span>
+            </div>
+        </div>
+
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-3">运费模板：</label>
+            <div class="formControls col-xs-8 col-sm-9">
+                <span class="select-box">
+                    <select class="select" id="shippingTemplateId" name="shippingTemplateId">
+                        <option value="0">请选择运费模板</option>
+                        {foreach name="shippingTemplates" item="template"}
+                        <option value="{$template.id}">{$template.name}</option>
+                        {/foreach}
+                    </select>
+                </span>
+            </div>
+        </div>
+
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-3">排序：</label>
+            <div class="formControls col-xs-8 col-sm-9">
+                <input class="input-text" data-verify="排序不能为空" id="sort" name="sort" type="number" value="1">
+                数字越大越靠前
+            </div>
+        </div>
+
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-3"><span class="c-red">*</span> 是否特别贩售：</label>
+            <div class="formControls col-xs-8 col-sm-9">
+                <span class="select-box">
+                    <select class="select" data-verify="请选择是否特别贩售" id="isSpecialSale" name="isSpecialSale">
+                        <option value="0">否</option>
+                        <option value="1">是</option>
+                    </select>
+                </span>
+                <font color="#999999">选“是”时需填写宣传图和预定须知图</font>
+            </div>
+        </div>
+
+        <div id="specialSaleBlock" style="display:none;">
+            <div class="row cl">
+                <label class="form-label col-xs-4 col-sm-3">宣传图：</label>
+                <div class="formControls col-xs-8 col-sm-9">
+                    <button type="button" class="btn btn-primary radius gallery-select-btn" onclick="openGalleryModal('promoImages')">选择宣传图</button>
+                    <div class="preview-container" id="promoImagesPreview"></div>
+                    <input type="hidden" id="promoImages" name="promoImages" value="">
+                </div>
+            </div>
+
+            <div class="row cl">
+                <label class="form-label col-xs-4 col-sm-3">预定须知图：</label>
+                <div class="formControls col-xs-8 col-sm-9">
+                    <button type="button" class="btn btn-primary radius gallery-select-btn" onclick="openGalleryModal('reservationNotice')">选择预定须知图</button>
+                    <div class="preview-container" id="reservationNoticePreview"></div>
+                    <input type="hidden" id="reservationNotice" name="reservationNotice" value="">
+                </div>
+            </div>
+        </div>
+
+        <div class="row cl">
+            <div class="col-9 col-offset-3">
+                <input class="btn btn-primary radius" id="add" type="button" value="&nbsp;&nbsp;提交&nbsp;&nbsp;">
+            </div>
+        </div>
+    </form>
+</div>
+{include file="public/gallery_selector" /}
+<!--_footer 作为公共模版分离出去-->
+<script src="/static/js/jquery.min.js" type="text/javascript"></script>
+<script src="/static/layer/2.4/layer.js" type="text/javascript"></script>
+<script src="/static/h-ui/js/H-ui.min.js" type="text/javascript"></script>
+<script src="/static/h-ui.admin/js/H-ui.admin.js" type="text/javascript"></script>
+<!--/_footer 作为公共模版分离出去-->
+<!--请在下方写此页面业务相关的脚本-->
+<script type="text/javascript">
+    var currentSelectType = '';
+    var selectedImages = {
+        mainImage: [],
+        content: [],
+        purchaseNotice: [],
+        promoImages: [],
+        reservationNotice: []
+    };
+
+    $(function () {
+        $('#isSpecialSale').change(function () {
+            var v = $(this).val();
+            $('#specialSaleBlock').toggle(v == '1');
+            if (v != '1') {
+                selectedImages.promoImages = [];
+                selectedImages.reservationNotice = [];
+                $('#promoImages').val('');
+                $('#reservationNotice').val('');
+                updatePreview('promoImages');
+                updatePreview('reservationNotice');
+            }
+        });
+
+        $('#add').click(function () {
+            const content = $("#addForm").serializeArray();
+            let flag = 0;
+            // 验证图片选择
+            if (selectedImages.mainImage.length === 0) {
+                layer.msg('请选择主图', {time: 1000});
+                flag = 1;
+                return false;
+            }
+            if (selectedImages.content.length === 0) {
+                layer.msg('请选择详情图', {time: 1000});
+                flag = 1;
+                return false;
+            }
+            if (selectedImages.purchaseNotice.length === 0) {
+                layer.msg('请选择购买须知', {time: 1000});
+                flag = 1;
+                return false;
+            }
+            if ($('#isSpecialSale').val() == '1') {
+                if (selectedImages.promoImages.length === 0) {
+                    layer.msg('特别贩售需选择宣传图', {time: 1000});
+                    flag = 1;
+                    return false;
+                }
+                if (selectedImages.reservationNotice.length === 0) {
+                    layer.msg('特别贩售需选择预定须知图', {time: 1000});
+                    flag = 1;
+                    return false;
+                }
+            }
+            
+            // 将图片数组转为JSON字符串（只提取URL）
+            var mainImageUrls = [];
+            for (var i = 0; i < selectedImages.mainImage.length; i++) {
+                mainImageUrls.push(selectedImages.mainImage[i].url);
+            }
+            var contentUrls = [];
+            for (var i = 0; i < selectedImages.content.length; i++) {
+                contentUrls.push(selectedImages.content[i].url);
+            }
+            var purchaseNoticeUrls = [];
+            for (var i = 0; i < selectedImages.purchaseNotice.length; i++) {
+                purchaseNoticeUrls.push(selectedImages.purchaseNotice[i].url);
+            }
+            $('#image').val(JSON.stringify(mainImageUrls));
+            $('#content').val(JSON.stringify(contentUrls));
+            $('#purchaseNotice').val(JSON.stringify(purchaseNoticeUrls));
+            if ($('#isSpecialSale').val() == '1') {
+                var promoUrls = selectedImages.promoImages.map(function(i) { return i.url; });
+                var noticeUrls = selectedImages.reservationNotice.map(function(i) { return i.url; });
+                $('#promoImages').val(JSON.stringify(promoUrls));
+                $('#reservationNotice').val(JSON.stringify(noticeUrls));
+            } else {
+                $('#promoImages').val('');
+                $('#reservationNotice').val('');
+            }
+            $.ajax({
+                type: 'POST',
+                url: '/adm/product/add',
+                data: content,
+                dataType: 'json',
+                success: function (data) {
+                    if (data.code == 1) {
+                        layer.msg(data.msg, {time: 1000}, function () {
+                            window.parent.location.reload();
+                            layer_close();
+                        });
+                    } else {
+                        layer.msg(data.msg, {time: 1000});
+                        return false;
+                    }
+                }
+            });
+        });
+    });
+
+    // 打开图库选择模态框
+    function openGalleryModal(type) {
+        currentSelectType = type;
+        var currentImages = selectedImages[type] || [];
+        
+        // 初始化图库选择器（多选模式）
+        GallerySelector.init({
+            multiple: true,
+            maxSelect: 0, // 不限制数量
+            selectedImages: currentImages
+        });
+        
+        // 打开选择器
+        GallerySelector.open(function(selectedImgs) {
+            // 更新当前类型的图片
+            selectedImages[type] = selectedImgs;
+            updatePreview(type);
+        });
+    }
+
+    // 更新预览
+    function updatePreview(type) {
+        var previewContainer = $('#' + type + 'Preview');
+        var images = selectedImages[type];
+        var html = '';
+        for (var i = 0; i < images.length; i++) {
+            html += '<div class="preview-item" data-id="' + images[i].id + '">';
+            html += '<img src="' + images[i].url + '" class="preview-img" alt="' + images[i].name + '">';
+            html += '<div class="preview-overlay">';
+            html += '<div class="delete-btn" onclick="removeImage(\'' + type + '\', ' + JSON.stringify(images[i].id || i) + ')">×</div>';
+            html += '</div>';
+            html += '</div>';
+        }
+        previewContainer.html(html);
+    }
+
+    // 移除图片
+    function removeImage(type, imageId) {
+        var images = selectedImages[type];
+        for (var i = 0; i < images.length; i++) {
+            if (images[i].id == imageId) {
+                images.splice(i, 1);
+                break;
+            }
+        }
+        updatePreview(type);
+    }
+
+</script>
+<!--/请在上方写此页面业务相关的脚本-->
+</body>
+</html>

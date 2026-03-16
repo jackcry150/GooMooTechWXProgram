@@ -1,0 +1,200 @@
+{
+	"pages": [ //pages数组中第一项表示应用启动页，参考：https://uniapp.dcloud.io/collocation/pages
+		{
+			"path": "pages/index/index",
+			"style": {
+				"navigationBarTitleText": "首页",
+				// "enablePullDownRefresh": true,
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/album/index",
+			"style": {
+				"navigationBarTitleText": "图册"
+			}
+		},
+		{
+			"path": "pages/album/details",
+			"style": {
+				"navigationBarTitleText": "图册"
+			}
+		},
+		{
+			"path": "pages/verify/index",
+			"style": {
+				"navigationBarTitleText": "正品校验",
+				"navigationStyle": "custom",
+				"backgroundColor": "#000000"
+			}
+		},
+		{
+			"path": "pages/my/index",
+			"style": {
+				"navigationBarTitleText": "我的",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/about/about",
+			"style": {
+				"navigationBarTitleText": "品牌介绍"
+			}
+		},
+		{
+			"path": "pages/collect/collect",
+			"style": {
+				"navigationBarTitleText": "线上收藏卡"
+			}
+		},
+		{
+			"path": "pages/customer/customer",
+			"style": {
+				"navigationBarTitleText": "联系客服"
+			}
+		},
+		{
+			"path": "pages/sell/sell",
+			"style": {
+				"navigationBarTitleText": "特别贩售",
+				"navigationBarBackgroundColor": "#000000",
+				"navigationBarTextStyle": "white"
+			}
+		},
+		{
+			"path": "pages/product/detail",
+			"style": {
+				"navigationBarTitleText": "产品详情"
+			}
+		},
+		{
+			"path": "pages/order/list",
+			"style": {
+				"navigationBarTitleText": "我的订单"
+			}
+		},
+		{
+			"path": "pages/order/detail",
+			"style": {
+				"navigationBarTitleText": "订单详情",
+				"enablePullDownRefresh": true,
+				"backgroundTextStyle": "dark"
+			}
+		},
+		{
+			"path": "pages/cart/cart",
+			"style": {
+				"navigationBarTitleText": "购物车",
+				"enablePullDownRefresh": true,
+				"navigationBarBackgroundColor": "#ffffff"
+			}
+		},
+		{
+			"path": "pages/my/profile",
+			"style": {
+				"navigationBarTitleText": "个人资料",
+				"navigationBarBackgroundColor": "#ffffff"
+			}
+		},
+		{
+			"path": "pages/my/agraeement",
+			"style": {
+				"navigationBarTitleText": "服务协议"
+			}
+		},
+		{
+			"path": "pages/my/sales",
+			"style": {
+				"navigationBarTitleText": "售后说明"
+			}
+		},
+		{
+			"path": "pages/address/list",
+			"style": {
+				"navigationBarTitleText": "地址管理",
+				"navigationBarBackgroundColor": "#ffffff",
+				"enablePullDownRefresh": true
+			}
+		},
+		{
+			"path": "pages/address/edit",
+			"style": {
+				"navigationBarTitleText": "编辑地址",
+				"navigationBarBackgroundColor": "#ffffff"
+			}
+		},
+		{
+			"path": "pages/order/create",
+			"style": {
+				"navigationBarTitleText": "创建订单",
+				"navigationBarBackgroundColor": "#ffffff"
+			}
+		},
+		{
+			"path": "pages/login/login",
+			"style": {
+				"navigationBarTitleText": "登录",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/my/privacy",
+			"style": {
+				"navigationBarTitleText": "协议"
+			}
+		},
+		{
+			"path": "pages/my/bill",
+			"style": {
+				"navigationBarTitleText": "我的蜗壳"
+			}
+		},
+		{
+			"path": "pages/my/group",
+			"style": {
+				"navigationBarTitleText": "加入官方社群"
+			}
+		}
+	],
+	"tabBar": {
+		"color": "#000000",
+		"selectedColor": "#dc0000",
+		"borderStyle": "black",
+		"backgroundColor": "#ffffff",
+		"height": "150rpx",
+		"fontSize": "20rpx",
+		"spacing": "30rpx",
+		"iconWidth": "50rpx",
+		"list": [{
+				"pagePath": "pages/index/index",
+				"text": "首页",
+				"iconPath": "static/image/icon_home.png",
+				"selectedIconPath": "static/image/icon_home_select.png"
+			},
+			{
+				"pagePath": "pages/album/index",
+				"text": "图册",
+				"iconPath": "static/image/icon_album.png",
+				"selectedIconPath": "static/image/icon_album_select.png"
+			},
+			{
+				"pagePath": "pages/verify/index",
+				"text": "校验",
+				"iconPath": "static/image/icon_verify.png",
+				"selectedIconPath": "static/image/icon_verify_select.png"
+			},
+			{
+				"pagePath": "pages/my/index",
+				"text": "我的",
+				"iconPath": "static/image/icon_my.png",
+				"selectedIconPath": "static/image/icon_my_select.png"
+			}
+		]
+	},
+	"globalStyle": {
+		"navigationBarTextStyle": "black",
+		"navigationBarTitleText": "首页",
+		"navigationBarBackgroundColor": "#F8F8F8",
+		"backgroundColor": "#F8F8F8"
+	}
+}

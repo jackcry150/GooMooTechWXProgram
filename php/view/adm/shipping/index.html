@@ -1,0 +1,112 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta content="webkit|ie-comp|ie-stand" name="renderer">
+    <meta content="IE=edge,chrome=1" http-equiv="X-UA-Compatible">
+    <meta content="width=device-width,initial-scale=1,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no" name="viewport"/>
+    <link href="/static/h-ui/css/H-ui.min.css" rel="stylesheet" type="text/css"/>
+    <link href="/static/h-ui.admin/css/H-ui.admin.css" rel="stylesheet" type="text/css"/>
+    <link href="/static/Hui-iconfont/1.0.8/iconfont.css" rel="stylesheet" type="text/css"/>
+    <link href="/static/h-ui.admin/skin/default/skin.css" rel="stylesheet" type="text/css"/>
+    <title>运费模板列表</title>
+</head>
+<body>
+<nav class="breadcrumb">
+    <i class="Hui-iconfont">&#xe67f;</i> 首页
+    <span class="c-gray en">&gt;</span> 运费管理
+    <span class="c-gray en">&gt;</span> 运费模板列表
+    <a class="btn btn-success radius r" href="javascript:location.replace(location.href);" style="line-height:1.6em;margin-top:3px" title="刷新"><i class="Hui-iconfont">&#xe68f;</i></a>
+</nav>
+<div class="page-container">
+    <div class="text-c">
+        <form action="" method="get">
+            <input class="input-text" name="name" id="name" placeholder="模板名称" style="width:150px" type="text" value="{$name}">
+            <button class="btn btn-success radius" type="submit"><i class="Hui-iconfont">&#xe665;</i> 搜索</button>
+            <button class="btn btn-primary radius" onclick="show_html('添加运费模板','/adm/shipping/add')" name="action" type="button" value="export"><i class="Hui-iconfont">&#xe600;</i> 添加运费模板</button>
+        </form>
+    </div>
+    <div class="mt-10">
+        <table class="table table-border table-bordered table-hover table-bg">
+            <thead>
+            <tr class="text-c">
+                <th>ID</th>
+                <th>模板名称</th>
+                <th>计费方式</th>
+                <th>计费规则</th>
+                <th>创建时间</th>
+                <th>更新时间</th>
+                <th>操作</th>
+            </tr>
+            </thead>
+            <tbody>
+            {if condition="empty($list)"}
+            <tr class="text-c">
+                <td colspan="7">暂无数据</td>
+            </tr>
+            {else /}
+            {foreach name="list" item="v"}
+            <tr class="text-c">
+                <td>{$v.id}</td>
+                <td>{$v.name}</td>
+                <td>{if condition="$v.type == 1"}按件计费{else /}按重量计费{/if}</td>
+                <td class="text-l">
+                    {if condition="$v.type == 1"}
+                    首件{$v.firstPiece}件，费用¥{$v.firstFee}；续件每{$v.continuePiece}件，费用¥{$v.continueFee}
+                    {else /}
+                    首重{$v.firstWeight}kg，费用¥{$v.firstFee}；续重每{$v.continueWeight}kg，费用¥{$v.continueFee}
+                    {/if}
+                </td>
+                <td>{$v.createDate}</td>
+                <td>{$v.updateDate}</td>
+                <td class="td-manage">
+                    <a title="编辑" href="javascript:;" onclick="show_html('编辑运费模板','/adm/shipping/edit?id={$v.id}')" style="text-decoration:none">编辑</a>&nbsp;|&nbsp;
+                    <a title="删除" href="javascript:;" onclick="del({$v.id})" style="text-decoration:none">删除</a>
+                </td>
+            </tr>
+            {/foreach}
+            {/if}
+            </tbody>
+        </table>
+        <div class="pages">{$page|raw}
+            <div style="clear:both;"></div>
+        </div>
+    </div>
+</div>
+<!--_footer 作为公共模版分离出去-->
+<script type="text/javascript" src="/static/js/jquery.min.js"></script>
+<script type="text/javascript" src="/static/layer/2.4/layer.js"></script>
+<script type="text/javascript" src="/static/h-ui/js/H-ui.min.js"></script>
+<script type="text/javascript" src="/static/h-ui.admin/js/H-ui.admin.js"></script>
+<!--/_footer 作为公共模版分离出去-->
+<script>
+    function del(id) {
+        layer.confirm('确定要删除这个运费模板吗？', {
+            btn: ['确定', '取消'],
+            icon: 3,
+            title: '提示'
+        }, function(index) {
+            $.ajax({
+                type: 'POST',
+                url: '/adm/shipping/del',
+                data: {id: id},
+                dataType: 'json',
+                success: function (data) {
+                    layer.msg(data.msg, {time: 1000}, function () {
+                        if (data.code == 1) {
+                            location.reload();
+                        }
+                    });
+                    layer.close(index);
+                }
+            });
+        });
+    }
+</script>
+</body>
+</html>
+
+
+
+
+

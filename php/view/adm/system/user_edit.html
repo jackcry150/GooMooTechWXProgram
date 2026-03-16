@@ -1,0 +1,132 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta content="webkit|ie-comp|ie-stand" name="renderer">
+    <meta content="IE=edge,chrome=1" http-equiv="X-UA-Compatible">
+    <meta content="width=device-width,initial-scale=1,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no" name="viewport"/>
+    <link href="/static/h-ui/css/H-ui.min.css" rel="stylesheet" type="text/css"/>
+    <link href="/static/h-ui.admin/css/H-ui.admin.css" rel="stylesheet" type="text/css"/>
+    <link href="/static/Hui-iconfont/1.0.8/iconfont.css" rel="stylesheet" type="text/css"/>
+    <link href="/static/h-ui.admin/skin/default/skin.css" id="skin" rel="stylesheet" type="text/css"/>
+    <link href="/static/h-ui.admin/css/style.css" rel="stylesheet" type="text/css"/>
+    <title>修改管理员</title>
+</head>
+<body>
+<div class="page-container">
+    <form class="form form-horizontal">
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-3">姓名：</label>
+            <div class="formControls col-xs-8 col-sm-9">
+                <input class="input-text" data-tip="姓名" id="name" name="name" type="text" value="{$info.name}">
+            </div>
+            <div class="col-3"></div>
+        </div>
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-3">性别：</label>
+            <div class="formControls col-xs-8 col-sm-9 skin-minimal">
+                <div class="radio-box">
+                    <input $info.sex== 1} checked id="sex-1" name="sex" type="radio" value="1" { {if/if} >
+                    <label for="sex-1">男</label>
+                </div>
+                <div class="radio-box">
+                    <input $info.sex== 2} checked id="sex-2" name="sex" type="radio" value="2" { {if/if} >
+                    <label for="sex-2">女</label>
+                </div>
+            </div>
+        </div>
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-3">手机号：</label>
+            <div class="formControls col-xs-8 col-sm-9">
+                <input class="input-text" data-tip="手机号" id="phone" name="phone" type="tel" value="{$info.phone}">
+            </div>
+            <div class="col-3"></div>
+        </div>
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-3">QQ：</label>
+            <div class="formControls col-xs-8 col-sm-9">
+                <input class="input-text" data-tip="QQ" id="qq" name="qq" type="tel" value="{$info.qq}">
+            </div>
+            <div class="col-3"></div>
+        </div>
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-3">微信：</label>
+            <div class="formControls col-xs-8 col-sm-9">
+                <input class="input-text" data-tip="微信" id="weixin" name="weixin" type="text" value="{$info.weixin}">
+            </div>
+            <div class="col-3"></div>
+        </div>
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-3">邮箱：</label>
+            <div class="formControls col-xs-8 col-sm-9">
+                <input class="input-text" data-tip="邮箱" id="email" name="email" type="text" value="{$info.email}">
+            </div>
+            <div class="col-3"></div>
+        </div>
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-3">部门：</label>
+            <div class="formControls col-xs-8 col-sm-9"> <span class="select-box">
+				<select class="select" data-tip="部门" id="department" name="department">
+					{foreach name="list" item="v"}
+					<option $info.department== $v.id} selected value="{$v.id}" { {if/if}>{$v.name}</option>
+                    {/foreach}
+				</select>
+				</span></div>
+        </div>
+        <div class="row cl">
+            <div class="col-9 col-offset-3">
+                <input name="id" type="hidden" value="{$info.id}"/>
+                <input class="btn btn-primary radius" id="form_submit" type="button" value="&nbsp;&nbsp;提交&nbsp;&nbsp;">
+            </div>
+        </div>
+    </form>
+</div>
+
+<!--_footer 作为公共模版分离出去-->
+<script src="/static/js/jquery.min.js" type="text/javascript"></script>
+<script src="/static/layer/2.4/layer.js" type="text/javascript"></script>
+<script src="/static/h-ui/js/H-ui.min.js" type="text/javascript"></script>
+<script src="/static/h-ui.admin/js/H-ui.admin.js" type="text/javascript"></script>
+<script src="/static/js/jquery.contextmenu.r2.js" type="text/javascript"></script>
+<!--/_footer 作为公共模版分离出去-->
+
+<!--请在下方写此页面业务相关的脚本-->
+<script type="text/javascript">
+    $(function () {
+        $('#form_submit').click(function () {
+            var content = $("form").serializeArray();
+            $.each(content, function (i, item) {
+                if (item['value'] == '') {
+                    layer.msg($('#' + content[i].name).data("tip") + '不能为空！', {time: 1000});
+                    $('#' + content[i].name).focus();
+                    flag = 1;
+                    return false;
+                } else {
+                    flag = 0;
+                }
+            });
+            if (!flag) {
+                $.ajax({
+                    type: 'POST',
+                    url: '/adm/system/userEdit',
+                    data: content,
+                    dataType: 'json',
+                    success: function (data) {
+                        if (data.code == 1) {
+                            layer.msg(data.msg, {time: 1000}, function () {
+                                layer_close();
+                            });
+                        } else {
+                            layer.msg(data.msg, {time: 1000});
+                            return false;
+                        }
+                    }
+                });
+                return false;
+            }
+        });
+    });
+</script>
+<!--/请在上方写此页面业务相关的脚本-->
+</body>
+</html>

@@ -1,0 +1,156 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta content="webkit|ie-comp|ie-stand" name="renderer">
+    <meta content="IE=edge,chrome=1" http-equiv="X-UA-Compatible">
+    <meta content="width=device-width,initial-scale=1,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no" name="viewport"/>
+    <link href="/static/h-ui/css/H-ui.min.css" rel="stylesheet" type="text/css"/>
+    <link href="/static/h-ui.admin/css/H-ui.admin.css" rel="stylesheet" type="text/css"/>
+    <link href="/static/Hui-iconfont/1.0.8/iconfont.css" rel="stylesheet" type="text/css"/>
+    <link href="/static/h-ui.admin/skin/default/skin.css" id="skin" rel="stylesheet" type="text/css"/>
+    <link href="/static/h-ui.admin/css/style.css" rel="stylesheet" type="text/css"/>
+    <title>修改</title>
+</head>
+<body>
+<div class="page-container">
+    <form class="form form-horizontal" id="editForm">
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-3">位置：</label>
+            <div class="formControls col-xs-8 col-sm-9">
+                <span class="select-box">
+				<select class="select" data-verify="选择位置" id="type" name="type">
+					<option value="">选择位置</option>
+                    {foreach name="adType" key="k" item="v"}
+                    <option value="{$k}" {if $info.type == $k} selected {/if} >{$v}</option>
+                {/foreach}
+				</select>
+				</span>
+            </div>
+        </div>
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-3">标题：</label>
+            <div class="formControls col-xs-8 col-sm-9">
+                <input class="input-text" data-verify="标题不能为空" id="title" name="title" type="text" value="{$info.title}">
+            </div>
+        </div>
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-3">图片：</label>
+            <div class="formControls col-xs-8 col-sm-9">
+                <img src="{$info.image}" id="upFileBut" style="height: 100px; width: 100px;">
+                <input accept="image/jpg,image/jpeg,image/png" id="imageFile" name="imageFile" style="display: none" type="file">
+                <input data-verify="图片不能为空" id="image" name="image" value="{$info.image}" type="hidden"/>
+            </div>
+        </div>
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-3">地址：</label>
+            <div class="formControls col-xs-8 col-sm-9">
+                <input class="input-text" data-verify="地址不能为空" id="link" name="link" placeholder="/page" type="text" value="{$info.link}">
+            </div>
+        </div>
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-3">状态：</label>
+            <div class="formControls col-xs-8 col-sm-9">
+                <span class="select-box">
+				<select class="select" data-verify="选择状态" id="status" name="status">
+                    {foreach name="statusType" key="k" item="v"}
+                    <option value="{$k}" {if $info.status == $k} selected {/if} >{$v}</option>
+                {/foreach}
+				</select>
+				</span>
+            </div>
+        </div>
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-3">排序：</label>
+            <div class="formControls col-xs-8 col-sm-9">
+                <input class="input-text" data-verify="排序不能为空" id="sort" name="sort" type="number" value="{$info.sort}">
+                数字越大越靠前
+            </div>
+        </div>
+        <div class="row cl">
+            <div class="col-9 col-offset-3">
+                <input name="id" type="hidden" value="{$info.id}"/>
+                <input class="btn btn-primary radius" id="edit" type="button" value="&nbsp;&nbsp;提交&nbsp;&nbsp;">
+            </div>
+        </div>
+    </form>
+</div>
+<!--_footer 作为公共模版分离出去-->
+<script src="/static/js/jquery.min.js" type="text/javascript"></script>
+<script src="/static/layer/2.4/layer.js" type="text/javascript"></script>
+<script src="/static/h-ui/js/H-ui.min.js" type="text/javascript"></script>
+<script src="/static/h-ui.admin/js/H-ui.admin.js" type="text/javascript"></script>
+<!--/_footer 作为公共模版分离出去-->
+
+<!--请在下方写此页面业务相关的脚本-->
+<script type="text/javascript">
+    $(function () {
+        $('#upFileBut').click(function () {
+            $('#imageFile').click();
+            return false;
+        });
+
+        $('#imageFile').on('change', function (e) {
+            var formData = new FormData();
+            var file = e.target.files[0];
+            formData.append('file', file);
+            $.ajax({
+                type: 'POST',
+                url: "/adm/upfile/image",
+                data: formData,
+                processData: false, // 告诉jQuery不要去处理发送的数据
+                contentType: false, // 告诉jQuery不要去设置Content-Type请求头
+                async: false,
+                success: function (data) {
+                    layer.msg(data.msg, {time: 1000});
+                    if (data.code == 1) {
+                        $('#image').val(data.data);
+                        $('#upFileBut').attr('src', data.data);
+                        return false;
+                    }
+                    return false;
+                }
+            })
+        })
+
+        $('#edit').click(function () {
+            const content = $("#editForm").serializeArray();
+            let flag = 0;
+            $.each(content, function (i, item) {
+                let id = $('#' + content[i].name);
+                let verify = id.data("verify");
+                if (item['value'] == '' && verify != '') {
+                    layer.msg(verify, {time: 1000});
+                    id.focus();
+                    flag = 1;
+                    return false;
+                } else {
+                    flag = 0;
+                }
+            });
+            if (!flag) {
+                $.ajax({
+                    type: 'POST',
+                    url: '/adm/ad/edit',
+                    data: content,
+                    dataType: 'json',
+                    success: function (data) {
+                        if (data.code == 1) {
+                            layer.msg(data.msg, {time: 1000}, function () {
+                                window.parent.location.reload();
+                                layer_close();
+                            });
+                        } else {
+                            layer.msg(data.msg, {time: 1000});
+                            return false;
+                        }
+                    }
+                });
+                return false;
+            }
+        });
+    });
+</script>
+<!--/请在上方写此页面业务相关的脚本-->
+</body>
+</html>

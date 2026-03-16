@@ -1,0 +1,17 @@
+
+.empty-state.data-v-8ba69474 {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		padding: 280rpx 0;
+}
+.empty-icon.data-v-8ba69474 {
+		width: 400rpx;
+		height: auto;
+		margin-bottom: 30rpx;
+}
+.empty-text.data-v-8ba69474 {
+		font-size: 24rpx;
+		color: #999999;
+}

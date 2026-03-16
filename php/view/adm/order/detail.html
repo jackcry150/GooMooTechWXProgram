@@ -1,0 +1,278 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta content="webkit|ie-comp|ie-stand" name="renderer">
+    <meta content="IE=edge,chrome=1" http-equiv="X-UA-Compatible">
+    <meta content="width=device-width,initial-scale=1,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no" name="viewport"/>
+    <link href="/static/h-ui/css/H-ui.min.css" rel="stylesheet" type="text/css"/>
+    <link href="/static/h-ui.admin/css/H-ui.admin.css" rel="stylesheet" type="text/css"/>
+    <link href="/static/Hui-iconfont/1.0.8/iconfont.css" rel="stylesheet" type="text/css"/>
+    <link href="/static/h-ui.admin/skin/default/skin.css" rel="stylesheet" type="text/css"/>
+    <link href="/static/h-ui.admin/css/style.css" rel="stylesheet" type="text/css"/>
+    <title>订单详情</title>
+    <style>
+        .order-detail-box {
+            padding: 20px;
+        }
+        .detail-section {
+            margin-bottom: 30px;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            padding: 15px;
+            background: #fafafa;
+        }
+        .detail-section-title {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #1ab394;
+            color: #333;
+        }
+        .detail-row {
+            display: flex;
+            margin-bottom: 10px;
+            line-height: 30px;
+        }
+        .detail-label {
+            width: 120px;
+            color: #666;
+            font-weight: normal;
+        }
+        .detail-value {
+            flex: 1;
+            color: #333;
+        }
+        .product-item {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            margin-bottom: 10px;
+            background: #fff;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+        }
+        .product-item img {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            margin-right: 15px;
+            border-radius: 4px;
+        }
+        .product-info {
+            flex: 1;
+        }
+        .product-name {
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .product-spec {
+            color: #999;
+            font-size: 12px;
+            margin-bottom: 5px;
+        }
+        .product-price {
+            color: #e74c3c;
+            font-size: 14px;
+            font-weight: bold;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 3px;
+            color: #fff;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+<div class="order-detail-box">
+    <!-- 订单基本信息 -->
+    <div class="detail-section">
+        <div class="detail-section-title">订单基本信息</div>
+        <div class="detail-row">
+            <span class="detail-label">订单ID：</span>
+            <span class="detail-value">{$orderInfo.id}</span>
+        </div>
+        <div class="detail-row">
+            <span class="detail-label">订单号：</span>
+            <span class="detail-value">{$orderInfo.orderNo}</span>
+        </div>
+        <div class="detail-row">
+            <span class="detail-label">订单状态：</span>
+            <span class="detail-value">
+                <span class="status-badge" style="background-color: {$orderInfo.statusColor};">{$orderInfo.statusText}</span>
+            </span>
+        </div>
+        <div class="detail-row">
+            <span class="detail-label">订单金额：</span>
+            <span class="detail-value" style="color: #e74c3c; font-size: 16px; font-weight: bold;">¥{$orderInfo.totalPrice}</span>
+        </div>
+        <div class="detail-row">
+            <span class="detail-label">创建时间：</span>
+            <span class="detail-value">{$orderInfo.createDate}</span>
+        </div>
+        <div class="detail-row">
+            <span class="detail-label">支付时间：</span>
+            <span class="detail-value">{$orderInfo.payDate}</span>
+        </div>
+        <div class="detail-row">
+            <span class="detail-label">创建IP：</span>
+            <span class="detail-value">{$orderInfo.createIp}</span>
+        </div>
+        <div class="detail-row">
+            <span class="detail-label">备注：</span>
+            <span class="detail-value">{$orderInfo.remarks}</span>
+        </div>
+    </div>
+
+    <!-- 用户信息 -->
+    <div class="detail-section">
+        <div class="detail-section-title">用户信息</div>
+        <div class="detail-row">
+            <span class="detail-label">用户昵称：</span>
+            <span class="detail-value">{$orderInfo.nickName}</span>
+        </div>
+        <div class="detail-row">
+            <span class="detail-label">手机号：</span>
+            <span class="detail-value">{$orderInfo.userPhone}</span>
+        </div>
+        {if condition="$orderInfo.avatar"}
+        <div class="detail-row">
+            <span class="detail-label">头像：</span>
+            <span class="detail-value">
+                <img src="{$orderInfo.avatar}" style="width:50px;height:50px;border-radius:50%;object-fit:cover;" alt="头像">
+            </span>
+        </div>
+        {/if}
+    </div>
+
+    <!-- 商品信息 -->
+    <div class="detail-section">
+        <div class="detail-section-title">商品信息</div>
+        {if condition="!empty($orderInfo.productList)"}
+        {foreach name="orderInfo.productList" item="p"}
+        <div class="product-item">
+            <div class="product-info">
+                <div class="product-name">{$p.title|default='商品名称'}</div>
+                {if condition="isset($p.version) && $p.version"}
+                <div class="product-spec">版本：{$p.version}</div>
+                {/if}
+                <div class="product-spec">数量：{$p.quantity}</div>
+                <div class="product-price">单价：¥{$p.price}</div>
+            </div>
+        </div>
+        {/foreach}
+        {else /}
+        <div style="text-align: center; color: #999; padding: 20px;">暂无商品信息</div>
+        {/if}
+    </div>
+
+    <!-- 收货地址 -->
+    <div class="detail-section">
+        <div class="detail-section-title">收货地址</div>
+        {if condition="!empty($orderInfo.addressInfo)"}
+        <div class="detail-row">
+            <span class="detail-label">收货人：</span>
+            <span class="detail-value">{$orderInfo.addressInfo.name|default='-'}</span>
+        </div>
+        <div class="detail-row">
+            <span class="detail-label">联系电话：</span>
+            <span class="detail-value">{$orderInfo.addressInfo.phone|default='-'}</span>
+        </div>
+        <div class="detail-row">
+            <span class="detail-label">收货地址：</span>
+            <span class="detail-value">
+                {$orderInfo.addressInfo.province|default=''}{$orderInfo.addressInfo.city|default=''}{$orderInfo.addressInfo.area|default=''}{$orderInfo.addressInfo.detail|default='-'}
+            </span>
+        </div>
+        {else /}
+        <div style="text-align: center; color: #999; padding: 20px;">暂无地址信息</div>
+        {/if}
+    </div>
+
+    <!-- 退款信息 -->
+    {if condition="isset($orderInfo.refundStatus) && $orderInfo.refundStatus > 0"}
+    <div class="detail-section">
+        <div class="detail-section-title">退款信息</div>
+        <div class="detail-row">
+            <span class="detail-label">退款状态：</span>
+            <span class="detail-value">
+                {if condition="$orderInfo.refundStatus == 1"}
+                <span class="status-badge" style="background-color: #f39c12;">申请退款中</span>
+                {elseif condition="$orderInfo.refundStatus == 2" /}
+                <span class="status-badge" style="background-color: #1ccf00;">同意退款</span>
+                {elseif condition="$orderInfo.refundStatus == 3" /}
+                <span class="status-badge" style="background-color: #dc0000;">拒绝退款</span>
+                {/if}
+            </span>
+        </div>
+        {if condition="$orderInfo.refundReason"}
+        <div class="detail-row">
+            <span class="detail-label">退款原因：</span>
+            <span class="detail-value">{$orderInfo.refundReason}</span>
+        </div>
+        {/if}
+        {if condition="$orderInfo.refundAmount"}
+        <div class="detail-row">
+            <span class="detail-label">退款金额：</span>
+            <span class="detail-value" style="color: #e74c3c; font-weight: bold;">¥{$orderInfo.refundAmount}</span>
+        </div>
+        {/if}
+        {if condition="$orderInfo.refundRemark"}
+        <div class="detail-row">
+            <span class="detail-label">退款备注：</span>
+            <span class="detail-value">{$orderInfo.refundRemark}</span>
+        </div>
+        {/if}
+        {if condition="$orderInfo.refundApplyTime"}
+        <div class="detail-row">
+            <span class="detail-label">申请时间：</span>
+            <span class="detail-value">{$orderInfo.refundApplyTime}</span>
+        </div>
+        {/if}
+        {if condition="$orderInfo.refundTime"}
+        <div class="detail-row">
+            <span class="detail-label">处理时间：</span>
+            <span class="detail-value">{$orderInfo.refundTime}</span>
+        </div>
+        {/if}
+    </div>
+    {/if}
+    
+    <!-- 物流信息 -->
+    {if condition="$orderInfo.freightName && $orderInfo.freightName != '-'"}
+    <div class="detail-section">
+        <div class="detail-section-title">物流信息</div>
+        <div class="detail-row">
+            <span class="detail-label">物流公司名称：</span>
+            <span class="detail-value">{$orderInfo.freightName}</span>
+        </div>
+        <div class="detail-row">
+            <span class="detail-label">物流公司编码：</span>
+            <span class="detail-value">{$orderInfo.freightCode|default='-'}</span>
+        </div>
+        <div class="detail-row">
+            <span class="detail-label">物流单号：</span>
+            <span class="detail-value">{$orderInfo.freightNo}</span>
+        </div>
+        <div class="detail-row">
+            <span class="detail-label">发货时间：</span>
+            <span class="detail-value">{$orderInfo.freightTime}</span>
+        </div>
+    </div>
+    {/if}
+</div>
+<!--_footer 作为公共模版分离出去-->
+<script src="/static/js/jquery.min.js" type="text/javascript"></script>
+<script src="/static/layer/2.4/layer.js" type="text/javascript"></script>
+<script src="/static/h-ui/js/H-ui.min.js" type="text/javascript"></script>
+<script src="/static/h-ui.admin/js/H-ui.admin.js" type="text/javascript"></script>
+<!--/_footer 作为公共模版分离出去-->
+</body>
+</html>
+
+
+

@@ -1,0 +1,16 @@
+
+.page.data-v-b73f8d03 {
+		min-height: 100vh;
+		background: #ffffff;
+}
+.content.data-v-b73f8d03 {
+		max-height: 100vh;
+		padding: 30rpx;
+		box-sizing: border-box;
+}
+.text.data-v-b73f8d03 {
+		font-size: 28rpx;
+		color: #333;
+		line-height: 1.8;
+		white-space: pre-wrap;
+}

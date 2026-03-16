@@ -1,0 +1,110 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="renderer" content="webkit|ie-comp|ie-stand">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no" />
+<link rel="stylesheet" type="text/css" href="/static/h-ui/css/H-ui.min.css" />
+<link rel="stylesheet" type="text/css" href="/static/h-ui.admin/css/H-ui.admin.css" />
+<link rel="stylesheet" type="text/css" href="/static/Hui-iconfont/1.0.8/iconfont.css" />
+<link rel="stylesheet" type="text/css" href="/static/h-ui.admin/skin/default/skin.css" id="skin" />
+<link rel="stylesheet" type="text/css" href="/static/h-ui.admin/css/style.css" />
+<title>修改权限</title>
+</head>
+<body>
+<div class="page-container">
+	<form class="form form-horizontal" >
+		<div class="row cl">
+			<label class="form-label col-xs-4 col-sm-3">部门：</label>
+			<div class="formControls col-xs-8 col-sm-9">
+				<input type="text" class="input-text" value="{$info.name}" disabled>
+			</div>
+		</div>
+		<div class="row cl">
+			<label class="form-label col-xs-4 col-sm-3">职责：</label>
+			<div class="formControls col-xs-8 col-sm-9">
+				<input type="text" class="input-text" value="{$info.other}" placeholder="" data-tip="职责" id="other" name="other">
+			</div>
+		</div>
+		<div class="row cl">
+			<label class="form-label col-xs-4 col-sm-3">查看权限：</label>
+			<div class="formControls col-xs-8 col-sm-9"> {foreach name="list" item="v"}
+				<dl class="permission-list">
+					<dt>
+						<label>
+							<input type="checkbox" value="{$v.id}" name="role" {in name="$v.id" value="$info.role"} checked="checked" {/in} >
+							{$v.name}</label>
+					</dt>
+					<dd>
+						<dl class="cl permission-list2">
+							{foreach name="v.info" item="vv"}
+							<dt>
+								<label class="">
+									<input type="checkbox" value="{$vv.id}" name="role" {in name="$vv.id" value="$info.role"} checked="checked" {/in} >
+									{$vv.name}</label>
+							</dt>
+							{/foreach}
+						</dl>
+					</dd>
+				</dl>
+				{/foreach} </div>
+		</div>
+		<div class="row cl">
+			<div class="col-9 col-offset-3">
+				<input class="btn btn-primary radius" id="form_submit" type="button" value="&nbsp;&nbsp;提交&nbsp;&nbsp;">
+			</div>
+		</div>
+	</form>
+</div>
+
+<!--_footer 作为公共模版分离出去-->
+<script type="text/javascript" src="/static/js/jquery.min.js"></script>
+<script type="text/javascript" src="/static/layer/2.4/layer.js"></script>
+<script type="text/javascript" src="/static/h-ui/js/H-ui.min.js"></script>
+<script type="text/javascript" src="/static/h-ui.admin/js/H-ui.admin.js"></script>
+<script type="text/javascript" src="/static/js/jquery.contextmenu.r2.js"></script> <!--/_footer 作为公共模版分离出去-->
+
+<!--请在下方写此页面业务相关的脚本-->
+<script type="text/javascript">
+$(function() {
+$('#form_submit').click(function() {
+	var other = $('#other').val();
+	if(other == ''){
+		layer.msg($('#other').data("tip")+'不能为空！',{time: 1000});
+		$('#other').focus();
+		return false;
+	}
+	var ids = $('input[type=checkbox]');
+	var role = '';
+	ids.each(function () {
+		//获取当前元素的勾选状态
+		if ($(this).prop("checked")) {
+			role = role + $(this).val() + ",";
+		}
+	});
+	//去最后的点
+	role = role.substring(0, role.length - 1);
+	var editPermissions = $("input[name='editPermissions']:checked").val();
+	$.ajax({
+		type: 'POST',
+		url: '/adm/system/jurisdiction',
+		data: {other:other, role:role, id:{$info.id}, editPermissions:editPermissions},
+		dataType: 'json',
+		success:function (data) {
+			if(data.code == 1){
+				layer.msg(data.msg,{time:1000}, function(){
+					layer_close();
+				});
+			}else{
+				layer.msg(data.msg,{time:1000});
+				return false;
+			}
+		}
+	});
+});
+});
+</script>
+<!--/请在上方写此页面业务相关的脚本-->
+</body>
+</html>

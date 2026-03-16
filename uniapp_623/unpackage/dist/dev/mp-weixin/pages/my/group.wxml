@@ -1,0 +1,1 @@
+<view class="group"><image wx:for="{{a}}" wx:for-item="ad" wx:key="a" class="group-img" src="{{ad.b}}" mode="widthFix"></image></view>

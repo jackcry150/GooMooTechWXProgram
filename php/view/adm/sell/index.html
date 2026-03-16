@@ -1,0 +1,97 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta content="webkit|ie-comp|ie-stand" name="renderer">
+    <meta content="IE=edge,chrome=1" http-equiv="X-UA-Compatible">
+    <meta content="width=device-width,initial-scale=1,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no" name="viewport"/>
+    <link href="/static/h-ui/css/H-ui.min.css" rel="stylesheet" type="text/css"/>
+    <link href="/static/h-ui.admin/css/H-ui.admin.css" rel="stylesheet" type="text/css"/>
+    <link href="/static/Hui-iconfont/1.0.8/iconfont.css" rel="stylesheet" type="text/css"/>
+    <link href="/static/h-ui.admin/skin/default/skin.css" rel="stylesheet" type="text/css"/>
+    <title>贩售列表</title>
+</head>
+<body>
+<nav class="breadcrumb">
+    <i class="Hui-iconfont">&#xe67f;</i> 首页
+    <span class="c-gray en">&gt;</span> 贩售管理
+    <span class="c-gray en">&gt;</span> 列表
+    <a class="btn btn-success radius r" href="javascript:location.replace(location.href);" style="line-height:1.6em;margin-top:3px" title="刷新"><i class="Hui-iconfont">&#xe68f;</i></a>
+</nav>
+<div class="page-container">
+    <div class="text-c">
+        <form action="" method="get">
+            <input class="input-text" name="productId" id="productId" placeholder="商品ID" style="width:120px" type="text" value="{$productId}">
+            <span class="select-box inline">
+                <select class="select" id="status" name="status">
+                    <option value="">全部状态</option>
+                    {foreach name="statusType" key="k" item="v"}
+                    <option {if $k == $status} selected {/if} value="{$k}">{$v}</option>
+                    {/foreach}
+                </select>
+            </span>
+            <button class="btn btn-success radius" type="submit"><i class="Hui-iconfont">&#xe665;</i> 搜索</button>
+            <button class="btn btn-primary radius" type="button" onclick="show_html('添加','/adm/sell/add')"><i class="Hui-iconfont">&#xe600;</i> 添加</button>
+        </form>
+    </div>
+    <div class="mt-10">
+        <table class="table table-border table-bordered table-hover table-bg">
+            <thead>
+            <tr class="text-c">
+                <th>ID</th>
+                <th>商品ID</th>
+                <th>商品名称</th>
+                <th>是否上架</th>
+                <th>开始时间</th>
+                <th>结束时间</th>
+                <th>排序</th>
+                <th>操作</th>
+            </tr>
+            </thead>
+            <tbody>
+            {foreach name="list" item="v"}
+            <tr class="text-c">
+                <td>{$v.id}</td>
+                <td>{$v.productId}</td>
+                <td class="text-l">{$v.productTitle}</td>
+                <td>{$v.statusText}</td>
+                <td>{$v.startTime|default='-'}</td>
+                <td>{$v.endTime|default='-'}</td>
+                <td>{$v.sort}</td>
+                <td class="td-manage">
+                    <a title="编辑" href="javascript:;" onclick="show_html('编辑','/adm/sell/edit?id={$v.id}')">编辑</a>
+                    &nbsp;|&nbsp;
+                    <a title="删除" href="javascript:;" onclick="del({$v.id})">删除</a>
+                </td>
+            </tr>
+            {/foreach}
+            </tbody>
+        </table>
+        <div class="pages">{$page|raw}
+            <div style="clear:both;"></div>
+        </div>
+    </div>
+</div>
+<script type="text/javascript" src="/static/js/jquery.min.js"></script>
+<script type="text/javascript" src="/static/layer/2.4/layer.js"></script>
+<script type="text/javascript" src="/static/h-ui/js/H-ui.min.js"></script>
+<script type="text/javascript" src="/static/h-ui.admin/js/H-ui.admin.js"></script>
+<script>
+    function del(id) {
+        layer.confirm('确认删除？', function() {
+            $.ajax({
+                type: 'POST',
+                url: '/adm/sell/del',
+                data: { id: id },
+                dataType: 'json',
+                success: function(data) {
+                    layer.msg(data.msg, { time: 1000 }, function() {
+                        if (data.code == 1) location.reload();
+                    });
+                }
+            });
+        });
+    }
+</script>
+</body>
+</html>

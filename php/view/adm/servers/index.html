@@ -1,0 +1,104 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta content="webkit|ie-comp|ie-stand" name="renderer">
+    <meta content="IE=edge,chrome=1" http-equiv="X-UA-Compatible">
+    <meta content="width=device-width,initial-scale=1,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no" name="viewport"/>
+    <link href="/static/h-ui/css/H-ui.min.css" rel="stylesheet" type="text/css"/>
+    <link href="/static/h-ui.admin/css/H-ui.admin.css" rel="stylesheet" type="text/css"/>
+    <link href="/static/Hui-iconfont/1.0.8/iconfont.css" rel="stylesheet" type="text/css"/>
+    <link href="/static/h-ui.admin/skin/default/skin.css" rel="stylesheet" type="text/css"/>
+    <title>列表</title>
+</head>
+<body>
+<nav class="breadcrumb">
+    <i class="Hui-iconfont">&#xe67f;</i> 首页
+    <span class="c-gray en">&gt;</span> 客服管理
+    <span class="c-gray en">&gt;</span> 列表
+    <a class="btn btn-success radius r" href="javascript:location.replace(location.href);" style="line-height:1.6em;margin-top:3px" title="刷新"><i class="Hui-iconfont">&#xe68f;</i></a>
+</nav>
+<div class="page-container">
+    <div class="text-c">
+        <form action="" method="get">
+            <span class="select-box inline">
+			<select class="select" data-tip="类型" id="type" name="type">
+				<option selected value="">请选择类型</option>
+				{foreach name="serverType" key="k" item="v"}
+				<option {if $k == $type} selected {/if} value="{$k}">{$v}</option>
+                {/foreach}
+			</select>
+			</span>
+            <input class="input-text" name="title" id="title" placeholder="标题" style="width:150px" type="text" value="{$title}">
+            <span class="select-box inline">
+			<select class="select" data-tip="状态" id="status" name="status">
+				<option selected value="">请选择状态</option>
+				{foreach name="statusType" key="k" item="v"}
+				<option {if $k == $status} selected {/if} value="{$k}">{$v}</option>
+                {/foreach}
+			</select>
+			</span>
+            <button class="btn btn-success radius" type="submit"><i class="Hui-iconfont">&#xe665;</i> 搜索</button>
+            <button class="btn btn-primary radius" onclick="show_html('添加','/adm/servers/add')" name="action" type="button" value="export"><i class="Hui-iconfont">&#xe600;</i> 添加</button>
+        </form>
+    </div>
+    <div class="mt-10">
+        <table class="table table-border table-bordered table-hover table-bg">
+            <thead>
+            <tr class="text-c">
+                <th>ID</th>
+                <th>类型</th>
+                <th>标题</th>
+                <th>图片</th>
+                <th>状态</th>
+                <th>排序</th>
+                <th>操作</th>
+            </tr>
+            </thead>
+            <tbody>
+            {foreach name="list" item="v"}
+            <tr class="text-c">
+                <td>{$v.id}</td>
+                <td>{$v.type}</td>
+                <td>{$v.title}</td>
+                <td><img src="{$v.image}" style="height: 80px; width: 80px"></td>
+                <td>{$v.status}</td>
+                <td>{$v.sort}</td>
+                <td class="td-manage">
+                    <a title="编辑" href="javascript:;" onclick="show_html('编辑','/adm/servers/edit?id={$v.id}')" style="text-decoration:none">编辑</a>&nbsp;|&nbsp;
+                    <a title="删除" href="javascript:;" onclick="del('{$v.id}')" style="text-decoration:none">删除</a>
+                </td>
+            </tr>
+            {/foreach}
+            </tbody>
+        </table>
+        <div class="pages">{$page|raw}
+            <div style="clear:both;"></div>
+        </div>
+    </div>
+</div>
+<!--_footer 作为公共模版分离出去-->
+<script type="text/javascript" src="/static/js/jquery.min.js"></script>
+<script type="text/javascript" src="/static/layer/2.4/layer.js"></script>
+<script type="text/javascript" src="/static/h-ui/js/H-ui.min.js"></script>
+<script type="text/javascript" src="/static/h-ui.admin/js/H-ui.admin.js"></script>
+<!--/_footer 作为公共模版分离出去-->
+<script>
+    function del(id) {
+        $.ajax({
+            type: 'POST',
+            url: '/adm/servers/del',
+            data: {id: id},
+            dataType: 'json',
+            success: function (data) {
+                layer.msg(data.msg, {time: 1000}, function () {
+                    if (data.code == 1) {
+                        location.reload();
+                    }
+                });
+            }
+        });
+    }
+</script>
+</body>
+</html>

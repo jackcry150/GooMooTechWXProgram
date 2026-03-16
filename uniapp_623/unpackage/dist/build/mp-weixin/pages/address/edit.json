@@ -1,0 +1,7 @@
+{
+  "navigationBarTitleText": "编辑地址",
+  "navigationBarBackgroundColor": "#ffffff",
+  "usingComponents": {
+    "city-picker": "../../uni_modules/piaoyi-cityPicker/components/piaoyi-cityPicker/piaoyi-cityPicker"
+  }
+}

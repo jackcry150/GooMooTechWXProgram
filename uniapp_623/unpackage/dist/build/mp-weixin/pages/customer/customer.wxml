@@ -1,0 +1,1 @@
+<view class="customer data-v-1cc209ce"><view wx:for="{{a}}" wx:for-item="item" wx:key="b" class="list data-v-1cc209ce" bindtap="{{item.c}}"><image class="list-image data-v-1cc209ce" src="{{item.a}}" mode="widthFix"></image></view></view>

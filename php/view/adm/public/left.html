@@ -1,0 +1,16 @@
+<aside class="Hui-aside">
+    <div class="menu_dropdown bk_2">
+        {foreach name="navlist" item="v"}
+        <dl id="menu-article">
+            <dt><i class="Hui-iconfont">&#xe616;</i> {$v.name}<i class="Hui-iconfont menu_dropdown-arrow">&#xe6d5;</i></dt>
+            <dd>
+                <ul>
+                    {foreach name="v.info" item="vv"}
+                    <li><a data-href="{$vv.url}" data-title="{$vv.name}" href="javascript:void(0)">{$vv.name}</a></li>
+                    {/foreach}
+                </ul>
+            </dd>
+        </dl>
+        {/foreach}
+    </div>
+</aside>
