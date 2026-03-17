@@ -21,10 +21,9 @@ const _sfc_main = {
   onLoad() {
   },
   onShow() {
-    common_vendor.index.removeStorageSync(ARRIVAL_SUBSCRIBE_ASKED_KEY);
-    this.tryAskArrivalSubscribe();
     const token = common_vendor.index.getStorageSync("token");
     if (token) {
+      this.tryAskArrivalSubscribe();
       this.getProfileInfo();
       this.getCartCount();
       this.getCollectCount();
@@ -32,6 +31,10 @@ const _sfc_main = {
   },
   methods: {
     tryAskArrivalSubscribe() {
+      const token = common_vendor.index.getStorageSync("token");
+      if (!token) {
+        return;
+      }
       const asked = common_vendor.index.getStorageSync(ARRIVAL_SUBSCRIBE_ASKED_KEY);
       if (asked) {
         return;
@@ -54,23 +57,14 @@ const _sfc_main = {
             success: (ret) => {
               const accepted = ret[ARRIVAL_SUBSCRIBE_TEMPLATE_ID] === "accept";
               if (accepted) {
-                common_vendor.index.showToast({
-                  title: "已开启通知",
-                  icon: "none"
-                });
+                common_vendor.index.showToast({ title: "已开启通知", icon: "none" });
               } else {
-                common_vendor.index.showToast({
-                  title: "未开启通知，到货后请在我的订单手动查看",
-                  icon: "none"
-                });
+                common_vendor.index.showToast({ title: "未开启通知，到货后请在我的订单手动查看", icon: "none" });
               }
               common_vendor.index.setStorageSync(ARRIVAL_SUBSCRIBE_ASKED_KEY, 1);
             },
             fail: () => {
-              common_vendor.index.showToast({
-                title: "订阅调用失败",
-                icon: "none"
-              });
+              common_vendor.index.showToast({ title: "订阅调用失败", icon: "none" });
             }
           });
         }
@@ -78,15 +72,13 @@ const _sfc_main = {
     },
     goLogin() {
       common_vendor.index.showModal({
-        content: "使用当前功能需要您进行登录，是否去登录?",
+        content: "使用当前功能需要先登录，是否去登录？",
         success: function(res) {
           if (res.confirm) {
-            common_vendor.index.navigateTo({
-              url: "/pages/login/login"
-            });
+            common_vendor.index.navigateTo({ url: "/pages/login/login" });
             return;
           } else if (res.cancel) {
-            common_vendor.index.__f__("log", "at pages/my/index.vue:213", "用户点击取消");
+            common_vendor.index.__f__("log", "at pages/my/index.vue:176", "user cancel login");
             return;
           }
         }
@@ -153,14 +145,23 @@ const _sfc_main = {
         });
       }
     },
-    goToProfile() {
+    async goToProfile() {
       const token = common_vendor.index.getStorageSync("token");
       if (!token) {
         this.goLogin();
-      } else {
+        return;
+      }
+      try {
+        const profileRes = await utils_request.api.user.profile();
+        if (!profileRes || !profileRes.data || !profileRes.data.id) {
+          throw new Error("invalid profile");
+        }
         common_vendor.index.navigateTo({
           url: "/pages/my/profile"
         });
+      } catch (error) {
+        common_vendor.index.removeStorageSync("token");
+        this.goLogin();
       }
     },
     goToCustomer() {

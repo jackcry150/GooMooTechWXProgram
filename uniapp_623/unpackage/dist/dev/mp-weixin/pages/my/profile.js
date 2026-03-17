@@ -5,10 +5,11 @@ const _sfc_main = {
   data() {
     return {
       userInfo: {
-        nickName: "小小橘",
+        nickName: "",
         id: "",
         avatar: "/static/image/default_avatar.jpg"
-      }
+      },
+      uploadResult: false
     };
   },
   onLoad() {
@@ -20,17 +21,38 @@ const _sfc_main = {
       if (token) {
         try {
           const response = await utils_request.api.user.profile();
-          this.userInfo = response.data;
+          const profile = response && response.data ? response.data : null;
+          if (!profile || !profile.id) {
+            throw new Error("invalid profile");
+          }
+          this.userInfo = {
+            nickName: profile.nickName || "",
+            id: profile.id || "",
+            avatar: profile.avatar || "/static/image/default_avatar.jpg",
+            ...profile
+          };
         } catch (error) {
+          common_vendor.index.removeStorageSync("token");
+          common_vendor.index.showToast({
+            title: "登录已失效",
+            icon: "none"
+          });
+          setTimeout(() => {
+            common_vendor.index.reLaunch({
+              url: "/pages/login/login"
+            });
+          }, 500);
         }
       } else {
-        common_vendor.index.navigateBack();
+        common_vendor.index.reLaunch({
+          url: "/pages/login/login"
+        });
       }
     },
-    // 选择头像回调
+    // 上传头像并更新到后台
     async onChooseAvatar(event) {
       common_vendor.index.showLoading({
-        title: "上传中"
+        title: "上传中..."
       });
       let that = this;
       const tmpFilePath = event.detail.avatarUrl;
@@ -40,7 +62,7 @@ const _sfc_main = {
         that.avatar = "data:image/jpeg;base64," + base64Data;
         this.uploadResult = true;
       } catch (error) {
-        common_vendor.index.__f__("error", "at pages/my/profile.vue:66", "Base64转换失败:", error);
+        common_vendor.index.__f__("error", "at pages/my/profile.vue:87", "Base64 转换失败:", error);
         common_vendor.index.hideLoading();
         common_vendor.index.showToast({
           title: "头像处理失败",
@@ -60,6 +82,11 @@ const _sfc_main = {
           });
           this.userInfo.avatar = that.avatar;
         } catch (error) {
+          common_vendor.index.hideLoading();
+          common_vendor.index.showToast({
+            title: "头像更新失败",
+            icon: "none"
+          });
         }
       }
     },
@@ -75,6 +102,10 @@ const _sfc_main = {
           icon: "success"
         });
       } catch (error) {
+        common_vendor.index.showToast({
+          title: "昵称更新失败",
+          icon: "none"
+        });
       }
     },
     goToAddress() {
@@ -86,10 +117,10 @@ const _sfc_main = {
 };
 function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   return {
-    a: $data.userInfo.avatar,
+    a: $data.userInfo && $data.userInfo.avatar ? $data.userInfo.avatar : "/static/image/default_avatar.jpg",
     b: common_vendor.o((...args) => $options.onChooseAvatar && $options.onChooseAvatar(...args)),
     c: common_vendor.o((...args) => $options.handleBlur && $options.handleBlur(...args)),
-    d: $data.userInfo.nickName,
+    d: $data.userInfo && $data.userInfo.nickName ? $data.userInfo.nickName : "",
     e: common_vendor.o((...args) => $options.goToAddress && $options.goToAddress(...args))
   };
 }
