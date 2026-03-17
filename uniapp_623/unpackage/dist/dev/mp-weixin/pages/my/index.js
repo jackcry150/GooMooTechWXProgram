@@ -2,6 +2,8 @@
 const common_vendor = require("../../common/vendor.js");
 const utils_request = require("../../utils/request.js");
 const common_assets = require("../../common/assets.js");
+const ARRIVAL_SUBSCRIBE_TEMPLATE_ID = "064jbSrGui-nwHcDSAxE-laUCzY5cgbqciU3aeyAhig";
+const ARRIVAL_SUBSCRIBE_ASKED_KEY = "arrival_subscribe_asked_v1";
 const _sfc_main = {
   name: "Profile",
   data() {
@@ -19,6 +21,8 @@ const _sfc_main = {
   onLoad() {
   },
   onShow() {
+    common_vendor.index.removeStorageSync(ARRIVAL_SUBSCRIBE_ASKED_KEY);
+    this.tryAskArrivalSubscribe();
     const token = common_vendor.index.getStorageSync("token");
     if (token) {
       this.getProfileInfo();
@@ -27,6 +31,51 @@ const _sfc_main = {
     }
   },
   methods: {
+    tryAskArrivalSubscribe() {
+      const asked = common_vendor.index.getStorageSync(ARRIVAL_SUBSCRIBE_ASKED_KEY);
+      if (asked) {
+        return;
+      }
+      common_vendor.index.showModal({
+        title: "到货通知",
+        content: "是否开启到货后通知？",
+        confirmText: "开启",
+        cancelText: "稍后",
+        success: (res) => {
+          if (!res.confirm) {
+            common_vendor.index.showToast({
+              title: "未开启通知，到货后请在我的订单手动查看",
+              icon: "none"
+            });
+            return;
+          }
+          common_vendor.wx$1.requestSubscribeMessage({
+            tmplIds: [ARRIVAL_SUBSCRIBE_TEMPLATE_ID],
+            success: (ret) => {
+              const accepted = ret[ARRIVAL_SUBSCRIBE_TEMPLATE_ID] === "accept";
+              if (accepted) {
+                common_vendor.index.showToast({
+                  title: "已开启通知",
+                  icon: "none"
+                });
+              } else {
+                common_vendor.index.showToast({
+                  title: "未开启通知，到货后请在我的订单手动查看",
+                  icon: "none"
+                });
+              }
+              common_vendor.index.setStorageSync(ARRIVAL_SUBSCRIBE_ASKED_KEY, 1);
+            },
+            fail: () => {
+              common_vendor.index.showToast({
+                title: "订阅调用失败",
+                icon: "none"
+              });
+            }
+          });
+        }
+      });
+    },
     goLogin() {
       common_vendor.index.showModal({
         content: "使用当前功能需要您进行登录，是否去登录?",
@@ -37,7 +86,7 @@ const _sfc_main = {
             });
             return;
           } else if (res.cancel) {
-            common_vendor.index.__f__("log", "at pages/my/index.vue:158", "用户点击取消");
+            common_vendor.index.__f__("log", "at pages/my/index.vue:213", "用户点击取消");
             return;
           }
         }

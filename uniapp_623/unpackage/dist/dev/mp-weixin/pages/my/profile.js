@@ -5,7 +5,7 @@ const _sfc_main = {
   data() {
     return {
       userInfo: {
-        nickName: "小小蜗",
+        nickName: "小小橘",
         id: "",
         avatar: "/static/image/default_avatar.jpg"
       }

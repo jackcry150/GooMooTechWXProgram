@@ -116,6 +116,8 @@
 
 <script>
 	import { api } from '@/utils/request.js'
+	const ARRIVAL_SUBSCRIBE_TEMPLATE_ID = '064jbSrGui-nwHcDSAxE-laUCzY5cgbqciU3aeyAhig'
+	const ARRIVAL_SUBSCRIBE_ASKED_KEY = 'arrival_subscribe_asked_v1'
 	export default {
 		name: 'Profile',
 		data() {
@@ -135,6 +137,9 @@
 
 		},
 		onShow() {
+			uni.removeStorageSync(ARRIVAL_SUBSCRIBE_ASKED_KEY)
+			this.tryAskArrivalSubscribe()
+
 			const token = uni.getStorageSync('token')
 			if (token) {
 				this.getProfileInfo()
@@ -144,6 +149,56 @@
 		},
 
 		methods: {
+			tryAskArrivalSubscribe() {
+				// #ifdef MP-WEIXIN
+				if (!ARRIVAL_SUBSCRIBE_TEMPLATE_ID || ARRIVAL_SUBSCRIBE_TEMPLATE_ID === 'REPLACE_WITH_TEMPLATE_ID') {
+					return
+				}
+				const asked = uni.getStorageSync(ARRIVAL_SUBSCRIBE_ASKED_KEY)
+				if (asked) {
+					return
+				}
+				uni.showModal({
+					title: '到货通知',
+					content: '是否开启到货后通知？',
+					confirmText: '开启',
+					cancelText: '稍后',
+					success: (res) => {
+						if (!res.confirm) {
+							uni.showToast({
+								title: '未开启通知，到货后请在我的订单手动查看',
+								icon: 'none'
+							})
+							return
+						}
+						wx.requestSubscribeMessage({
+							tmplIds: [ARRIVAL_SUBSCRIBE_TEMPLATE_ID],
+							success: (ret) => {
+								const accepted = ret[ARRIVAL_SUBSCRIBE_TEMPLATE_ID] === 'accept'
+								if (accepted) {
+									uni.showToast({
+										title: '已开启通知',
+										icon: 'none'
+									})
+								} else {
+									uni.showToast({
+										title: '未开启通知，到货后请在我的订单手动查看',
+										icon: 'none'
+									})
+								}
+								uni.setStorageSync(ARRIVAL_SUBSCRIBE_ASKED_KEY, 1)
+							},
+							fail: () => {
+								uni.showToast({
+									title: '订阅调用失败',
+									icon: 'none'
+								})
+							}
+						})
+					}
+				})
+				// #endif
+			},
 
 			goLogin() {
 				uni.showModal({
