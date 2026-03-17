@@ -24,12 +24,20 @@
             <input class="input-text" name="orderNo" id="orderNo" placeholder="订单号" style="width:150px" type="text" value="{$orderNo}">
             <input class="input-text" name="nickName" id="nickName" placeholder="用户昵称" style="width:150px" type="text" value="{$nickName}">
             <input class="input-text" name="phone" id="phone" placeholder="手机号" style="width:150px" type="text" value="{$phone}">
-            <input class="input-text" name="productName" id="productName" placeholder="产品名称" style="width:150px" type="text" value="{$productName}">
+            <input class="input-text" name="productName" id="productName" placeholder="商品名称" style="width:150px" type="text" value="{$productName}">
             <span class="select-box inline">
                 <select class="select" name="status" id="status">
-                    <option value="">全部状态</option>
+                    <option value="">全部订单状态</option>
                     {foreach name="orderStatus" item="v" key="k"}
                     <option value="{$k}" {if $k == $status} selected {/if}>{$v}</option>
+                    {/foreach}
+                </select>
+            </span>
+            <span class="select-box inline">
+                <select class="select" name="arrivalConfirmStatus" id="arrivalConfirmStatus">
+                    <option value="">到货确认状态</option>
+                    {foreach name="arrivalConfirmStatusMap" item="v" key="k"}
+                    <option value="{$k}" {if $k == $arrivalConfirmStatus} selected {/if}>{$v}</option>
                     {/foreach}
                 </select>
             </span>
@@ -48,6 +56,7 @@
                 <th>收货地址</th>
                 <th>订单金额</th>
                 <th>订单状态</th>
+                <th>到货确认状态</th>
                 <th>退款状态</th>
                 <th>物流信息</th>
                 <th>创建时间</th>
@@ -57,7 +66,7 @@
             <tbody>
             {if condition="empty($list)"}
             <tr class="text-c">
-                <td colspan="12">暂无数据</td>
+                <td colspan="13">暂无数据</td>
             </tr>
             {else /}
             {foreach name="list" item="v"}
@@ -81,9 +90,15 @@
                     -
                     {/if}
                 </td>
-                <td>¥{$v.totalPrice}</td>
+                <td>￥{$v.totalPrice}</td>
                 <td>
                     <span style="color: {$v.statusColor}; font-weight: bold;">{$v.statusText}</span>
+                </td>
+                <td>
+                    <span>{$v.arrivalConfirmStatusText|default='待通知'}</span>
+                    {if condition="$v.arrivalConfirmDeadlineAt"}
+                    <div style="font-size:12px;color:#999;">截止：{$v.arrivalConfirmDeadlineAt}</div>
+                    {/if}
                 </td>
                 <td>
                     {if condition="$v.refundStatus > 0"}
@@ -94,8 +109,8 @@
                 </td>
                 <td class="text-l">
                     {if condition="$v.freightName"}
-                    <div>物流公司名称：{$v.freightName}</div>
-                    <div>物流公司编码：{$v.freightCode|default='-'}</div>
+                    <div>物流公司：{$v.freightName}</div>
+                    <div>物流编码：{$v.freightCode|default='-'}</div>
                     <div>物流单号：{$v.freightNo}</div>
                     <div>发货时间：{$v.freightTime}</div>
                     {else /}
@@ -105,6 +120,12 @@
                 <td>{$v.createDate}</td>
                 <td class="td-manage">
                     <a title="详情" href="javascript:;" onclick="showOrderDetail({$v.id})" style="text-decoration:none;">详情</a>
+                    {if condition="$v.status == 6 && $v.arrivalConfirmStatus != 2"}
+                    &nbsp;|&nbsp;<a title="标记到货" href="javascript:;" onclick="markArrival({$v.id})" style="text-decoration:none;color:#f39c12;">标记到货</a>
+                    {/if}
+                    {if condition="$v.status == 6 && $v.arrivalConfirmStatus == 0"}
+                    &nbsp;|&nbsp;<a title="重发通知" href="javascript:;" onclick="retryArrivalNotify({$v.id})" style="text-decoration:none;color:#ff6b00;">重发通知</a>
+                    {/if}
                     {if condition="$v.status == 2"}
                     &nbsp;|&nbsp;<a title="发货" href="javascript:;" onclick="shipOrder({$v.id})" style="text-decoration:none;color:#1ab394;">发货</a>
                     {/if}
@@ -123,14 +144,11 @@
         </div>
     </div>
 </div>
-<!--_footer 作为公共模版分离出去-->
 <script type="text/javascript" src="/static/js/jquery.min.js"></script>
 <script type="text/javascript" src="/static/layer/2.4/layer.js"></script>
 <script type="text/javascript" src="/static/h-ui/js/H-ui.min.js"></script>
 <script type="text/javascript" src="/static/h-ui.admin/js/H-ui.admin.js"></script>
-<!--/_footer 作为公共模版分离出去-->
 <script>
-    // 查看订单详情
     function showOrderDetail(id) {
         layer.open({
             type: 2,
@@ -142,8 +160,7 @@
             content: '/adm/order/detail?id=' + id
         });
     }
-    
-    // 发货
+
     function shipOrder(id) {
         layer.open({
             type: 2,
@@ -158,8 +175,55 @@
             }
         });
     }
-    
-    // 同意退款
+
+    function markArrival(id) {
+        layer.prompt({
+            formType: 0,
+            title: '确认截止小时数（默认72）',
+            value: '72'
+        }, function(value, index) {
+            var hours = parseInt(value, 10);
+            if (isNaN(hours) || hours <= 0) hours = 72;
+            $.ajax({
+                type: 'POST',
+                url: '/adm/order/markArrival',
+                data: {
+                    id: id,
+                    deadlineHours: hours
+                },
+                dataType: 'json',
+                success: function(data) {
+                    if (data.code == 1) {
+                        layer.msg(data.msg, {time: 1200}, function() {
+                            location.reload();
+                        });
+                    } else {
+                        layer.msg(data.msg || '操作失败', {time: 2000});
+                    }
+                    layer.close(index);
+                }
+            });
+        });
+    }
+
+    function retryArrivalNotify(id) {
+        $.ajax({
+            type: 'POST',
+            url: '/adm/order/retryArrivalNotify',
+            data: { id: id },
+            dataType: 'json',
+            success: function(data) {
+                if (data.code == 1) {
+                    layer.msg(data.msg, {time: 1200}, function() {
+                        location.reload();
+                    });
+                } else {
+                    layer.msg(data.msg || '重发失败', {time: 2000});
+                }
+            }
+        });
+    }
+
     function refundAgree(id) {
         layer.confirm('确定同意该订单的退款申请吗？', {
             btn: ['确定', '取消'],
@@ -195,8 +259,7 @@
             });
         });
     }
-    
-    // 拒绝退款
+
     function refundRefuse(id) {
         layer.prompt({
             formType: 2,
@@ -232,4 +295,3 @@
 </script>
 </body>
 </html>
-

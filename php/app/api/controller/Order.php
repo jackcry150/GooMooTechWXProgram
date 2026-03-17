@@ -194,7 +194,7 @@ class Order
                 'userId' => $userToken['userId'],
                 'id' => $id,
             ];
-            $orderInfo = Db::name('order')->field('id, userId, totalPrice, status')->where($orderWhere)->find();
+            $orderInfo = Db::name('order')->field('id, userId, totalPrice, status, address, arrivalConfirmStatus')->where($orderWhere)->find();
             if (!$orderInfo) {
                 return json($data);
             }
@@ -211,6 +211,10 @@ class Order
             try {
                 Db::name('order')->where($orderWhere)->update([
                     'status' => 7, // 订单完成
+                    'arrivalConfirmStatus' => 2,
+                    'arrivalConfirmedAt' => date('Y-m-d H:i:s'),
+                    'arrivalConfirmSnapshot' => $orderInfo['address'] ?? '',
+                    'arrivalConfirmRemark' => 'user confirm receipt',
                 ]);
                 if ($snailShells > 0) {
                     Db::name('user')->where('id', $orderInfo['userId'])->inc('snailShells', $snailShells)->update();
