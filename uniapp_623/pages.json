@@ -154,6 +154,13 @@
 			"style": {
 				"navigationBarTitleText": "加入官方社群"
 			}
+		},
+		{
+			"path": "pages/ai/customer",
+			"style": {
+				"navigationBarTitleText": "智能客服",
+				"navigationBarBackgroundColor": "#f6f1e8"
+			}
 		}
 	],
 	"tabBar": {

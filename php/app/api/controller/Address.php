@@ -37,6 +37,7 @@ class Address
             $insert['region'] = Request::post('region');
             $insert['detail'] = Request::post('detail');
             $insert['isDefault'] = Request::post('isDefault');
+            $insert['isDelete'] = 1;
             if (empty($insert['userId']) || empty($insert['name']) || empty($insert['phone']) || empty($insert['province']) || empty($insert['detail'])) {
                 return json($data);
             }

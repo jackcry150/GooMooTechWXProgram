@@ -446,22 +446,9 @@
 			},
 
 			goToCustomer() {
-				// #ifdef MP-WEIXIN
-				if (this.config) {
-					wx.openCustomerServiceChat({
-						extInfo: {
-							url: this.config.customerLink,
-						},
-						corpId: this.config.corpId,
-						success: (res) => {
-							console.log(" openCustomerServiceChat success:" + JSON.stringify(res));
-						},
-						fail: (err) => {
-							console.log(" openCustomerServiceChat fail:" + JSON.stringify(err));
-						}
-					})
-				}
-				// #endif
+				uni.navigateTo({
+					url: `/pages/ai/customer?scene=presale&sourcePage=product&productId=${this.product.id || ''}`
+				})
 			},
 
 			async goToCollect() {

@@ -100,7 +100,7 @@
 	}
 
 	.verify-number .uni-button {
-		background-color: #dc0000;
+		background-color: #ff8a00;
 		text-align: center;
 		color: #ffffff;
 		border-radius: 20rpx;
@@ -146,7 +146,7 @@
 	}
 
 	.verify-from-but {
-		background-color: #dc0000;
+		background-color: #ff8a00;
 		color: #ffffff;
 	}
 

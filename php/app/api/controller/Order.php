@@ -659,6 +659,19 @@ class Order
 
     function subOrder($orderNo, $tradestatus, $orderTradeType, $totalPrice, $orderDetails, $address)
     {
+        $token = Cache::get('token');
+        if (!is_array($token) || empty($token['auth_token'])) {
+            return [
+                'ok' => false,
+                'msg' => '管家婆授权 token 不存在或已失效'
+            ];
+        }
+        if (!is_array($address)) {
+            return [
+                'ok' => false,
+                'msg' => '收货地址数据异常'
+            ];
+        }
         $orderData = [
             'tradeid' => $orderNo,
             'tradestatus' => $tradestatus,
@@ -679,7 +692,6 @@ class Order
             ]
         ];
 
-        $token = Cache::get('token');
         $Guanjiapo = new Guanjiapo();
         $order = $Guanjiapo->order($token, $orderData);
         return $order;
