@@ -19,6 +19,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Detect changed deploy scope
         id: changes
@@ -28,9 +30,12 @@ jobs:
 
           if [ "${{ github.event_name }}" = "workflow_dispatch" ] || [ -z "${{ github.event.before }}" ] || [ "${{ github.event.before }}" = "0000000000000000000000000000000000000000" ]; then
             changed_files="$(git ls-files)"
+          elif ! git cat-file -e "${{ github.event.before }}^{commit}" 2>/dev/null; then
+            changed_files="$(git diff --name-only HEAD~1 HEAD)"
           else
             changed_files="$(git diff --name-only "${{ github.event.before }}" "${{ github.sha }}")"
           fi
+
 
           php_changed=0
           nginx_changed=0
