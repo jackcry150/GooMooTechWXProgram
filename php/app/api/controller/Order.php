@@ -235,6 +235,103 @@ class Order
         }
     }
 
+    public function confirmArrivalInfo()
+    {
+        $data['code'] = 100;
+        $data['msg'] = '操作失败';
+        try {
+            if (!Request::isPost()) {
+                return json($data);
+            }
+
+            $headers = Request::header();
+            if (!$headers || !isset($headers['authorization'])) {
+                return json($data);
+            }
+
+            $token = $headers['authorization'];
+            $userToken = json_decode(decrypt(base64_decode($token)), true);
+            if (!$userToken || !isset($userToken['userId'])) {
+                return json($data);
+            }
+
+            $id = intval(Request::post('id', 0));
+            $name = trim((string) Request::post('name', ''));
+            $phone = trim((string) Request::post('phone', ''));
+            $province = trim((string) Request::post('province', ''));
+            $city = trim((string) Request::post('city', ''));
+            $area = trim((string) Request::post('area', Request::post('region', '')));
+            $detail = trim((string) Request::post('detail', ''));
+            $remark = trim((string) Request::post('remark', ''));
+
+            if ($id <= 0) {
+                $data['msg'] = '订单参数错误';
+                return json($data);
+            }
+            if ($name === '' || $phone === '' || $detail === '') {
+                $data['msg'] = '请填写完整收货信息';
+                return json($data);
+            }
+            if (!preg_match('/^1\d{10}$/', $phone)) {
+                $data['msg'] = '手机号格式不正确';
+                return json($data);
+            }
+
+            $orderWhere = [
+                'userId' => $userToken['userId'],
+                'id' => $id,
+            ];
+            $orderInfo = Db::name('order')
+                ->field('id, status, address, arrivalConfirmStatus')
+                ->where($orderWhere)
+                ->find();
+            if (!$orderInfo) {
+                $data['msg'] = '订单不存在';
+                return json($data);
+            }
+            if (intval($orderInfo['status']) !== 6) {
+                $data['msg'] = '当前订单状态不允许确认收货信息';
+                return json($data);
+            }
+
+            $oldAddress = json_decode($orderInfo['address'] ?? '', true);
+            if (!is_array($oldAddress)) {
+                $oldAddress = [];
+            }
+            $newAddress = [
+                'name' => $name,
+                'phone' => $phone,
+                'province' => $province,
+                'city' => $city,
+                'area' => $area,
+                'region' => $area,
+                'detail' => $detail,
+            ];
+            if (isset($oldAddress['id'])) {
+                $newAddress['id'] = $oldAddress['id'];
+            }
+
+            Db::name('order')->where($orderWhere)->update([
+                'address' => json_encode($newAddress, JSON_UNESCAPED_UNICODE),
+                'arrivalConfirmStatus' => 2,
+                'arrivalConfirmedAt' => date('Y-m-d H:i:s'),
+                'arrivalConfirmSnapshot' => json_encode($newAddress, JSON_UNESCAPED_UNICODE),
+                'arrivalConfirmRemark' => $remark !== '' ? $remark : 'user confirm arrival info',
+            ]);
+
+            $data['code'] = 200;
+            $data['msg'] = '收货信息确认成功';
+            $data['data'] = [
+                'arrivalConfirmStatus' => 2,
+                'addressInfo' => $newAddress,
+            ];
+            return json($data);
+        } catch (Exception $e) {
+            $data['msg'] = $e->getMessage();
+            return json($data);
+        }
+    }
+
     public function pay()
     {
         $data['code'] = 100;

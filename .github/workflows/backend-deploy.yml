@@ -1,0 +1,93 @@
+name: Backend Deploy
+
+on:
+  push:
+    branches:
+      - main
+      - master
+    paths:
+      - 'php/**'
+      - 'nginx/default.conf'
+      - 'deploy/**'
+      - '.github/workflows/backend-deploy.yml'
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Detect changed deploy scope
+        id: changes
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] || [ -z "${{ github.event.before }}" ] || [ "${{ github.event.before }}" = "0000000000000000000000000000000000000000" ]; then
+            changed_files="$(git ls-files)"
+          else
+            changed_files="$(git diff --name-only "${{ github.event.before }}" "${{ github.sha }}")"
+          fi
+
+          php_changed=0
+          nginx_changed=0
+
+          while IFS= read -r file; do
+            [ -z "${file}" ] && continue
+            case "${file}" in
+              php/*)
+                php_changed=1
+                ;;
+              nginx/default.conf)
+                nginx_changed=1
+                ;;
+            esac
+          done <<< "${changed_files}"
+
+          echo "php_changed=${php_changed}" >> "${GITHUB_OUTPUT}"
+          echo "nginx_changed=${nginx_changed}" >> "${GITHUB_OUTPUT}"
+
+      - name: Skip when no server-side changes
+        if: steps.changes.outputs.php_changed == '0' && steps.changes.outputs.nginx_changed == '0'
+        run: echo "No backend or nginx changes detected, skip deploy."
+
+      - name: Prepare SSH
+        if: steps.changes.outputs.php_changed == '1' || steps.changes.outputs.nginx_changed == '1'
+        shell: bash
+        env:
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_PORT: ${{ secrets.DEPLOY_PORT }}
+        run: |
+          set -euo pipefail
+          mkdir -p ~/.ssh
+          printf '%s\n' "${DEPLOY_SSH_KEY}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          touch ~/.ssh/known_hosts
+          ssh-keyscan -p "${DEPLOY_PORT:-22}" -H "${DEPLOY_HOST}" >> ~/.ssh/known_hosts 2>/dev/null
+
+      - name: Deploy to server
+        if: steps.changes.outputs.php_changed == '1' || steps.changes.outputs.nginx_changed == '1'
+        shell: bash
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_PORT: ${{ secrets.DEPLOY_PORT }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_REPO_PATH: ${{ secrets.DEPLOY_REPO_PATH }}
+          BRANCH_NAME: ${{ github.ref_name }}
+          PHP_CHANGED: ${{ steps.changes.outputs.php_changed }}
+          NGINX_CHANGED: ${{ steps.changes.outputs.nginx_changed }}
+        run: |
+          set -euo pipefail
+          ssh -p "${DEPLOY_PORT:-22}" "${DEPLOY_USER}@${DEPLOY_HOST}" "
+            set -euo pipefail
+            cd '${DEPLOY_REPO_PATH}'
+            git fetch origin '${BRANCH_NAME}'
+            git checkout '${BRANCH_NAME}'
+            git pull --ff-only origin '${BRANCH_NAME}'
+            chmod +x deploy/deploy.sh
+            DEPLOY_PHP='${PHP_CHANGED}' DEPLOY_NGINX='${NGINX_CHANGED}' ./deploy/deploy.sh
+          "

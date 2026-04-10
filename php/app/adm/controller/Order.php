@@ -291,7 +291,7 @@ class Order
         $timeKey = $this->normalizeTemplateFieldKey($this->arrivalFieldTime);
         $tipKey = $this->normalizeTemplateFieldKey($this->arrivalFieldTip);
         if ($titleKey) {
-            $templateData[$titleKey] = ['value' => '预定商品已到货'];
+            $templateData[$titleKey] = ['value' => '已到货'];
         }
         if ($orderNoKey) {
             $templateData[$orderNoKey] = ['value' => $orderInfo['orderNo']];
@@ -308,9 +308,9 @@ class Order
         $payload = [
             'touser' => $openId,
             'template_id' => $this->arrivalTemplateId,
-            'page' => '/pages/order/detail?id=' . $orderInfo['id'],
+            'page' => '/pages/order/confirm?id=' . $orderInfo['id'],
             'data' => $templateData,
-            'miniprogram_state' => 'formal',
+            'miniprogram_state' => 'developer',
         ];
 
         $sendUrl = 'https://api.weixin.qq.com/cgi-bin/message/subscribe/send?access_token=' . $tokenRes['token'];
