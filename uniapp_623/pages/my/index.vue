@@ -15,7 +15,7 @@
 			</view>
 			<view class="stat-item" @click="goToBill">
 				<text class="stat-number">{{ userInfo.snailShells }}</text>
-					<text class="stat-label">我的猫币</text>
+					<text class="stat-label">我的猫饼</text>
 			</view>
 		</view>
 
@@ -272,7 +272,7 @@ async getProfileInfo() {
 
 			goToCustomer() {
 				uni.navigateTo({
-					url: '/pages/ai/customer?scene=presale&sourcePage=my'
+					url: '/pages/customer/customer'
 				})
 			},
 

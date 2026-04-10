@@ -173,7 +173,7 @@
 
 		<!-- 底部操作栏 -->
 		<view class="bottom-bar" v-if="!loading && order.id">
-			<button class="btn btn-secondary" @click="goToAiCustomer">售后咨询</button>
+<button class="btn btn-secondary" @click="goToAiCustomer">联系客服</button>
 			<button class="btn btn-secondary" v-if="showCancelBtn" @click="handleCancel">取消订单</button>
 			<button class="btn btn-secondary" v-if="showDeleteBtn" @click="handleDelete">删除订单</button>
 			<button class="btn btn-primary" v-if="order.isPresale && order.canPayDeposit" @click="handlePayDeposit">
@@ -343,7 +343,7 @@
 			},
 			goToAiCustomer() {
 				uni.navigateTo({
-					url: `/pages/ai/customer?scene=aftersale&sourcePage=order&orderId=${this.order.id || this.orderId || ''}`
+					url: '/pages/customer/customer'
 				})
 			},
 			goProduct(id) {

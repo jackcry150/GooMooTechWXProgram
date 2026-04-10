@@ -447,7 +447,7 @@
 
 			goToCustomer() {
 				uni.navigateTo({
-					url: `/pages/ai/customer?scene=presale&sourcePage=product&productId=${this.product.id || ''}`
+					url: '/pages/customer/customer'
 				})
 			},
 

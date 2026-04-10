@@ -15,7 +15,7 @@
 		<view class="login-foot">
 			<checkbox-group @change="ChangeIsDefault">
 				<checkbox :checked="protocol ? true : false" />
-				已阅读并同意蜗之壳
+				已阅读并同意橘猫
 				<text class="main-color" @click="agraeement()">用户服务协议</text>
 				、
 				<text class="main-color" @click="privacy()">隐私条款</text>

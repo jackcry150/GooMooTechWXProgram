@@ -69,7 +69,7 @@ class Auth
                     'id' => $userId
                 ];
                 $userUpdate = [
-                    'nickName' => '小小蜗' . $userId,
+                    'nickName' => '小小猫' . $userId,
                 ];
                 Db::name('user')->where($userWhere)->update($userUpdate);
                 $userInfo = [
