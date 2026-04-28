@@ -30,7 +30,7 @@ class Order
         }
         $this->miniAppId = env('wechat.mini_appid', env('WECHAT_MINI_APPID', 'wxfcc20942c4074693'));
         $this->miniAppSecret = env('wechat.mini_secret', env('WECHAT_MINI_SECRET', 'fac8bbc449de6a99c4fa96ad8b6729e0'));
-        $this->arrivalTemplateId = env('wechat.arrival_confirm_template_id', env('WECHAT_ARRIVAL_CONFIRM_TEMPLATE_ID', ''));
+        $this->arrivalTemplateId = env('wechat.arrival_confirm_template_id', env('WECHAT_ARRIVAL_CONFIRM_TEMPLATE_ID', 'PSTyqbj2wf1P74dSDb1qfh0ErUGegNQ8DFS6-SKM4_M'));
         $this->arrivalFieldTitle = env('wechat.arrival_field_title', env('WECHAT_ARRIVAL_FIELD_TITLE', 'thing1'));
         $this->arrivalFieldOrderNo = env('wechat.arrival_field_orderno', env('WECHAT_ARRIVAL_FIELD_ORDERNO', 'character_string2'));
         $this->arrivalFieldTime = env('wechat.arrival_field_time', env('WECHAT_ARRIVAL_FIELD_TIME', 'time3'));

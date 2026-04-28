@@ -88,7 +88,7 @@
 
 <script>
 	import { api } from '@/utils/request.js'
-	const ARRIVAL_SUBSCRIBE_TEMPLATE_ID = '064jbSrGui-nwHcDSAxE-laUCzY5cgbqciU3aeyAhig'
+	const ARRIVAL_SUBSCRIBE_TEMPLATE_ID = 'PSTyqbj2wf1P74dSDb1qfh0ErUGegNQ8DFS6-SKM4_M'
 	const ARRIVAL_SUBSCRIBE_ASKED_KEY = 'arrival_subscribe_asked_v1'
 	export default {
 		name: 'Profile',
@@ -111,7 +111,6 @@
 		onShow() {
 			const token = uni.getStorageSync('token')
 			if (token) {
-				this.tryAskArrivalSubscribe()
 				this.getProfileInfo()
 				this.getCartCount()
 				this.getCollectCount()
@@ -179,12 +178,17 @@
 					}
 				})
 			},
-async getProfileInfo() {
+			async getProfileInfo() {
 				try {
 					const response = await api.user.profile()
-					this.userInfo = response.data
+					const profile = response && response.data ? response.data : null
+					if (!profile || !profile.id) {
+						throw new Error('invalid profile')
+					}
+					this.userInfo = profile
+					this.tryAskArrivalSubscribe()
 				} catch (error) {
-
+					uni.removeStorageSync('token')
 				}
 			},
 

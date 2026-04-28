@@ -15,6 +15,7 @@ class Auth
     {
         $data['code'] = 100;
         $data['msg'] = '操作失败';
+
         try {
             if (!Request::isPost()) {
                 return json($data);
@@ -28,26 +29,23 @@ class Auth
                 return json($data);
             }
 
-            // 1. 获取session_key和openid
-            $sessionInfo = self::getSessionInfo($code);
-
+            $sessionInfo = $this->getSessionInfo($code);
             if (!$sessionInfo || isset($sessionInfo['errcode'])) {
-                $data['msg'] = '获取session_key失败';
+                $data['msg'] = '获取 session_key 失败';
                 return json($data);
             }
 
-            // 2. 解密手机号
-            $phoneInfo = self::decryptPhoneNumber($encryptedData, $iv, $sessionInfo['session_key']);
+            $phoneInfo = $this->decryptPhoneNumber($encryptedData, $iv, $sessionInfo['session_key']);
             if (!$phoneInfo) {
                 $data['msg'] = '解密手机号失败';
                 return json($data);
             }
 
-            // 3. 处理用户登录/注册
             $where = [
                 'openId' => $sessionInfo['openid'],
             ];
             $userInfo = Db::name('user')->field('id, openId')->where($where)->find();
+
             if (!$userInfo) {
                 $userInsert = [
                     'avatar' => '/static/images/default_avatar.jpg',
@@ -65,39 +63,34 @@ class Auth
                     $data['msg'] = '登录失败';
                     return json($data);
                 }
-                $userWhere = [
-                    'id' => $userId
-                ];
-                $userUpdate = [
-                    'nickName' => '小小猫' . $userId,
-                ];
-                Db::name('user')->where($userWhere)->update($userUpdate);
+
+                Db::name('user')->where(['id' => $userId])->update([
+                    'nickName' => '小橘猫' . $userId,
+                ]);
+
                 $userInfo = [
                     'id' => $userId,
                     'openId' => $userInsert['openId'],
                 ];
             } else {
-                $userWhere = [
-                    'id' => $userInfo['id']
-                ];
-                $userUpdate = [
+                Db::name('user')->where(['id' => $userInfo['id']])->update([
                     'loginDate' => date('Y-m-d H:i:s'),
                     'loginTime' => time(),
                     'loginIp' => Request::ip(),
-                ];
-                Db::name('user')->where($userWhere)->update($userUpdate);
+                ]);
+
                 $userInfo = [
                     'id' => $userInfo['id'],
                     'openId' => $userInfo['openId'],
                 ];
             }
-            // 4. 生成token
-            $token = self::generateToken($userInfo);
+
+            $token = $this->generateToken($userInfo);
 
             $data['code'] = 200;
-            $data['msg'] = "登录成功！";
+            $data['msg'] = '登录成功';
             $data['data'] = [
-                'token' => $token
+                'token' => $token,
             ];
             return json($data);
         } catch (Exception $e) {
@@ -106,20 +99,18 @@ class Auth
         }
     }
 
-    function generateToken($userInfo)
+    public function generateToken($userInfo)
     {
         $payload = [
             'userId' => $userInfo['id'],
             'openId' => $userInfo['openId'],
-            'exp' => time() + 7200
+            'exp' => time() + 7200,
         ];
+
         return base64_encode(encrypt(json_encode($payload)));
     }
 
-    /**
-     * 获取session_key和openid
-     */
-    function getSessionInfo($code)
+    public function getSessionInfo($code)
     {
         $url = 'https://api.weixin.qq.com/sns/jscode2session?appid=' . $this->appid . '&secret=' . $this->secret . '&js_code=' . $code . '&grant_type=authorization_code';
 
@@ -133,10 +124,7 @@ class Auth
         return json_decode($response, true);
     }
 
-    /**
-     * 解密手机号
-     */
-    function decryptPhoneNumber($encryptedData, $iv, $sessionKey)
+    public function decryptPhoneNumber($encryptedData, $iv, $sessionKey)
     {
         if (strlen($sessionKey) != 24) {
             return false;
@@ -149,7 +137,7 @@ class Auth
         $aesIV = base64_decode($iv);
         $aesCipher = base64_decode($encryptedData);
 
-        $result = openssl_decrypt($aesCipher, "AES-128-CBC", $aesKey, 1, $aesIV);
+        $result = openssl_decrypt($aesCipher, 'AES-128-CBC', $aesKey, 1, $aesIV);
         if (!$result) {
             return false;
         }
