@@ -221,12 +221,16 @@ const ON_ERROR = "onError";
 const ON_THEME_CHANGE = "onThemeChange";
 const ON_PAGE_NOT_FOUND = "onPageNotFound";
 const ON_UNHANDLE_REJECTION = "onUnhandledRejection";
+const ON_LAST_PAGE_BACK_PRESS = "onLastPageBackPress";
 const ON_EXIT = "onExit";
 const ON_LOAD = "onLoad";
 const ON_READY = "onReady";
 const ON_UNLOAD = "onUnload";
 const ON_INIT = "onInit";
 const ON_SAVE_EXIT_STATE = "onSaveExitState";
+const ON_UPLOAD_DOUYIN_VIDEO = "onUploadDouyinVideo";
+const ON_LIVE_MOUNT = "onLiveMount";
+const ON_TITLE_CLICK = "onTitleClick";
 const ON_RESIZE = "onResize";
 const ON_BACK_PRESS = "onBackPress";
 const ON_PAGE_SCROLL = "onPageScroll";
@@ -235,6 +239,7 @@ const ON_REACH_BOTTOM = "onReachBottom";
 const ON_PULL_DOWN_REFRESH = "onPullDownRefresh";
 const ON_SHARE_TIMELINE = "onShareTimeline";
 const ON_SHARE_CHAT = "onShareChat";
+const ON_COPY_URL = "onCopyUrl";
 const ON_ADD_TO_FAVORITES = "onAddToFavorites";
 const ON_SHARE_APP_MESSAGE = "onShareAppMessage";
 const ON_NAVIGATION_BAR_BUTTON_TAP = "onNavigationBarButtonTap";
@@ -246,6 +251,10 @@ const VIRTUAL_HOST_STYLE = "virtualHostStyle";
 const VIRTUAL_HOST_CLASS = "virtualHostClass";
 const VIRTUAL_HOST_HIDDEN = "virtualHostHidden";
 const VIRTUAL_HOST_ID = "virtualHostId";
+const customizeRE = /:/g;
+function customizeEvent(str) {
+  return camelize(str.replace(customizeRE, "-"));
+}
 function hasLeadingSlash(str) {
   return str.indexOf("/") === 0;
 }
@@ -284,20 +293,6 @@ function getValueByDataPath(obj, path) {
   }
   return getValueByDataPath(obj[key], parts.slice(1).join("."));
 }
-function sortObject(obj) {
-  let sortObj = {};
-  if (isPlainObject(obj)) {
-    Object.keys(obj).sort().forEach((key) => {
-      const _key = key;
-      sortObj[_key] = obj[_key];
-    });
-  }
-  return !Object.keys(sortObj) ? obj : sortObj;
-}
-const customizeRE = /:/g;
-function customizeEvent(str) {
-  return camelize(str.replace(customizeRE, "-"));
-}
 const encode = encodeURIComponent;
 function stringifyQuery(obj, encodeStr = encode) {
   const res = obj ? Object.keys(obj).map((key) => {
@@ -317,6 +312,7 @@ const PAGE_HOOKS = [
   ON_SHOW,
   ON_HIDE,
   ON_UNLOAD,
+  ON_RESIZE,
   ON_BACK_PRESS,
   ON_PAGE_SCROLL,
   ON_TAB_ITEM_TAP,
@@ -325,6 +321,10 @@ const PAGE_HOOKS = [
   ON_SHARE_TIMELINE,
   ON_SHARE_APP_MESSAGE,
   ON_SHARE_CHAT,
+  ON_COPY_URL,
+  ON_UPLOAD_DOUYIN_VIDEO,
+  ON_LIVE_MOUNT,
+  ON_TITLE_CLICK,
   ON_ADD_TO_FAVORITES,
   ON_SAVE_EXIT_STATE,
   ON_NAVIGATION_BAR_BUTTON_TAP,
@@ -359,19 +359,28 @@ const UniLifecycleHooks = [
   ON_ADD_TO_FAVORITES,
   ON_SHARE_APP_MESSAGE,
   ON_SHARE_CHAT,
+  ON_COPY_URL,
+  ON_UPLOAD_DOUYIN_VIDEO,
+  ON_LIVE_MOUNT,
+  ON_TITLE_CLICK,
   ON_SAVE_EXIT_STATE,
   ON_NAVIGATION_BAR_BUTTON_TAP,
   ON_NAVIGATION_BAR_SEARCH_INPUT_CLICKED,
   ON_NAVIGATION_BAR_SEARCH_INPUT_CHANGED,
   ON_NAVIGATION_BAR_SEARCH_INPUT_CONFIRMED,
-  ON_NAVIGATION_BAR_SEARCH_INPUT_FOCUS_CHANGED
+  ON_NAVIGATION_BAR_SEARCH_INPUT_FOCUS_CHANGED,
+  ON_LAST_PAGE_BACK_PRESS
 ];
 const MINI_PROGRAM_PAGE_RUNTIME_HOOKS = /* @__PURE__ */ (() => {
   return {
     onPageScroll: 1,
     onShareAppMessage: 1 << 1,
     onShareTimeline: 1 << 2,
-    onShareChat: 1 << 3
+    onShareChat: 1 << 3,
+    onCopyUrl: 1 << 4,
+    onUploadDouyinVideo: 1 << 5,
+    onLiveMount: 1 << 6,
+    onTitleClick: 1 << 7
   };
 })();
 function isUniLifecycleHook(name, value, checkType = true) {
@@ -2760,6 +2769,8 @@ const PublicInstanceProxyHandlers = {
     } else if (ctx !== EMPTY_OBJ && hasOwn(ctx, key)) {
       accessCache[key] = 4;
       return ctx[key];
+    } else if (instance.exposed && hasOwn(instance.exposed, key)) {
+      return instance.exposed[key];
     } else if (
       // global properties
       globalProperties = appContext.config.globalProperties, hasOwn(globalProperties, key)
@@ -3379,7 +3390,7 @@ function updateProps(instance, rawProps, rawPrevProps, optimized) {
         if (options) {
           if (hasOwn(attrs, key)) {
             if (value !== attrs[key]) {
-              attrs[key] = value;
+              attrs[key] = normalizeInheritAttrsValue(instance, key, value);
               hasAttrsChanged = true;
             }
           } else {
@@ -3395,7 +3406,7 @@ function updateProps(instance, rawProps, rawPrevProps, optimized) {
           }
         } else {
           if (value !== attrs[key]) {
-            attrs[key] = value;
+            attrs[key] = normalizeInheritAttrsValue(instance, key, value);
             hasAttrsChanged = true;
           }
         }
@@ -3458,13 +3469,15 @@ function setFullProps(instance, rawProps, props, attrs) {
       let camelKey;
       if (options && hasOwn(options, camelKey = camelize(key))) {
         if (!needCastKeys || !needCastKeys.includes(camelKey)) {
-          props[camelKey] = value;
+          {
+            props[camelKey] = value;
+          }
         } else {
           (rawCastValues || (rawCastValues = {}))[camelKey] = value;
         }
       } else if (!isEmitListener(instance.emitsOptions, key)) {
         if (!(key in attrs) || value !== attrs[key]) {
-          attrs[key] = value;
+          attrs[key] = normalizeInheritAttrsValue(instance, key, value);
           hasAttrsChanged = true;
         }
       }
@@ -3487,7 +3500,21 @@ function setFullProps(instance, rawProps, props, attrs) {
   }
   return hasAttrsChanged;
 }
+function normalizeInheritAttrsValue(instance, key, value) {
+  return value;
+}
 function resolvePropValue$1(options, props, key, value, instance, isAbsent) {
+  const result = _resolvePropValue(
+    options,
+    props,
+    key,
+    value,
+    instance,
+    isAbsent
+  );
+  return result;
+}
+function _resolvePropValue(options, props, key, value, instance, isAbsent) {
   const opt = options[key];
   if (opt != null) {
     const hasDefault = hasOwn(opt, "default");
@@ -4423,16 +4450,15 @@ function setRef$1(instance, isUnmount = false) {
     $templateUniElementRefs,
     ctx: { $scope, $mpPlatform }
   } = instance;
-  if ($mpPlatform === "mp-alipay") {
-    return;
-  }
   if (!$scope || !$templateRefs && !$templateUniElementRefs) {
     return;
   }
   if (isUnmount) {
-    $templateRefs && $templateRefs.forEach(
-      (templateRef) => setTemplateRef(templateRef, null, setupState)
-    );
+    if ($mpPlatform !== "mp-alipay") {
+      $templateRefs && $templateRefs.forEach(
+        (templateRef) => setTemplateRef(templateRef, null, setupState)
+      );
+    }
     $templateUniElementRefs && $templateUniElementRefs.forEach(
       (templateRef) => setTemplateRef(templateRef, null, setupState)
     );
@@ -4469,6 +4495,13 @@ function setRef$1(instance, isUnmount = false) {
       }
     }
   };
+  if ($mpPlatform !== "mp-alipay") {
+    if ($scope._$setRef) {
+      $scope._$setRef(doSet);
+    } else {
+      nextTick(instance, doSet);
+    }
+  }
   if ($templateUniElementRefs && $templateUniElementRefs.length) {
     nextTick(instance, () => {
       $templateUniElementRefs.forEach((templateRef) => {
@@ -4481,11 +4514,6 @@ function setRef$1(instance, isUnmount = false) {
         }
       });
     });
-  }
-  if ($scope._$setRef) {
-    $scope._$setRef(doSet);
-  } else {
-    nextTick(instance, doSet);
   }
 }
 function toSkip(value) {
@@ -4594,6 +4622,18 @@ const getFunctionalFallthrough = (attrs) => {
   }
   return res;
 };
+function clearTemplateRefs(templateRefs) {
+  if (!templateRefs) {
+    return [];
+  }
+  return templateRefs.filter((templateRef) => {
+    const v = templateRef.v;
+    if (v && typeof v === "object" && ["UNI-LOADING-ELEMENT", "UNI-CLOUD-DB-ELEMENT"].includes(v.nodeName)) {
+      return true;
+    }
+    return false;
+  });
+}
 function renderComponentRoot(instance) {
   const {
     type: Component2,
@@ -4621,8 +4661,12 @@ function renderComponentRoot(instance) {
     inheritAttrs
   } = instance;
   instance.$uniElementIds = /* @__PURE__ */ new Map();
-  instance.$templateRefs = [];
-  instance.$templateUniElementRefs = [];
+  instance.$templateRefs = clearTemplateRefs(
+    instance.$templateRefs || []
+  );
+  instance.$templateUniElementRefs = clearTemplateRefs(
+    instance.$templateUniElementRefs || []
+  );
   instance.$templateUniElementStyles = {};
   instance.$ei = 0;
   pruneComponentPropsCache2(uid2);
@@ -6149,9 +6193,9 @@ function populateParameters(fromRes, toRes) {
     appVersion: "1.0.0",
     appVersionCode: "100",
     appLanguage: getAppLanguage(hostLanguage),
-    uniCompileVersion: "4.87",
-    uniCompilerVersion: "4.87",
-    uniRuntimeVersion: "4.87",
+    uniCompileVersion: "5.07",
+    uniCompilerVersion: "5.07",
+    uniRuntimeVersion: "5.07",
     uniPlatform: "mp-weixin",
     deviceBrand,
     deviceModel: model,
@@ -6273,13 +6317,13 @@ const getDeviceInfo = {
     let deviceBrand = getDeviceBrand(brand);
     useDeviceId()(fromRes, toRes);
     const { osName, osVersion } = getOSInfo(system, platform);
-    toRes = sortObject(extend(toRes, {
+    toRes = extend(toRes, {
       deviceType,
       deviceBrand,
       deviceModel: model,
       osName,
       osVersion
-    }));
+    });
   }
 };
 const getAppBaseInfo = {
@@ -6288,21 +6332,21 @@ const getAppBaseInfo = {
     let _hostName = getHostName(fromRes);
     let hostLanguage = (language || "").replace(/_/g, "-");
     const parameters = {
-      hostVersion: version2,
-      hostLanguage,
-      hostName: _hostName,
-      hostSDKVersion: SDKVersion,
-      hostTheme: theme,
       appId: "__UNI__9CFF27F",
       appName: "橘猫智酷商城",
       appVersion: "1.0.0",
       appVersionCode: "100",
       appLanguage: getAppLanguage(hostLanguage),
+      hostVersion: version2,
+      hostLanguage,
+      hostName: _hostName,
+      hostSDKVersion: SDKVersion,
+      hostTheme: theme,
       isUniAppX: false,
       uniPlatform: "mp-weixin",
-      uniCompileVersion: "4.87",
-      uniCompilerVersion: "4.87",
-      uniRuntimeVersion: "4.87"
+      uniCompileVersion: "5.07",
+      uniCompilerVersion: "5.07",
+      uniRuntimeVersion: "5.07"
     };
     extend(toRes, parameters);
   }
@@ -6310,10 +6354,10 @@ const getAppBaseInfo = {
 const getWindowInfo = {
   returnValue: (fromRes, toRes) => {
     addSafeAreaInsets(fromRes, toRes);
-    toRes = sortObject(extend(toRes, {
+    toRes = extend(toRes, {
       windowTop: 0,
       windowBottom: 0
-    }));
+    });
   }
 };
 const getAppAuthorizeSetting = {
@@ -6490,13 +6534,13 @@ function createSelectorQuery() {
   return query;
 }
 const wx$2 = initWx();
-if (!wx$2.canIUse("getAppBaseInfo")) {
+if (!wx$2.getAppBaseInfo || !wx$2.getAppBaseInfo()) {
   wx$2.getAppBaseInfo = wx$2.getSystemInfoSync;
 }
-if (!wx$2.canIUse("getWindowInfo")) {
+if (!wx$2.getWindowInfo || !wx$2.getWindowInfo()) {
   wx$2.getWindowInfo = wx$2.getSystemInfoSync;
 }
-if (!wx$2.canIUse("getDeviceInfo")) {
+if (!wx$2.getDeviceInfo || !wx$2.getDeviceInfo()) {
   wx$2.getDeviceInfo = wx$2.getSystemInfoSync;
 }
 let baseInfo = wx$2.getAppBaseInfo && wx$2.getAppBaseInfo();
@@ -6540,6 +6584,31 @@ var protocols = /* @__PURE__ */ Object.freeze({
 });
 const wx$1 = initWx();
 var index = initUni(shims, protocols, wx$1);
+function currentPageCaptureScreenshot(fullPage, callback) {
+  var _a;
+  const pages = getCurrentPages();
+  const currentPage = pages[pages.length - 1];
+  (_a = currentPage.vm) === null || _a === void 0 ? void 0 : _a.$viewToTempFilePath({
+    wholeContent: fullPage,
+    overwrite: true,
+    success: (res) => {
+      const fileManager = index.getFileSystemManager();
+      fileManager.readFile({
+        encoding: "base64",
+        filePath: res.tempFilePath,
+        success(readFileRes) {
+          callback(readFileRes.data, "");
+        },
+        fail(err) {
+          callback("", `captureScreenshot fail: ${JSON.stringify(err)}`);
+        }
+      });
+    },
+    fail: (err) => {
+      callback("", `captureScreenshot fail: ${JSON.stringify(err)}`);
+    }
+  });
+}
 function initRuntimeSocket(hosts, port, id) {
   if (hosts == "" || port == "" || id == "")
     return Promise.resolve(null);
@@ -6579,6 +6648,22 @@ function tryConnectSocket(host2, port, id) {
     });
     socket.onError((e2) => {
       clearTimeout(timer);
+      resolve2(null);
+    });
+    socket.onMessage((result) => {
+      const message = JSON.parse(result.data);
+      if (message["type"] == "screencap") {
+        const id2 = message["id"];
+        currentPageCaptureScreenshot(message.fullPage, (base64, error) => {
+          socket.send({
+            data: JSON.stringify({
+              id: id2,
+              base64,
+              error
+            })
+          });
+        });
+      }
       resolve2(null);
     });
   });
@@ -7046,9 +7131,9 @@ function isConsoleWritable() {
   return isWritable;
 }
 function initRuntimeSocketService() {
-  const hosts = "169.254.83.107,192.168.2.115,192.168.58.1,192.168.175.1,127.0.0.1,172.28.80.1";
+  const hosts = "127.0.0.1,192.168.2.114";
   const port = "8090";
-  const id = "mp-weixin_vkYI8t";
+  const id = "mp-weixin_zT_PvL";
   const lazy = typeof swan !== "undefined";
   let restoreError = lazy ? () => {
   } : initOnError();

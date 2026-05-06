@@ -208,14 +208,14 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
     e: $options.allSelected
   }, $options.allSelected ? {} : {}, {
     f: $options.allSelected ? 1 : "",
-    g: common_vendor.o((...args) => $options.toggleSelectAll && $options.toggleSelectAll(...args)),
+    g: common_vendor.o((...args) => $options.toggleSelectAll && $options.toggleSelectAll(...args), "86"),
     h: common_vendor.t($options.totalPrice),
     i: $options.selectedCount > 0
   }, $options.selectedCount > 0 ? {
     j: common_vendor.t($options.selectedCount)
   } : {}, {
     k: $options.selectedCount === 0 ? 1 : "",
-    l: common_vendor.o((...args) => $options.checkout && $options.checkout(...args))
+    l: common_vendor.o((...args) => $options.checkout && $options.checkout(...args), "55")
   });
 }
 const MiniProgramPage = /* @__PURE__ */ common_vendor._export_sfc(_sfc_main, [["render", _sfc_render], ["__scopeId", "data-v-c91e7611"]]);

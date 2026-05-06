@@ -7,11 +7,10 @@
 			<view class="verify-number">
 				<button class="uni-button" size="default" type="default" @click="showVerifyFrom">填写表单</button>
 			</view>
+			<view class="join_group">
+				<image src="/static/image/join_group.png" @click="goToGroup" class="v-img" mode="widthFix"></image>
+			</view>
 		</view>
-	</view>
-
-	<view class="join_group">
-		<image src="/static/image/join_group.png" @click="goToGroup" class="v-img" mode="widthFix"></image>
 	</view>
 
 	<view class="cart-popup" v-if="showFrom">
@@ -81,9 +80,13 @@
 		width: 100%;
 	}
 
-	.verify-top .v-img,
-	.join_group .v-img {
+	.verify-top .v-img {
 		width: 100%;
+		height: auto;
+	}
+
+	.join_group .v-img {
+		width: 200rpx;
 		height: auto;
 	}
 
@@ -151,10 +154,8 @@
 	}
 
 	.join_group {
-		position: fixed;
-		z-index: 100;
-		right: 0;
-		bottom: 10%;
-		width: 200rpx;
+		display: flex;
+		justify-content: center;
+		margin-top: 40rpx;
 	}
 </style>

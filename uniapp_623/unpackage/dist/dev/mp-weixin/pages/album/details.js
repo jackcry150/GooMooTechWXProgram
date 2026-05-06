@@ -81,12 +81,12 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   } : {}, {
     e: $data.imageMask
   }, $data.imageMask ? {
-    f: common_vendor.o((...args) => $options.closeMask && $options.closeMask(...args)),
-    g: common_vendor.o((...args) => $options.leftImg && $options.leftImg(...args)),
-    h: common_vendor.o((...args) => $options.rightImg && $options.rightImg(...args)),
+    f: common_vendor.o((...args) => $options.closeMask && $options.closeMask(...args), "14"),
+    g: common_vendor.o((...args) => $options.leftImg && $options.leftImg(...args), "57"),
+    h: common_vendor.o((...args) => $options.rightImg && $options.rightImg(...args), "1b"),
     i: $data.viewImageUrl,
     j: common_vendor.o(() => {
-    })
+    }, "fe")
   } : {}, {
     k: $data.groupItem == 1
   }, $data.groupItem == 1 ? common_vendor.e({
@@ -123,13 +123,13 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   } : {}, {
     A: common_vendor.t($data.albumInfo.title),
     B: $data.groupItem === 1 ? 1 : "",
-    C: common_vendor.o(($event) => $options.switchGroup(1)),
+    C: common_vendor.o(($event) => $options.switchGroup(1), "b0"),
     D: $data.groupItem === 2 ? 1 : "",
-    E: common_vendor.o(($event) => $options.switchGroup(2)),
+    E: common_vendor.o(($event) => $options.switchGroup(2), "49"),
     F: $data.groupItem === 3 ? 1 : "",
-    G: common_vendor.o(($event) => $options.switchGroup(3)),
+    G: common_vendor.o(($event) => $options.switchGroup(3), "37"),
     H: $data.groupItem === 4 ? 1 : "",
-    I: common_vendor.o(($event) => $options.switchGroup(4))
+    I: common_vendor.o(($event) => $options.switchGroup(4), "3d")
   });
 }
 const MiniProgramPage = /* @__PURE__ */ common_vendor._export_sfc(_sfc_main, [["render", _sfc_render], ["__scopeId", "data-v-f928acc5"]]);

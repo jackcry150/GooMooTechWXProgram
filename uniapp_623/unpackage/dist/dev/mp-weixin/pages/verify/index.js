@@ -38,16 +38,16 @@ const _sfc_main = {
 function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   return common_vendor.e({
     a: common_assets._imports_0$2,
-    b: common_vendor.o((...args) => $options.showVerifyFrom && $options.showVerifyFrom(...args)),
+    b: common_vendor.o((...args) => $options.showVerifyFrom && $options.showVerifyFrom(...args), "8a"),
     c: common_assets._imports_1$1,
-    d: common_vendor.o((...args) => $options.goToGroup && $options.goToGroup(...args)),
+    d: common_vendor.o((...args) => $options.goToGroup && $options.goToGroup(...args), "18"),
     e: $data.showFrom
   }, $data.showFrom ? {
     f: $data.from.name,
-    g: common_vendor.o(($event) => $data.from.name = $event.detail.value),
+    g: common_vendor.o(($event) => $data.from.name = $event.detail.value, "ed"),
     h: $data.from.phone,
-    i: common_vendor.o(($event) => $data.from.phone = $event.detail.value),
-    j: common_vendor.o((...args) => $options.verifyFrom && $options.verifyFrom(...args))
+    i: common_vendor.o(($event) => $data.from.phone = $event.detail.value, "f1"),
+    j: common_vendor.o((...args) => $options.verifyFrom && $options.verifyFrom(...args), "fa")
   } : {});
 }
 const MiniProgramPage = /* @__PURE__ */ common_vendor._export_sfc(_sfc_main, [["render", _sfc_render], ["__scopeId", "data-v-64565cbf"]]);

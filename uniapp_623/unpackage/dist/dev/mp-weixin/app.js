@@ -14,6 +14,7 @@ if (!Math) {
   "./pages/product/detail.js";
   "./pages/order/list.js";
   "./pages/order/detail.js";
+  "./pages/order/confirm.js";
   "./pages/cart/cart.js";
   "./pages/my/profile.js";
   "./pages/my/agraeement.js";
@@ -25,6 +26,8 @@ if (!Math) {
   "./pages/my/privacy.js";
   "./pages/my/bill.js";
   "./pages/my/group.js";
+  "./pages/ai/customer.js";
+  "./pages/doll/female.js";
 }
 const _sfc_main = {
   onLaunch: function() {

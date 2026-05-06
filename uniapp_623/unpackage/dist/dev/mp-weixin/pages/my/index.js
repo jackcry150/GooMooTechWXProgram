@@ -2,7 +2,7 @@
 const common_vendor = require("../../common/vendor.js");
 const utils_request = require("../../utils/request.js");
 const common_assets = require("../../common/assets.js");
-const ARRIVAL_SUBSCRIBE_TEMPLATE_ID = "064jbSrGui-nwHcDSAxE-laUCzY5cgbqciU3aeyAhig";
+const ARRIVAL_SUBSCRIBE_TEMPLATE_ID = "PSTyqbj2wf1P74dSDb1qfh0ErUGegNQ8DFS6-SKM4_M";
 const ARRIVAL_SUBSCRIBE_ASKED_KEY = "arrival_subscribe_asked_v1";
 const _sfc_main = {
   name: "Profile",
@@ -23,7 +23,6 @@ const _sfc_main = {
   onShow() {
     const token = common_vendor.index.getStorageSync("token");
     if (token) {
-      this.tryAskArrivalSubscribe();
       this.getProfileInfo();
       this.getCartCount();
       this.getCollectCount();
@@ -78,7 +77,7 @@ const _sfc_main = {
             common_vendor.index.navigateTo({ url: "/pages/login/login" });
             return;
           } else if (res.cancel) {
-            common_vendor.index.__f__("log", "at pages/my/index.vue:176", "user cancel login");
+            common_vendor.index.__f__("log", "at pages/my/index.vue:175", "user cancel login");
             return;
           }
         }
@@ -87,8 +86,14 @@ const _sfc_main = {
     async getProfileInfo() {
       try {
         const response = await utils_request.api.user.profile();
-        this.userInfo = response.data;
+        const profile = response && response.data ? response.data : null;
+        if (!profile || !profile.id) {
+          throw new Error("invalid profile");
+        }
+        this.userInfo = profile;
+        this.tryAskArrivalSubscribe();
       } catch (error) {
+        common_vendor.index.removeStorageSync("token");
       }
     },
     async getCartCount() {
@@ -191,38 +196,38 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
     a: $data.userInfo.avatar,
     b: common_vendor.t($data.userInfo.nickName),
     c: common_vendor.t($data.userInfo.id),
-    d: common_vendor.o(($event) => $options.goToProfile()),
+    d: common_vendor.o(($event) => $options.goToProfile(), "83"),
     e: common_vendor.t($data.collectCount),
-    f: common_vendor.o((...args) => $options.goToCollect && $options.goToCollect(...args)),
+    f: common_vendor.o((...args) => $options.goToCollect && $options.goToCollect(...args), "06"),
     g: common_vendor.t($data.userInfo.snailShells),
-    h: common_vendor.o((...args) => $options.goToBill && $options.goToBill(...args)),
-    i: common_vendor.o((...args) => $options.goToGroup && $options.goToGroup(...args)),
+    h: common_vendor.o((...args) => $options.goToBill && $options.goToBill(...args), "cb"),
+    i: common_vendor.o((...args) => $options.goToGroup && $options.goToGroup(...args), "22"),
     j: common_assets._imports_0$3,
-    k: common_vendor.o(($event) => $options.goToOrders(0)),
+    k: common_vendor.o(($event) => $options.goToOrders(0), "b0"),
     l: common_assets._imports_1$2,
-    m: common_vendor.o(($event) => $options.goToOrders(1)),
+    m: common_vendor.o(($event) => $options.goToOrders(1), "2f"),
     n: common_assets._imports_2$1,
-    o: common_vendor.o(($event) => $options.goToOrders(8)),
+    o: common_vendor.o(($event) => $options.goToOrders(8), "64"),
     p: common_assets._imports_3$1,
-    q: common_vendor.o(($event) => $options.goToOrders(2)),
+    q: common_vendor.o(($event) => $options.goToOrders(2), "44"),
     r: common_assets._imports_4$1,
-    s: common_vendor.o(($event) => $options.goToOrders(6)),
+    s: common_vendor.o(($event) => $options.goToOrders(6), "bd"),
     t: common_assets._imports_5$1,
-    v: common_vendor.o(($event) => $options.goToOrders(7)),
+    v: common_vendor.o(($event) => $options.goToOrders(7), "0f"),
     w: common_assets._imports_6,
     x: $data.cartCount > 0
   }, $data.cartCount > 0 ? {
     y: common_vendor.t($data.cartCount)
   } : {}, {
-    z: common_vendor.o(($event) => $options.goToCart()),
+    z: common_vendor.o(($event) => $options.goToCart(), "db"),
     A: common_assets._imports_7,
-    B: common_vendor.o(($event) => $options.goToProfile()),
+    B: common_vendor.o(($event) => $options.goToProfile(), "a3"),
     C: common_assets._imports_8,
-    D: common_vendor.o(($event) => $options.goToCustomer()),
+    D: common_vendor.o(($event) => $options.goToCustomer(), "58"),
     E: common_assets._imports_9,
-    F: common_vendor.o(($event) => $options.goToAfterSales()),
+    F: common_vendor.o(($event) => $options.goToAfterSales(), "5a"),
     G: common_assets._imports_10,
-    H: common_vendor.o(($event) => $options.goToAgreement())
+    H: common_vendor.o(($event) => $options.goToAgreement(), "7a")
   });
 }
 const MiniProgramPage = /* @__PURE__ */ common_vendor._export_sfc(_sfc_main, [["render", _sfc_render], ["__scopeId", "data-v-f97bc692"]]);

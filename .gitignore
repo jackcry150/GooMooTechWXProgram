@@ -1,2 +1,3 @@
 DockerFiles/*.tar
 php/config/ai.local.php
+*.tar.gz

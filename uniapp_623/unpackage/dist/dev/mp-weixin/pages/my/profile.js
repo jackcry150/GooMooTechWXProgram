@@ -118,10 +118,10 @@ const _sfc_main = {
 function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   return {
     a: $data.userInfo && $data.userInfo.avatar ? $data.userInfo.avatar : "/static/image/default_avatar.jpg",
-    b: common_vendor.o((...args) => $options.onChooseAvatar && $options.onChooseAvatar(...args)),
-    c: common_vendor.o((...args) => $options.handleBlur && $options.handleBlur(...args)),
+    b: common_vendor.o((...args) => $options.onChooseAvatar && $options.onChooseAvatar(...args), "ca"),
+    c: common_vendor.o((...args) => $options.handleBlur && $options.handleBlur(...args), "89"),
     d: $data.userInfo && $data.userInfo.nickName ? $data.userInfo.nickName : "",
-    e: common_vendor.o((...args) => $options.goToAddress && $options.goToAddress(...args))
+    e: common_vendor.o((...args) => $options.goToAddress && $options.goToAddress(...args), "52")
   };
 }
 const MiniProgramPage = /* @__PURE__ */ common_vendor._export_sfc(_sfc_main, [["render", _sfc_render], ["__scopeId", "data-v-daa3bc30"]]);

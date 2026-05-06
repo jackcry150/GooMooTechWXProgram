@@ -92,13 +92,13 @@ const _sfc_main = {
 function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   return {
     a: common_assets._imports_0$8,
-    b: common_vendor.o((...args) => $options.getPhoneNumber && $options.getPhoneNumber(...args)),
+    b: common_vendor.o((...args) => $options.getPhoneNumber && $options.getPhoneNumber(...args), "13"),
     c: !$data.protocol,
-    d: common_vendor.o(($event) => $options.goToBack()),
+    d: common_vendor.o(($event) => $options.goToBack(), "6b"),
     e: $data.protocol ? true : false,
-    f: common_vendor.o(($event) => $options.agraeement()),
-    g: common_vendor.o(($event) => $options.privacy()),
-    h: common_vendor.o((...args) => $options.ChangeIsDefault && $options.ChangeIsDefault(...args))
+    f: common_vendor.o(($event) => $options.agraeement(), "2c"),
+    g: common_vendor.o(($event) => $options.privacy(), "aa"),
+    h: common_vendor.o((...args) => $options.ChangeIsDefault && $options.ChangeIsDefault(...args), "77")
   };
 }
 const MiniProgramPage = /* @__PURE__ */ common_vendor._export_sfc(_sfc_main, [["render", _sfc_render], ["__scopeId", "data-v-e4e4508d"]]);

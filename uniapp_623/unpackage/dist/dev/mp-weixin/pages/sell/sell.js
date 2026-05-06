@@ -167,7 +167,7 @@ const _sfc_main = {
 function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   return common_vendor.e({
     a: common_assets._imports_0$6,
-    b: common_vendor.o(($event) => $options.goToOrders(0)),
+    b: common_vendor.o(($event) => $options.goToOrders(0), "0e"),
     c: $data.sellInfo && $data.sellInfo.promoImages && $data.sellInfo.promoImages.length > 0
   }, $data.sellInfo && $data.sellInfo.promoImages && $data.sellInfo.promoImages.length > 0 ? {
     d: common_vendor.f($data.sellInfo.promoImages, (img, index, i0) => {
@@ -177,9 +177,9 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       };
     }),
     e: common_vendor.t($options.sellStateText),
-    f: common_vendor.o((...args) => $options.handleBuyClick && $options.handleBuyClick(...args)),
+    f: common_vendor.o((...args) => $options.handleBuyClick && $options.handleBuyClick(...args), "30"),
     g: common_assets._imports_1$4,
-    h: common_vendor.o((...args) => $options.handleBuyClick && $options.handleBuyClick(...args))
+    h: common_vendor.o((...args) => $options.handleBuyClick && $options.handleBuyClick(...args), "95")
   } : {}, {
     i: $data.sellInfo && $data.sellInfo.reservationNotice && $data.sellInfo.reservationNotice.length > 0
   }, $data.sellInfo && $data.sellInfo.reservationNotice && $data.sellInfo.reservationNotice.length > 0 ? {
@@ -194,7 +194,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   } : {}, {
     l: common_vendor.t($options.sellStateText),
     m: $options.canBuy ? 1 : "",
-    n: common_vendor.o((...args) => $options.handleSubmit && $options.handleSubmit(...args))
+    n: common_vendor.o((...args) => $options.handleSubmit && $options.handleSubmit(...args), "e3")
   });
 }
 const MiniProgramPage = /* @__PURE__ */ common_vendor._export_sfc(_sfc_main, [["render", _sfc_render]]);

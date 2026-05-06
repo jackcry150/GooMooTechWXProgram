@@ -151,6 +151,11 @@ const _sfc_main = {
         success: () => common_vendor.index.showToast({ title: "物流单号已复制", icon: "success" })
       });
     },
+    goToAiCustomer() {
+      common_vendor.index.navigateTo({
+        url: "/pages/customer/customer"
+      });
+    },
     goProduct(id) {
       if (!id)
         return;
@@ -393,7 +398,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
     I: common_vendor.t($data.order.totalPrice != null ? $data.order.totalPrice : "0.00")
   }) : {}, {
     J: common_vendor.t($data.order.orderNo),
-    K: common_vendor.o((...args) => $options.copyOrderNumber && $options.copyOrderNumber(...args)),
+    K: common_vendor.o((...args) => $options.copyOrderNumber && $options.copyOrderNumber(...args), "d1"),
     L: common_vendor.t($data.order.createDate),
     M: $data.order.payDate
   }, $data.order.payDate ? {
@@ -431,38 +436,39 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   }, $data.order.freightName ? common_vendor.e({
     ae: common_vendor.t($data.order.freightName),
     af: common_vendor.t($data.order.freightNo),
-    ag: common_vendor.o((...args) => $options.copyFreightNo && $options.copyFreightNo(...args)),
+    ag: common_vendor.o((...args) => $options.copyFreightNo && $options.copyFreightNo(...args), "a7"),
     ah: $data.order.freightTime
   }, $data.order.freightTime ? {
     ai: common_vendor.t($data.order.freightTime)
   } : {}) : {}), {
     aj: !$data.loading && $data.order.id
   }, !$data.loading && $data.order.id ? common_vendor.e({
-    ak: $options.showCancelBtn
+    ak: common_vendor.o((...args) => $options.goToAiCustomer && $options.goToAiCustomer(...args), "c9"),
+    al: $options.showCancelBtn
   }, $options.showCancelBtn ? {
-    al: common_vendor.o((...args) => $options.handleCancel && $options.handleCancel(...args))
+    am: common_vendor.o((...args) => $options.handleCancel && $options.handleCancel(...args), "b8")
   } : {}, {
-    am: $options.showDeleteBtn
+    an: $options.showDeleteBtn
   }, $options.showDeleteBtn ? {
-    an: common_vendor.o((...args) => $options.handleDelete && $options.handleDelete(...args))
+    ao: common_vendor.o((...args) => $options.handleDelete && $options.handleDelete(...args), "ed")
   } : {}, {
-    ao: $data.order.isPresale && $data.order.canPayDeposit
+    ap: $data.order.isPresale && $data.order.canPayDeposit
   }, $data.order.isPresale && $data.order.canPayDeposit ? {
-    ap: common_vendor.t($data.order.depositAmount != null ? $data.order.depositAmount : "0"),
-    aq: common_vendor.o((...args) => $options.handlePayDeposit && $options.handlePayDeposit(...args))
+    aq: common_vendor.t($data.order.depositAmount != null ? $data.order.depositAmount : "0"),
+    ar: common_vendor.o((...args) => $options.handlePayDeposit && $options.handlePayDeposit(...args), "b1")
   } : {}, {
-    ar: $data.order.isPresale && $data.order.canPayBalance
+    as: $data.order.isPresale && $data.order.canPayBalance
   }, $data.order.isPresale && $data.order.canPayBalance ? {
-    as: common_vendor.t($data.order.balanceAmount != null ? $data.order.balanceAmount : "0"),
-    at: common_vendor.o((...args) => $options.handlePayBalance && $options.handlePayBalance(...args))
+    at: common_vendor.t($data.order.balanceAmount != null ? $data.order.balanceAmount : "0"),
+    av: common_vendor.o((...args) => $options.handlePayBalance && $options.handlePayBalance(...args), "4e")
   } : {}, {
-    av: $options.showPayBtn
+    aw: $options.showPayBtn
   }, $options.showPayBtn ? {
-    aw: common_vendor.o((...args) => $options.handlePay && $options.handlePay(...args))
+    ax: common_vendor.o((...args) => $options.handlePay && $options.handlePay(...args), "03")
   } : {}, {
-    ax: $options.showConfirmReceiptBtn
+    ay: $options.showConfirmReceiptBtn
   }, $options.showConfirmReceiptBtn ? {
-    ay: common_vendor.o((...args) => $options.handleConfirmReceipt && $options.handleConfirmReceipt(...args))
+    az: common_vendor.o((...args) => $options.handleConfirmReceipt && $options.handleConfirmReceipt(...args), "d8")
   } : {}) : {});
 }
 const MiniProgramPage = /* @__PURE__ */ common_vendor._export_sfc(_sfc_main, [["render", _sfc_render], ["__scopeId", "data-v-6b23c96c"]]);

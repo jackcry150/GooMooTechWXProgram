@@ -189,20 +189,9 @@ const _sfc_main = {
       });
     },
     goToCustomer() {
-      if (this.config) {
-        common_vendor.wx$1.openCustomerServiceChat({
-          extInfo: {
-            url: this.config.customerLink
-          },
-          corpId: this.config.corpId,
-          success: (res) => {
-            common_vendor.index.__f__("log", "at pages/product/detail.vue:457", " openCustomerServiceChat success:" + JSON.stringify(res));
-          },
-          fail: (err) => {
-            common_vendor.index.__f__("log", "at pages/product/detail.vue:460", " openCustomerServiceChat fail:" + JSON.stringify(err));
-          }
-        });
-      }
+      common_vendor.index.navigateTo({
+        url: "/pages/customer/customer"
+      });
     },
     async goToCollect() {
       try {
@@ -442,7 +431,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
     h: $data.product.deduct > 0
   }, $data.product.deduct > 0 ? {
     i: common_vendor.t($data.product.price - $data.product.deduct),
-    j: common_vendor.o((...args) => $options.showDeductPopup && $options.showDeductPopup(...args))
+    j: common_vendor.o((...args) => $options.showDeductPopup && $options.showDeductPopup(...args), "53")
   } : {}, {
     k: $data.product.type == 1
   }, $data.product.type == 1 ? {
@@ -461,7 +450,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
     t: $data.product.proportion.length > 20 ? 1 : "",
     v: $data.product.proportion.length > 20
   }, $data.product.proportion.length > 20 ? {} : {}, {
-    w: common_vendor.o(($event) => $options.showSpecDetailPopup("proportion", $data.product.proportion))
+    w: common_vendor.o(($event) => $options.showSpecDetailPopup("proportion", $data.product.proportion), "ad")
   }) : {}, {
     x: $data.product.dimensions
   }, $data.product.dimensions ? common_vendor.e({
@@ -469,7 +458,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
     z: $data.product.dimensions.length > 20 ? 1 : "",
     A: $data.product.dimensions.length > 20
   }, $data.product.dimensions.length > 20 ? {} : {}, {
-    B: common_vendor.o(($event) => $options.showSpecDetailPopup("dimensions", $data.product.dimensions))
+    B: common_vendor.o(($event) => $options.showSpecDetailPopup("dimensions", $data.product.dimensions), "69")
   }) : {}, {
     C: $data.product.material
   }, $data.product.material ? common_vendor.e({
@@ -477,7 +466,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
     E: $data.product.material.length > 20 ? 1 : "",
     F: $data.product.material.length > 20
   }, $data.product.material.length > 20 ? {} : {}, {
-    G: common_vendor.o(($event) => $options.showSpecDetailPopup("material", $data.product.material))
+    G: common_vendor.o(($event) => $options.showSpecDetailPopup("material", $data.product.material), "27")
   }) : {}, {
     H: $data.product.copyright
   }, $data.product.copyright ? common_vendor.e({
@@ -485,14 +474,14 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
     J: $data.product.copyright.length > 20 ? 1 : "",
     K: $data.product.copyright.length > 20
   }, $data.product.copyright.length > 20 ? {} : {}, {
-    L: common_vendor.o(($event) => $options.showSpecDetailPopup("copyright", $data.product.copyright))
+    L: common_vendor.o(($event) => $options.showSpecDetailPopup("copyright", $data.product.copyright), "1e")
   }) : {}) : {}, {
     M: $data.showSpecDetail
   }, $data.showSpecDetail ? {
-    N: common_vendor.o((...args) => $options.hideSpecDetail && $options.hideSpecDetail(...args)),
+    N: common_vendor.o((...args) => $options.hideSpecDetail && $options.hideSpecDetail(...args), "8f"),
     O: common_vendor.t($options.getSpecLabel($data.currentSpecType)),
     P: common_vendor.t($data.currentSpecValue),
-    Q: common_vendor.o((...args) => $options.hideSpecDetail && $options.hideSpecDetail(...args))
+    Q: common_vendor.o((...args) => $options.hideSpecDetail && $options.hideSpecDetail(...args), "19")
   } : {}, {
     R: $data.product.type == 2 && $data.product.startTime && $data.product.endTime
   }, $data.product.type == 2 && $data.product.startTime && $data.product.endTime ? {
@@ -501,9 +490,9 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
     U: $options.timelineProgress + "%"
   } : {}, {
     V: common_vendor.n($data.contentTab == 1 ? "active" : ""),
-    W: common_vendor.o(($event) => $options.switchTab(1)),
+    W: common_vendor.o(($event) => $options.switchTab(1), "fc"),
     X: common_vendor.n($data.contentTab == 2 ? "active" : ""),
-    Y: common_vendor.o(($event) => $options.switchTab(2)),
+    Y: common_vendor.o(($event) => $options.switchTab(2), "8f"),
     Z: $data.contentTab == 1
   }, $data.contentTab == 1 ? {
     aa: common_vendor.f($data.product.content, (image, index, i0) => {
@@ -524,37 +513,37 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   } : {}, {
     ad: common_assets._imports_0$7,
     ae: common_assets._imports_1$5,
-    af: common_vendor.o((...args) => $options.goToCustomer && $options.goToCustomer(...args)),
+    af: common_vendor.o((...args) => $options.goToCustomer && $options.goToCustomer(...args), "a7"),
     ag: $data.productCollect === 1
   }, $data.productCollect === 1 ? {
     ah: common_assets._imports_2$3
   } : {
     ai: common_assets._imports_3$3
   }, {
-    aj: common_vendor.o((...args) => $options.goToCollect && $options.goToCollect(...args)),
+    aj: common_vendor.o((...args) => $options.goToCollect && $options.goToCollect(...args), "6f"),
     ak: common_assets._imports_4$2,
     al: $data.cartNumbers > 0
   }, $data.cartNumbers > 0 ? {
     am: common_vendor.t($data.cartNumbers)
   } : {}, {
-    an: common_vendor.o((...args) => $options.goToCart && $options.goToCart(...args)),
+    an: common_vendor.o((...args) => $options.goToCart && $options.goToCart(...args), "4e"),
     ao: $data.product.type != 2
   }, $data.product.type != 2 ? {
-    ap: common_vendor.o(($event) => $options.showCartPopup(1)),
-    aq: common_vendor.o(($event) => $options.showCartPopup(2))
+    ap: common_vendor.o(($event) => $options.showCartPopup(1), "f1"),
+    aq: common_vendor.o(($event) => $options.showCartPopup(2), "0a")
   } : {}, {
     ar: $data.product.type == 2
   }, $data.product.type == 2 ? {
-    as: common_vendor.o((...args) => $options.handlePresaleOrder && $options.handlePresaleOrder(...args))
+    as: common_vendor.o((...args) => $options.handlePresaleOrder && $options.handlePresaleOrder(...args), "6c")
   } : {}, {
     at: $data.showDeduct
   }, $data.showDeduct ? {
     av: common_vendor.t($data.product.deduct),
-    aw: common_vendor.o((...args) => $options.hideDeductPopup && $options.hideDeductPopup(...args))
+    aw: common_vendor.o((...args) => $options.hideDeductPopup && $options.hideDeductPopup(...args), "d1")
   } : {}, {
     ax: $data.showPopup
   }, $data.showPopup ? common_vendor.e({
-    ay: common_vendor.o((...args) => $options.hideCartPopup && $options.hideCartPopup(...args)),
+    ay: common_vendor.o((...args) => $options.hideCartPopup && $options.hideCartPopup(...args), "58"),
     az: $data.product.image[0],
     aA: common_vendor.t($data.product.subtitle),
     aB: common_vendor.t($data.product.title),
@@ -572,15 +561,15 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
         d: common_vendor.o(($event) => $options.selectSpec(index), index)
       };
     }),
-    aG: common_vendor.o((...args) => $options.decreaseQuantity && $options.decreaseQuantity(...args)),
+    aG: common_vendor.o((...args) => $options.decreaseQuantity && $options.decreaseQuantity(...args), "c6"),
     aH: common_vendor.n($data.quantity <= 1 ? "disabled" : ""),
     aI: common_vendor.t($data.quantity),
-    aJ: common_vendor.o((...args) => $options.increaseQuantity && $options.increaseQuantity(...args)),
+    aJ: common_vendor.o((...args) => $options.increaseQuantity && $options.increaseQuantity(...args), "e4"),
     aK: $data.orderType == 1
   }, $data.orderType == 1 ? {} : $data.orderType == 2 && $data.product.type == 2 ? {} : $data.orderType == 2 ? {} : {}, {
     aL: $data.orderType == 2 && $data.product.type == 2,
     aM: $data.orderType == 2,
-    aN: common_vendor.o((...args) => $options.addToOrder && $options.addToOrder(...args))
+    aN: common_vendor.o((...args) => $options.addToOrder && $options.addToOrder(...args), "38")
   }) : {});
 }
 const MiniProgramPage = /* @__PURE__ */ common_vendor._export_sfc(_sfc_main, [["render", _sfc_render], ["__scopeId", "data-v-acf502d9"]]);

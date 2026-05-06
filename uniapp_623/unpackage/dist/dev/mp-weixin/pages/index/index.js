@@ -147,13 +147,13 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       };
     }),
     b: common_assets._imports_0,
-    c: common_vendor.o(($event) => $options.goToAbout()),
+    c: common_vendor.o(($event) => $options.goToAbout(), "84"),
     d: common_assets._imports_1,
-    e: common_vendor.o(($event) => $options.goToCollect()),
+    e: common_vendor.o(($event) => $options.goToCollect(), "05"),
     f: common_assets._imports_2,
-    g: common_vendor.o(($event) => $options.goToCustomer()),
+    g: common_vendor.o(($event) => $options.goToCustomer(), "2f"),
     h: common_assets._imports_0,
-    i: common_vendor.o(($event) => $options.goToSell()),
+    i: common_vendor.o(($event) => $options.goToSell(), "21"),
     j: common_vendor.f($data.productListHot, (productHot, index, i0) => {
       return common_vendor.e({
         a: productHot.image[0],

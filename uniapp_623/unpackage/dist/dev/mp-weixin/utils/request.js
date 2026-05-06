@@ -2,7 +2,7 @@
 const common_vendor = require("../common/vendor.js");
 class Request {
   constructor() {
-    this.baseURL = "https://api.goomooplay.com/api";
+    this.baseURL = "http://127.0.0.1:8080/api";
     this.timeout = 1e4;
     this.header = {
       "Content-Type": "application/json"
@@ -155,6 +155,9 @@ const api = {
   server: {
     //获取客服列表
     list: (params) => request.get("/server/list", params)
+  },
+  aiService: {
+    sendMessage: (params) => request.post("/aiService/sendMessage", params)
   },
   // 用户认证相关
   auth: {

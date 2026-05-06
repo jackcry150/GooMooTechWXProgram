@@ -43,7 +43,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       return {
         a: item.image,
         b: common_vendor.t(item.title),
-        c: common_vendor.f(item.labels, (item2, index2, i1) => {
+        c: common_vendor.f(item.labels || [], (item2, index2, i1) => {
           return {
             a: common_vendor.t(item2),
             b: index2

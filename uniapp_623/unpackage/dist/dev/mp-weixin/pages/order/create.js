@@ -348,7 +348,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
     a: $data.address
   }, $data.address ? {
     b: common_assets._imports_0$5,
-    c: common_vendor.o((...args) => $options.selectAddress && $options.selectAddress(...args)),
+    c: common_vendor.o((...args) => $options.selectAddress && $options.selectAddress(...args), "99"),
     d: common_vendor.t($data.address.name),
     e: common_vendor.t($data.address.phone),
     f: common_vendor.t($data.address.province),
@@ -357,7 +357,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
     i: common_vendor.t($data.address.detail)
   } : {
     j: common_assets._imports_0$5,
-    k: common_vendor.o((...args) => $options.selectAddress && $options.selectAddress(...args))
+    k: common_vendor.o((...args) => $options.selectAddress && $options.selectAddress(...args), "28")
   }, {
     l: common_vendor.f($data.product, (item, index, i0) => {
       return common_vendor.e({
@@ -394,7 +394,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
     })
   } : {}, {
     t: $data.remarks,
-    v: common_vendor.o(($event) => $data.remarks = $event.detail.value),
+    v: common_vendor.o(($event) => $data.remarks = $event.detail.value, "b3"),
     w: $options.hasPresale && $options.totalDepositAmount > 0
   }, $options.hasPresale && $options.totalDepositAmount > 0 ? {
     x: common_vendor.t($options.totalPrice),
@@ -402,7 +402,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   } : {
     z: common_vendor.t($options.totalPrice)
   }, {
-    A: common_vendor.o((...args) => $options.submitOrder && $options.submitOrder(...args))
+    A: common_vendor.o((...args) => $options.submitOrder && $options.submitOrder(...args), "31")
   });
 }
 const MiniProgramPage = /* @__PURE__ */ common_vendor._export_sfc(_sfc_main, [["render", _sfc_render], ["__scopeId", "data-v-8837ac90"]]);

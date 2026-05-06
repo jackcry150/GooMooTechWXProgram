@@ -168,8 +168,8 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   }, $data.addressList.length === 0 ? {
     c: common_assets._imports_0$1
   } : {}, {
-    d: common_vendor.o((...args) => $options.addAddress && $options.addAddress(...args)),
-    e: common_vendor.o((...args) => $options.importWechatAddress && $options.importWechatAddress(...args))
+    d: common_vendor.o((...args) => $options.addAddress && $options.addAddress(...args), "5f"),
+    e: common_vendor.o((...args) => $options.importWechatAddress && $options.importWechatAddress(...args), "87")
   });
 }
 const MiniProgramPage = /* @__PURE__ */ common_vendor._export_sfc(_sfc_main, [["render", _sfc_render], ["__scopeId", "data-v-90a3874e"]]);

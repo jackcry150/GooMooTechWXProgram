@@ -12,6 +12,7 @@
     "pages/product/detail",
     "pages/order/list",
     "pages/order/detail",
+    "pages/order/confirm",
     "pages/cart/cart",
     "pages/my/profile",
     "pages/my/agraeement",
@@ -22,7 +23,9 @@
     "pages/login/login",
     "pages/my/privacy",
     "pages/my/bill",
-    "pages/my/group"
+    "pages/my/group",
+    "pages/ai/customer",
+    "pages/doll/female"
   ],
   "window": {
     "navigationBarTextStyle": "black",

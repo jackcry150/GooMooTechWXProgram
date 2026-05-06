@@ -11,17 +11,17 @@ const _sfc_main = {
     this.getCustomerService();
   },
   methods: {
-    goToCustomer(i) {
+    goToCustomer(item) {
       common_vendor.wx$1.openCustomerServiceChat({
         extInfo: {
-          url: i.linkUrl
+          url: item.linkUrl
         },
-        corpId: i.corpId,
+        corpId: item.corpId,
         success: (res) => {
-          common_vendor.index.__f__("log", "at pages/customer/customer.vue:29", " openCustomerServiceChat success:" + JSON.stringify(res));
+          common_vendor.index.__f__("log", "at pages/customer/customer.vue:35", "openCustomerServiceChat success:", res);
         },
         fail: (err) => {
-          common_vendor.index.__f__("log", "at pages/customer/customer.vue:32", " openCustomerServiceChat fail:" + JSON.stringify(err));
+          common_vendor.index.__f__("log", "at pages/customer/customer.vue:38", "openCustomerServiceChat fail:", err);
         }
       });
     },

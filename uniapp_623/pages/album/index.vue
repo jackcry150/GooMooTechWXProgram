@@ -8,7 +8,7 @@
 				<view class="album-item-info">
 					<view class="album-item-info-name">{{ item.title }}</view>
 					<view class="album-item-info-label">
-						<text class="album-label" v-for="(item2, index2) in item.labels" :key="index2">{{ item2 }}</text>
+						<text class="album-label" v-for="(item2, index2) in (item.labels || [])" :key="index2">{{ item2 }}</text>
 					</view>
 				</view>
 			</view>
