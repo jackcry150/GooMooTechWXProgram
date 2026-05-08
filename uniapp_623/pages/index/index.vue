@@ -1,781 +1,891 @@
 <template>
 	<view class="home">
-		<!-- 轮播图 -->
-		<view class="banner-section">
-			<swiper class="banner-swiper" :indicator-dots="true" :autoplay="true" :interval="4000" :duration="500">
-				<swiper-item v-for="(banner, index) in bannerList" :key="index">
-					<view class="banner-item">
-						<image :src="banner.image" class="banner-image" mode="center" @click="onBannerClick(banner)"></image>
-					</view>
-				</swiper-item>
-			</swiper>
-		</view>
+		<view class="home-glow glow-left"></view>
+		<view class="home-glow glow-right"></view>
 
-		<!-- 顶部导航栏 -->
-		<view class="nav-section">
-			<view class="nav-bar">
-				<view class="nav-item" @click="goToAbout()">
-					<view class="nav-item-img">
-						<image class="nav-item-image" src="/static/image/icon_brand.png" mode="widthFix"></image>
+		<view class="page-shell" :style="{ paddingTop: `${statusBarHeight + 12}px` }">
+			<view class="topbar">
+				<view class="brand-block">
+					<image class="brand-icon" src="/static/image/logo1.png" mode="aspectFit"></image>
+					<view class="brand-copy">
+						<text class="brand-en">GOOMOO PLAY</text>
+						<text class="brand-cn">橘猫智酷</text>
 					</view>
-					<text class="nav-item-title">品牌介绍</text>
-				</view>
-				<view class="nav-item" @click="goToCollect()">
-					<view class="nav-item-img">
-						<image class="nav-item-image" src="/static/image/icon_collect.png" mode="widthFix"></image>
-					</view>
-					<view class="iconfont nav-item-collect"></view>
-					<text class="nav-item-title">线上收藏卡</text>
-				</view>
-				<view class="nav-item" @click="goToCustomer()">
-					<view class="nav-item-img">
-						<image class="nav-item-image" src="/static/image/icon_customer.png" mode="widthFix"></image>
-					</view>
-					<text class="nav-item-title">联系客服</text>
-				</view>
-				<view class="nav-item" @click="goToSell()">
-					<view class="nav-item-img">
-						<image class="nav-item-image" src="/static/image/icon_brand.png" mode="widthFix"></image>
-					</view>
-					<view class="iconfont nav-item-sell"></view>
-					<text class="nav-item-title">特别贩售</text>
 				</view>
 			</view>
-		</view>
 
-		<!-- 商品列表 -->
-		<view class="product-list">
-			<view class="section-title">
-				<text class="title-text">全部商品</text>
+			<view class="hero-card">
+				<image class="hero-background" :src="heroBannerImage" mode="widthFix"></image>
 			</view>
 
-			<view class="product-hot">
-				<view class="product-hot-item" v-for="(productHot, index) in productListHot" :key="index" @click="goToProductDetail(productHot.id)">
-					<view class="product-hot-top">
-						<view class="product-hot-top-l">
-							<view>www.goomooplay.com</view>
-							<view class="fontBold">SNAIL SHELL</view>
-						</view>
-						<view class="product-hot-top-c">
-							<image src="/static/image/t1.png" class="c-img" mode="aspectFit"></image>
-						</view>
-						<view class="product-hot-top-r">
-							<view class="product-hot-top-t">
-								<view>established in</view>
-								<view class="fontBold">2019</view>
-							</view>
-							<view class="product-hot-top-logo">
-								<image src="/static/image/logo1.png" class="l-img" mode="aspectFit"></image>
-							</view>
-							<view class="product-hot-top-logo">
-								<image src="/static/image/logo2.png" class="l-img" mode="aspectFit"></image>
-							</view>
-						</view>
-					</view>
-					<view class="product-hot-center">
-						<view class="product-hot-img">
-							<image :src="productHot.image[0]" class="p-img" mode="widthFix"></image>
-						</view>
-						<view class="product-hot-time" v-if="productHot.type == 2 && productHot.countdown">
-							预定时间剩余: {{ productHot.countdown }}
-						</view>
-					</view>
-					<view class="product-hot-bottom">
-						<view class="product-hot-buy-type">
-							<view class="product-hot-sub">
-								<text class="buy-type-val1" v-if="productHot.type == 2">预售</text>
-								<text class="buy-type-val2" v-if="productHot.type == 1">现货</text>
-								{{ productHot.subtitle }}
-							</view>
-						</view>
-						<view class="product-hot-name">{{ productHot.title }}</view>
-						<view class="product-hot-price">
-							<view class="price">
-								<view v-if="productHot.type == 2">
-									<view class="price-deposit">定金￥<text class="fontBold">{{ productHot.deposit }}</text></view>
-									<view class="price-total">商品总价￥{{ productHot.price }}</view>
-								</view>
-								<view v-if="productHot.type == 1">
-									<view class="price-deposit">￥<text class="fontBold">{{ productHot.price }}</text></view>
-									<view class="pay-price" v-if="productHot.deduct > 0">
-										<text class="pay-price-val">抵后到手价￥{{ productHot.price - productHot.deduct }}</text>
-									</view>
-								</view>
-
-							</view>
-							<view class="buy">
-								立即购买
-							</view>
-						</view>
-					</view>
-					<view class="product-hot-center">
-						<view class="product-hot-center-k"></view>
-					</view>
+			<view class="quick-grid">
+				<view
+					v-for="item in quickActions"
+					:key="item.title"
+					class="quick-card"
+					@click="goToPage(item.url)"
+				>
+					<image class="quick-icon" :src="item.icon" mode="aspectFit"></image>
+					<text class="quick-title">{{ item.title }}</text>
+					<text class="quick-desc">{{ item.desc }}</text>
 				</view>
-
 			</view>
 
-			<view class="product-recom">
-				<view class="product-recom-item" v-for="(productRecom, index) in productListRecom" :key="index" @click="goToProductDetail(productRecom.id)">
-					<view class="product-recom-h">
-						<view class="product-recom-top">
-							<view class="product-recom-top-l">
-								<view>www.goomooplay.com</view>
-								<view class="fontBold">SNAIL SHELL</view>
-							</view>
-							<view class="product-recom-top-c">
-								<image src="/static/image/t1.png" class="c-img" mode="aspectFit"></image>
-							</view>
-							<view class="product-recom-top-r">
-								<view class="product-recom-top-t">
-									<view>established in</view>
-									<view class="fontBold">2019</view>
-								</view>
-								<view class="product-recom-top-logo">
-									<image src="/static/image/logo1.png" class="l-img" mode="aspectFit"></image>
-								</view>
-								<view class="product-recom-top-logo">
-									<image src="/static/image/logo2.png" class="l-img" mode="aspectFit"></image>
-								</view>
-							</view>
-						</view>
-						<view class="product-recom-center">
-							<view class="product-recom-img">
-								<image :src="productRecom.image[0]" class="p-img" mode="widthFix"></image>
-							</view>
-							<view class="product-recom-time" v-if="productRecom.type == 2 && productRecom.countdown">
-								预定时间剩余: {{ productRecom.countdown }}
-							</view>
+			<view class="section-head">
+				<view class="section-copy">
+					<text class="section-title">精选推荐</text>
+					<text class="section-subtitle">人气娃衣精选</text>
+				</view>
+				<view class="section-link" @click="goToSell">
+					<text>查看全部</text>
+				</view>
+			</view>
+
+			<view class="product-grid">
+				<view
+					v-for="(product, index) in displayProducts"
+					:key="product.id || index"
+					class="product-card"
+					@click="goToProductDetail(product.id)"
+				>
+					<view class="product-image-wrap">
+						<image class="product-image" :src="getProductImage(product)" mode="aspectFill"></image>
+						<text :class="['product-tag', index % 2 === 0 ? 'product-tag-dark' : 'product-tag-light']">
+							{{ getProductTag(product, index) }}
+						</text>
+						<view class="product-countdown" v-if="product.type == 2 && product.countdown">
+							剩余 {{ product.countdown }}
 						</view>
 					</view>
-
-					<view class="product-recom-bottom">
-						<view class="product-recom-buy-type">
-
-							<view class="product-recom-name">
-								<text class="buy-type-val1" v-if="productRecom.type == 2">预售</text>
-								<text class="buy-type-val2" v-if="productRecom.type == 1">现货</text>
-								{{ productRecom.subtitle }} {{ productRecom.title }}
+					<view class="product-body">
+						<text class="product-name">{{ product.title || '新品系列' }}</text>
+						<text class="product-desc">{{ getProductDescription(product) }}</text>
+						<view class="product-meta">
+							<text class="product-price">{{ getProductPrice(product) }}</text>
+							<view class="product-heat">
+								<text class="product-heat-icon">♨</text>
+								<text>{{ getProductHeat(index) }}</text>
 							</view>
-						</view>
-
-						<view class="product-recom-price">
-							<view class="price">
-								<view v-if="productRecom.type == 2">
-									<view class="price-deposit">定金￥<text class="fontBold">{{ productRecom.deposit }}</text></view>
-									<view class="price-total">商品总价￥{{ productRecom.price }}</view>
-								</view>
-								<view v-if="productRecom.type == 1">
-									<view class="price-deposit">￥<text class="fontBold">{{ productRecom.price }}</text></view>
-								</view>
-							</view>
-							<view class="pay-price" v-if="productRecom.deduct > 0">
-								<text class="pay-price-val">抵后到手价￥{{ productRecom.price - productRecom.deduct }}</text>
+							<view
+								class="product-cart"
+								:class="{ 'product-cart--active': isProductInCart(product) }"
+								@click.stop="handleAddToCart(product)"
+							>
+								<image class="product-cart-icon" src="/static/image/icon_shop.png" mode="aspectFit"></image>
 							</view>
 						</view>
 					</view>
 				</view>
+			</view>
+
+			<view class="empty-state" v-if="!displayProducts.length">
+				<image class="empty-image" src="/static/image/no-data.png" mode="aspectFit"></image>
+				<text class="empty-title">首页素材准备中</text>
+				<text class="empty-desc">商品上架后会在这里展示</text>
 			</view>
 		</view>
 	</view>
 </template>
 
 <script>
-	import { api } from '@/utils/request.js'
+import { api } from '@/utils/request.js'
 
-	export default {
-		data() {
-			return {
-				bannerList: [],
-				productListHot: [],
-				productListRecom: [],
-				countdownTimers: []
+export default {
+	data() {
+		return {
+			statusBarHeight: 44,
+			bannerList: [],
+			productListHot: [],
+			productListRecom: [],
+			cartProductMap: {},
+			countdownTimers: [],
+			placeholderImage: '/static/image/600_694.png',
+			quickActions: [
+				{
+					title: '品牌介绍',
+					desc: '了解我们',
+					icon: '/static/image/icon_brand.png',
+					url: '/pages/about/about'
+				},
+				{
+					title: '线上收藏卡',
+					desc: '收集专属回忆',
+					icon: '/static/image/icon_collect.png',
+					url: '/pages/collect/collect'
+				},
+				{
+					title: '联系客服',
+					desc: '贴心为您服务',
+					icon: '/static/image/icon_customer.png',
+					url: '/pages/customer/customer'
+				},
+				{
+					title: '特别贩售',
+					desc: '限时发售中',
+					icon: '/static/image/icon_shop.png',
+					url: '/pages/sell/sell'
+				}
+			]
+		}
+	},
+
+	computed: {
+		featuredProduct() {
+			return this.productListHot[0] || this.productListRecom[0] || null
+		},
+		heroProductImage() {
+			return this.getProductImage(this.featuredProduct)
+		},
+		heroBannerImage() {
+			return (this.bannerList[0] && this.bannerList[0].image) || this.heroProductImage
+		},
+		heroSubtitle() {
+			if (this.featuredProduct && this.featuredProduct.subtitle) {
+				return this.featuredProduct.subtitle
+			}
+			return '萌力全开 · 猫系穿搭系列'
+		},
+		heroDotCount() {
+			const count = this.bannerList.length || 3
+			return Math.min(count, 3)
+		},
+		displayProducts() {
+			const merged = [...this.productListHot, ...this.productListRecom]
+			const seen = new Set()
+			return merged.filter((item) => {
+				const key = item.id || `${item.title}-${item.price}`
+				if (seen.has(key)) {
+					return false
+				}
+				seen.add(key)
+				return true
+			}).slice(0, 4)
+		}
+	},
+
+	onLoad() {
+		const systemInfo = uni.getSystemInfoSync ? uni.getSystemInfoSync() : {}
+		this.statusBarHeight = systemInfo.statusBarHeight || 22
+		this.loadInfo()
+	},
+
+	onUnload() {
+		this.countdownTimers.forEach((timer) => {
+			if (timer) {
+				clearInterval(timer)
+			}
+		})
+		this.countdownTimers = []
+	},
+
+	onShow() {
+		this.loadInfo()
+	},
+
+	onPullDownRefresh() {
+		this.loadInfo().finally(() => {
+			uni.stopPullDownRefresh()
+		})
+	},
+
+	methods: {
+		loadInfo() {
+			return Promise.allSettled([
+				this.getBannerList(),
+				this.getProductList(),
+				this.getHomeCartState()
+			])
+		},
+
+		async getBannerList() {
+			try {
+				const response = await api.banner.list()
+				this.bannerList = response.data || []
+			} catch (error) {
+				console.error('getBannerList error', error)
+				uni.showToast({ title: 'banner加载失败', icon: 'none' })
 			}
 		},
 
-		onLoad() {
-			this.loadInfo()
-			uni.setStorageSync('token', 'U013YUN6UDZFdWlhd1UyRzE4QkRvQkdrS2tzRjZuWVRlcUtuZ1V6TnJWNXVKQS9hZnpxNXI4V29pYkNyNkl5dmhOZ05zcml0MCtMQnd4Vmc2SGNjcjViQWRiUm51aFNub09icEg3NDhTVmc9')
-		},
+		async getProductList() {
+			try {
+				const response = await api.product.list()
+				this.productListHot = response.data.hot || []
+				this.productListRecom = response.data.recom || []
 
-		onUnload() {
-			// 清除所有倒计时定时器
-			this.countdownTimers.forEach(timer => {
-				if (timer) {
-					clearInterval(timer)
-				}
-			})
-			this.countdownTimers = []
-		},
-
-		onShow() {
-			this.loadInfo()
-		},
-
-		onPullDownRefresh() {
-			this.loadInfo().finally(() => {
-				uni.stopPullDownRefresh()
-			})
-		},
-
-		methods: {
-			loadInfo() {
-				this.getBannerList()
-				this.getProductList()
-			},
-
-			async getBannerList() {
-				try {
-					const response = await api.banner.list()
-					this.bannerList = response.data
-				} catch (error) {
-					console.error('getBannerList error', error)
-  					uni.showToast({ title: 'banner加载失败', icon: 'none' })
-
-				}
-
-			},
-			async getProductList() {
-				try {
-					const response = await api.product.list()
-					this.productListHot = response.data.hot || []
-					this.productListRecom = response.data.recom || []
-					
-					// 清除之前的倒计时定时器
-					this.countdownTimers.forEach(timer => {
-						if (timer) {
-							clearInterval(timer)
-						}
-					})
-					this.countdownTimers = []
-					
-					// 为所有预售商品启动倒计时
-					this.startCountdowns()
-				} catch (error) {
-
-				}
-			},
-
-			// 启动所有预售商品的倒计时
-			startCountdowns() {
-				// 热销商品倒计时
-				this.productListHot.forEach((product, index) => {
-					if (product.type == 2 && product.endTimeStamp) {
-						this.startCountdown(product, 'hot', index)
+				this.countdownTimers.forEach((timer) => {
+					if (timer) {
+						clearInterval(timer)
 					}
 				})
-				
-				// 推荐商品倒计时
-				this.productListRecom.forEach((product, index) => {
-					if (product.type == 2 && product.endTimeStamp) {
-						this.startCountdown(product, 'recom', index)
+				this.countdownTimers = []
+				this.startCountdowns()
+			} catch (error) {
+				console.error('getProductList error', error)
+			}
+		},
+
+		async getHomeCartState() {
+			const token = uni.getStorageSync('token')
+			if (!token) {
+				this.cartProductMap = {}
+				return
+			}
+
+			try {
+				const response = await api.cart.list()
+				const nextMap = {}
+				const list = Array.isArray(response.data) ? response.data : []
+				list.forEach((item) => {
+					const key = this.getCartKey(item.productId, item.version)
+					nextMap[key] = {
+						id: item.id,
+						productId: item.productId,
+						version: item.version,
+						quantity: item.quantity
 					}
 				})
-			},
+				this.cartProductMap = nextMap
+			} catch (error) {
+				this.cartProductMap = {}
+			}
+		},
 
-			// 为单个商品启动倒计时
-			startCountdown(product, listType, index) {
-				// 使用Vue.set或者直接赋值来触发响应式更新
-				if (!product.endTimeStamp) {
-					this.$set(product, 'countdown', '')
+		startCountdowns() {
+			this.productListHot.forEach((product, index) => {
+				if (product.type == 2 && product.endTimeStamp) {
+					this.startCountdown(product, index)
+				}
+			})
+
+			this.productListRecom.forEach((product, index) => {
+				if (product.type == 2 && product.endTimeStamp) {
+					this.startCountdown(product, index + this.productListHot.length)
+				}
+			})
+		},
+
+		startCountdown(product) {
+			if (!product.endTimeStamp) {
+				this.$set(product, 'countdown', '')
+				return
+			}
+
+			const updateCountdown = () => {
+				const now = Math.floor(Date.now() / 1000)
+				const remaining = product.endTimeStamp - now
+
+				if (remaining <= 0) {
+					this.$set(product, 'countdown', '已结束')
 					return
 				}
-				
-				const updateCountdown = () => {
-					const now = Math.floor(Date.now() / 1000)
-					const remaining = product.endTimeStamp - now
-					
-					if (remaining <= 0) {
-						this.$set(product, 'countdown', '已结束')
+
+				const days = Math.floor(remaining / 86400)
+				const hours = Math.floor((remaining % 86400) / 3600)
+				const minutes = Math.floor((remaining % 3600) / 60)
+				const seconds = remaining % 60
+				const pad = (value) => (value < 10 ? `0${value}` : value)
+
+				const countdownText = days > 0
+					? `${days}天 ${pad(hours)}:${pad(minutes)}:${pad(seconds)}`
+					: `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`
+
+				this.$set(product, 'countdown', countdownText)
+			}
+
+			updateCountdown()
+			const timer = setInterval(updateCountdown, 1000)
+			this.countdownTimers.push(timer)
+		},
+
+		getProductImage(product) {
+			if (product && product.image && product.image.length && product.image[0]) {
+				return product.image[0]
+			}
+			return this.placeholderImage
+		},
+
+		getProductTag(product, index) {
+			if (product && product.type == 2) {
+				return '预售'
+			}
+			const tags = ['新品', '热门', '推荐', '精选']
+			return tags[index % tags.length]
+		},
+
+		getProductDescription(product) {
+			if (product && product.subtitle) {
+				return product.subtitle
+			}
+			if (product && product.type == 2) {
+				return '限量预定款'
+			}
+			return '软萌可爱系列'
+		},
+
+		getProductPrice(product) {
+			if (!product) {
+				return '¥0.00'
+			}
+			if (product.type == 2 && product.deposit) {
+				return `定金 ¥${product.deposit}`
+			}
+			return `¥${Number(product.price || 0).toFixed(2)}`
+		},
+
+		getProductHeat(index) {
+			return `${(2.4 + index * 0.7).toFixed(1)}k`
+		},
+
+		getDefaultVersion(product) {
+			if (!product) {
+				return '默认规格'
+			}
+			if (Array.isArray(product.version) && product.version.length) {
+				return product.version[0] || '默认规格'
+			}
+			if (typeof product.version === 'string' && product.version.trim()) {
+				return product.version.trim()
+			}
+			return '默认规格'
+		},
+
+		getCartKey(productId, version) {
+			return `${productId || ''}::${String(version || '默认规格').trim() || '默认规格'}`
+		},
+
+		isProductInCart(product) {
+			if (!product || !product.id) {
+				return false
+			}
+			return Object.values(this.cartProductMap).some((entry) => {
+				return String(entry.productId) === String(product.id)
+			})
+		},
+
+		getCartEntry(product) {
+			if (!product || !product.id) {
+				return null
+			}
+			const defaultKey = this.getCartKey(product.id, this.getDefaultVersion(product))
+			if (this.cartProductMap[defaultKey]) {
+				return this.cartProductMap[defaultKey]
+			}
+
+			return (
+				Object.values(this.cartProductMap).find((entry) => {
+					return String(entry.productId) === String(product.id)
+				}) || null
+			)
+		},
+
+		handleHeroClick() {
+			if (this.featuredProduct && this.featuredProduct.id) {
+				this.goToProductDetail(this.featuredProduct.id)
+				return
+			}
+			this.goToSell()
+		},
+
+		goLogin() {
+			uni.showModal({
+				content: '使用当前功能需要您进行登录，是否去登录?',
+				success: function(res) {
+					if (res.confirm) {
+						uni.navigateTo({
+							url: '/pages/login/login'
+						})
+					}
+				}
+			})
+		},
+
+		async handleAddToCart(product) {
+			const token = uni.getStorageSync('token')
+			if (!token) {
+				this.goLogin()
+				return
+			}
+
+			if (!product || !product.id) {
+				uni.showToast({
+					title: '商品信息缺失',
+					icon: 'none'
+				})
+				return
+			}
+
+			const version = this.getDefaultVersion(product)
+			try {
+				const cartEntry = this.getCartEntry(product)
+				if (cartEntry?.id) {
+					const cancelResponse = await api.cart.cancel({ id: cartEntry.id })
+					if (cancelResponse.code !== 200) {
+						uni.showToast({
+							title: cancelResponse.msg || '取消加入失败',
+							icon: 'none'
+						})
 						return
 					}
-					
-					const days = Math.floor(remaining / 86400)
-					const hours = Math.floor((remaining % 86400) / 3600)
-					const minutes = Math.floor((remaining % 3600) / 60)
-					const seconds = remaining % 60
-					
-					const pad = (n) => n < 10 ? '0' + n : n
-					
-					let countdownText = ''
-					if (days > 0) {
-						countdownText = `${days} 天 ${pad(hours)}:${pad(minutes)}:${pad(seconds)}`
-					} else {
-						countdownText = `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`
-					}
-					
-					this.$set(product, 'countdown', countdownText)
-				}
-				
-				// 立即更新一次
-				updateCountdown()
-				
-				// 设置定时器，每秒更新
-				const timer = setInterval(updateCountdown, 1000)
-				this.countdownTimers.push(timer)
-			},
 
-			onBannerClick(e) {
-				if (e.link) {
-					uni.navigateTo({
-						url: e.link
+					const cartKey = this.getCartKey(product.id, version)
+					const nextMap = { ...this.cartProductMap }
+					delete nextMap[cartKey]
+					this.cartProductMap = nextMap
+
+					uni.showToast({
+						title: cancelResponse.msg || '已移出购物车',
+						icon: 'success'
 					})
+					return
 				}
-			},
 
-			goToAbout() {
-				uni.navigateTo({
-					url: '/pages/about/about'
+				const response = await api.cart.create({
+					productId: product.id,
+					version,
+					quantity: 1
 				})
-			},
 
-			goToCollect() {
-				uni.navigateTo({
-					url: '/pages/collect/collect'
+				if (response.code !== 200) {
+					uni.showToast({
+						title: response.msg || '加入购物车失败',
+						icon: 'none'
+					})
+					return
+				}
+
+				const cartKey = this.getCartKey(product.id, version)
+				this.cartProductMap = {
+					...this.cartProductMap,
+					[cartKey]: {
+						id: null,
+						productId: product.id,
+						version,
+						quantity: 1
+					}
+				}
+
+				await this.getHomeCartState()
+
+				uni.showToast({
+					title: response.msg || '加入购物车成功',
+					icon: 'success'
 				})
-			},
-
-			goToCustomer() {
-				uni.navigateTo({
-					url: '/pages/customer/customer'
-				})
-			},
-
-			goToSell() {
-				uni.navigateTo({
-					url: '/pages/sell/sell'
-				})
-			},
-
-			goToProductDetail(id) {
-				uni.navigateTo({
-					url: `/pages/product/detail?id=${id}`
+			} catch (error) {
+				uni.showToast({
+					title: '加入购物车失败',
+					icon: 'none'
 				})
 			}
+		},
+
+		goToPage(url) {
+			uni.navigateTo({ url })
+		},
+
+		goToSell() {
+			uni.navigateTo({
+				url: '/pages/sell/sell'
+			})
+		},
+
+		goToProductDetail(id) {
+			if (!id) {
+				return
+			}
+			uni.navigateTo({
+				url: `/pages/product/detail?id=${id}`
+			})
 		}
 	}
+}
 </script>
 
 <style scoped>
-	.home {
-		background-color: #000000;
-		min-height: 100vh;
-		padding-bottom: 150rpx;
-	}
-
-	/* 轮播图 */
-	.banner-section {
-		height: 1240rpx;
-		position: relative;
-		background-color: #f5f5f5;
-	}
-
-	.banner-swiper {
-		height: 100%;
-	}
-
-	.banner-item {
-		position: relative;
-		height: 100%;
-	}
-
-	.banner-image {
-		width: 100%;
-		height: 100%;
-	}
-
-	.nav-section {
-		padding: 0 20rpx;
-	}
-
-	.nav-bar {
-		background-color: #ffffff;
-		border-radius: 10rpx;
-		display: flex;
-		justify-content: space-around;
-		padding: 30rpx 0;
-	}
-
-	.nav-item {
-		width: 40%;
-		display: flex;
-		flex-direction: column;
-		flex-wrap: nowrap;
-		align-items: center;
-		color: #000000;
-	}
-
-	.nav-item-img {
-		width: 70rpx;
-		height: 70rpx;
-	}
-
-	.nav-item-image {
-		width: 100%;
-		height: auto;
-	}
-
-	.nav-item-title {
-		font-size: 24rpx;
-		font-weight: 600;
-		padding: 10rpx 0;
-	}
-
-	.section-title {
-		padding: 60rpx 0 20rpx 0;
-	}
-
-	.title-text {
-		font-size: 36rpx;
-		color: #ffffff;
-		font-weight: bold;
-	}
-
-	.product-list {
-		padding: 0 30rpx;
-	}
-
-	.product-hot {
-		/* background-color: #f5f5f5; */
-	}
-
-	.product-hot-item {
-		padding: 15rpx 0;
-	}
-
-	.product-hot-top {
-		margin: auto;
-		background-color: #ffffff;
-		border-radius: 20rpx 20rpx 0 0;
-		display: flex;
-		flex-direction: row;
-		flex-wrap: nowrap;
-		padding: 10rpx 2% 30rpx 2%;
-		margin: 0 46rpx;
-	}
-
-	.fontBold {
-		font-weight: bold;
-	}
-
-	.product-hot-top-l {
-		width: 40%;
-		font-size: 16rpx;
-	}
-
-	.product-hot-top-c {
-		width: 20%;
-		height: 30rpx;
-	}
-
-	.product-hot-top-c .c-img {
-		width: 100%;
-		height: 30rpx;
-
-	}
-
-	.product-hot-top-r {
-		width: 40%;
-		font-size: 16rpx;
-		text-align: right;
-		display: flex;
-		flex-direction: row;
-		flex-wrap: nowrap;
-		justify-content: flex-end;
-	}
-
-	.product-hot-top-t {
-		padding-right: 10rpx;
-	}
-
-	.product-hot-top-logo {
-		width: 40rpx;
-		height: 40rpx;
-		padding: 0 2rpx;
-	}
-
-	.product-hot-top-logo .l-img {
-		width: 40rpx;
-		height: 40rpx;
-	}
-
-
-	.product-hot-center {
-		border: 1px solid #e5e5e5;
-		background-color: #808080;
-		padding: 0 30rpx;
-		position: relative;
-		margin: 0 12rpx;
-	}
-
-	.product-hot-img {
-		background-color: #FFFFFF;
-		padding: 0 10rpx;
-	}
-
-	.p-img {
-		width: 100%;
-		height: auto;
-	}
-
-	.product-hot-time {
-		font-size: 30rpx;
-		color: #ffffff;
-		font-weight: bold;
-		text-align: center;
-		height: 60rpx;
-		width: calc(100% - 60rpx);
-		line-height: 60rpx;
-		background-color: rgba(255, 0, 0, 0.5);
-		position: absolute;
-		bottom: 0;
-	}
-
-	.product-hot-bottom {
-		width: calc(100% - 80rpx);
-		background-color: #ffffff;
-		border-radius: 12rpx;
-		padding: 16rpx 40rpx;
-	}
-
-	.product-hot-buy-type {
-		padding: 0 20rpx;
-	}
-
-	.product-hot-buy-type .buy-type-val1 {
-		display: inline-block;
-		width: 70rpx;
-		text-align: center;
-		padding: 6rpx 0;
-		background-color: #dc0000;
-		color: #ffffff;
-		font-size: 20rpx;
-		transform: skew(-20deg);
-		transform-origin: top left;
-		border-radius: 8rpx;
-	}
-
-	.product-hot-buy-type .buy-type-val2 {
-		display: inline-block;
-		width: 70rpx;
-		text-align: center;
-		padding: 6rpx 0;
-		background-color: #1ccf00;
-		color: #ffffff;
-		font-size: 20rpx;
-		transform: skew(-20deg);
-		transform-origin: top left;
-		border-radius: 8rpx;
-	}
-
-	.product-hot-buy-type .product-hot-sub {
-		margin-left: 10rpx;
-	}
-
-	.product-hot-name {
-		color: #000000;
-		font-weight: bold;
-		font-size: 38rpx;
-		padding: 6rpx 0;
-	}
-
-	.product-hot-price {
-		display: flex;
-		align-items: flex-end;
-		justify-content: space-between;
-		flex-direction: row;
-		flex-wrap: nowrap;
-	}
-
-	.product-hot-price .price {
-		color: #dc0000;
-		font-size: 26rpx;
-		font-weight: 500;
-	}
-
-	.product-hot-price .price .fontBold {
-		font-size: 52rpx;
-	}
-
-
-	.product-hot-price .pay-price {
-		width: 100%;
-	}
-
-	.product-hot-price .pay-price .pay-price-val {
-		background-color: #dc0000;
-		font-size: 18rpx;
-		font-weight: 600;
-		color: #ffffff;
-		border-radius: 16rpx;
-		padding: 4rpx 16rpx;
-	}
-
-	.product-hot-price .buy {
-		background-color: #dc0000;
-		padding: 10rpx 30rpx;
-		color: #ffffff;
-		font-weight: bold;
-		border-radius: 40rpx;
-	}
-
-
-	.product-hot-center-k {
-		height: 20rpx;
-	}
-
-	.product-recom {
-		display: flex;
-		flex-direction: row;
-		flex-wrap: wrap;
-		justify-content: space-between;
-	}
-
-	.product-recom-item {
-		width: 49%;
-	}
-
-	.product-recom-h {
-		background-color: #ffffff;
-		border-radius: 10rpx;
-	}
-
-	.product-recom-top {
-		margin: auto;
-		display: flex;
-		justify-content: space-between;
-		flex-direction: row;
-		flex-wrap: nowrap;
-		align-items: flex-start;
-		padding: 5rpx 10rpx 15rpx 10rpx;
-	}
-
-	.product-recom-top-l {
-		font-size: 8rpx;
-	}
-
-	.product-recom-top-c {
-		width: 20%;
-		height: 15rpx;
-	}
-
-	.product-recom-top-c .c-img {
-		width: 100%;
-		height: 15rpx;
-	}
-
-	.product-recom-top-r {
-		font-size: 8rpx;
-		text-align: right;
-		display: flex;
-		flex-direction: row;
-		flex-wrap: nowrap;
-		justify-content: flex-end;
-	}
-
-	.product-recom-top-t {
-		padding-right: 5rpx;
-	}
-
-	.product-recom-top-logo {
-		width: 20rpx;
-		height: 20rpx;
-		padding: 0 1rpx;
-	}
-
-	.product-recom-top-logo .l-img {
-		width: 20rpx;
-		height: 20rpx;
-	}
-
-	.product-recom-center {
-		position: relative;
-	}
-
-	.product-recom-img {
-		padding: 0 10rpx;
-	}
-
-	.product-recom-img .p-img {
-		border-radius: 10rpx;
-	}
-
-	.product-recom-time {
-		font-size: 15rpx;
-		color: #ffffff;
-		font-weight: bold;
-		text-align: center;
-		height: 30rpx;
-		width: 100%;
-		line-height: 30rpx;
-		background-color: rgba(255, 0, 0, 0.5);
-		position: absolute;
-		bottom: 0;
-	}
-
-	.product-recom-bottom {
-		width: 100%;
-		padding: 20rpx 0;
-	}
-
-	.product-recom-buy-type {
-		padding: 0 10rpx;
-	}
-
-	.product-recom-buy-type .buy-type-val1 {
-		display: inline-block;
-		width: 60rpx;
-		text-align: center;
-		padding: 6rpx 0;
-		background-color: #dc0000;
-		color: #ffffff;
-		font-size: 16rpx;
-		transform: skew(-20deg);
-		transform-origin: top left;
-		border-radius: 8rpx;
-	}
-
-	.product-recom-buy-type .buy-type-val2 {
-		display: inline-block;
-		width: 60rpx;
-		text-align: center;
-		padding: 6rpx 0;
-		background-color: #1ccf00;
-		color: #ffffff;
-		font-size: 16rpx;
-		transform: skew(-20deg);
-		transform-origin: top left;
-		border-radius: 8rpx;
-	}
-
-	.product-recom-name {
-		color: #ffffff;
-		font-weight: bold;
-		font-size: 26rpx;
-		padding: 6rpx 0;
-	}
-
-	.product-recom-price .price {
-		width: 100%;
-		color: #dc0000;
-		font-size: 26rpx;
-		font-weight: 500;
-	}
-
-	.product-recom-price .price .fontBold {
-		font-size: 46rpx;
-	}
-
-	.product-recom-price .pay-price {
-		width: 100%;
-	}
-
-	.product-recom-price .pay-price .pay-price-val {
-		background-color: #dc0000;
-		font-size: 18rpx;
-		font-weight: 600;
-		color: #ffffff;
-		border-radius: 16rpx;
-		padding: 4rpx 16rpx;
-	}
+.home {
+	min-height: 100vh;
+	background:
+		radial-gradient(circle at top left, rgba(255, 192, 108, 0.26), transparent 28%),
+		radial-gradient(circle at top right, rgba(255, 227, 181, 0.32), transparent 24%),
+		linear-gradient(180deg, #fffaf2 0%, #fffefb 35%, #ffffff 100%);
+	position: relative;
+	overflow: hidden;
+}
+
+.home-glow {
+	position: absolute;
+	border-radius: 999rpx;
+	filter: blur(50rpx);
+	opacity: 0.45;
+	pointer-events: none;
+}
+
+.glow-left {
+	width: 240rpx;
+	height: 240rpx;
+	background: rgba(255, 186, 85, 0.35);
+	top: 100rpx;
+	left: -60rpx;
+}
+
+.glow-right {
+	width: 220rpx;
+	height: 220rpx;
+	background: rgba(255, 221, 169, 0.45);
+	top: 260rpx;
+	right: -50rpx;
+}
+
+.page-shell {
+	position: relative;
+	z-index: 1;
+	padding: 0 24rpx 44rpx;
+}
+
+.topbar {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	margin-bottom: 26rpx;
+}
+
+.brand-block {
+	display: flex;
+	align-items: center;
+}
+
+.brand-icon {
+	width: 76rpx;
+	height: 76rpx;
+	margin-right: 16rpx;
+}
+
+.brand-copy {
+	display: flex;
+	flex-direction: column;
+}
+
+.brand-en {
+	font-size: 22rpx;
+	line-height: 1.1;
+	font-weight: 700;
+	color: #141414;
+	letter-spacing: 2rpx;
+}
+
+.brand-cn {
+	font-size: 50rpx;
+	line-height: 1;
+	font-weight: 900;
+	color: #161616;
+}
+
+.hero-card {
+	position: relative;
+	width: 100%;
+	border-radius: 34rpx;
+	overflow: hidden;
+	box-shadow: 0 26rpx 60rpx rgba(232, 176, 93, 0.22);
+	margin-bottom: 26rpx;
+}
+
+.hero-background {
+	display: block;
+	width: 100%;
+	height: auto;
+}
+
+.hero-action {
+	position: absolute;
+	left: 46rpx;
+	bottom: 34rpx;
+	z-index: 2;
+}
+
+.hero-cta {
+	min-width: 220rpx;
+	height: 68rpx;
+	padding: 0 24rpx 0 30rpx;
+	border-radius: 999rpx;
+	background: linear-gradient(135deg, #ff9f1f 0%, #ff8400 100%);
+	box-shadow: 0 18rpx 30rpx rgba(255, 145, 35, 0.28);
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+}
+
+.hero-cta-text,
+.hero-cta-arrow {
+	color: #ffffff;
+	font-weight: 800;
+}
+
+.hero-cta-text {
+	font-size: 34rpx;
+}
+
+.hero-cta-arrow {
+	width: 34rpx;
+	height: 34rpx;
+	border-radius: 50%;
+	background: rgba(255, 255, 255, 0.18);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 24rpx;
+}
+
+.quick-grid {
+	display: grid;
+	grid-template-columns: repeat(4, 1fr);
+	gap: 16rpx;
+	margin-bottom: 34rpx;
+}
+
+.quick-card {
+	background: rgba(255, 255, 255, 0.82);
+	border-radius: 28rpx;
+	padding: 26rpx 12rpx 22rpx;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	box-shadow: 0 18rpx 36rpx rgba(228, 208, 175, 0.18);
+}
+
+.quick-icon {
+	width: 62rpx;
+	height: 62rpx;
+	margin-bottom: 18rpx;
+}
+
+.quick-title {
+	font-size: 28rpx;
+	line-height: 1.2;
+	color: #161616;
+	font-weight: 800;
+	text-align: center;
+	margin-bottom: 8rpx;
+}
+
+.quick-desc {
+	font-size: 22rpx;
+	line-height: 1.3;
+	color: #9b9b9b;
+	text-align: center;
+}
+
+.section-head {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	margin-bottom: 22rpx;
+}
+
+.section-copy {
+	display: flex;
+	align-items: baseline;
+}
+
+.section-title {
+	font-size: 42rpx;
+	line-height: 1;
+	font-weight: 900;
+	color: #101010;
+	margin-right: 14rpx;
+}
+
+.section-subtitle {
+	font-size: 22rpx;
+	color: #bababa;
+}
+
+.section-link {
+	display: flex;
+	align-items: center;
+	font-size: 28rpx;
+	font-weight: 700;
+	color: #ff931a;
+}
+
+.section-link-arrow {
+	margin-left: 8rpx;
+	font-size: 24rpx;
+}
+
+.product-grid {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 20rpx;
+}
+
+.product-card {
+	overflow: hidden;
+	border-radius: 30rpx;
+	background: rgba(255, 255, 255, 0.92);
+	box-shadow: 0 18rpx 46rpx rgba(228, 212, 190, 0.24);
+}
+
+.product-image-wrap {
+	position: relative;
+	height: 340rpx;
+	background: linear-gradient(180deg, #fff4e2 0%, #f7efe6 100%);
+}
+
+.product-image {
+	width: 100%;
+	height: 100%;
+}
+
+.product-tag {
+	position: absolute;
+	left: 16rpx;
+	top: 16rpx;
+	padding: 8rpx 16rpx;
+	border-radius: 14rpx;
+	font-size: 24rpx;
+	line-height: 1;
+	color: #ffffff;
+	font-weight: 800;
+}
+
+.product-tag-dark {
+	background: rgba(0, 0, 0, 0.78);
+}
+
+.product-tag-light {
+	background: #ff8f17;
+}
+
+.product-heart {
+	position: absolute;
+	right: 18rpx;
+	top: 16rpx;
+	width: 44rpx;
+	height: 44rpx;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	color: #ffffff;
+	font-size: 34rpx;
+	text-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.2);
+}
+
+.product-countdown {
+	position: absolute;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	padding: 12rpx 16rpx;
+	font-size: 22rpx;
+	color: #ffffff;
+	text-align: center;
+	background: linear-gradient(180deg, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.55));
+}
+
+.product-body {
+	padding: 22rpx 20rpx 22rpx;
+}
+
+.product-name {
+	display: block;
+	font-size: 36rpx;
+	line-height: 1.25;
+	color: #171717;
+	font-weight: 800;
+	margin-bottom: 10rpx;
+}
+
+.product-desc {
+	display: block;
+	font-size: 26rpx;
+	line-height: 1.3;
+	color: #8f8f8f;
+	margin-bottom: 20rpx;
+	min-height: 68rpx;
+}
+
+.product-meta {
+	display: flex;
+	align-items: center;
+}
+
+.product-price {
+	font-size: 28rpx;
+	line-height: 1;
+	color: #ff8b08;
+	font-weight: 900;
+}
+
+.product-heat {
+	display: flex;
+	align-items: center;
+	margin-left: 18rpx;
+	font-size: 24rpx;
+	color: #afafaf;
+}
+
+.product-heat-icon {
+	font-size: 24rpx;
+	margin-right: 6rpx;
+}
+
+.product-cart {
+	margin-left: auto;
+	width: 58rpx;
+	height: 58rpx;
+	border-radius: 50%;
+	background: #fff7ed;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border: 2rpx solid rgba(255, 166, 37, 0.12);
+	box-sizing: border-box;
+	transition: background 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+}
+
+.product-cart--active {
+	background: linear-gradient(135deg, #ff9b25 0%, #ff8308 100%);
+	box-shadow: 0 10rpx 22rpx rgba(255, 145, 35, 0.22);
+	border-color: transparent;
+	transform: translateY(-1rpx);
+}
+
+.product-cart-icon {
+	width: 30rpx;
+	height: 30rpx;
+	transition: filter 180ms ease, opacity 180ms ease;
+}
+
+.product-cart--active .product-cart-icon {
+	filter: brightness(0) invert(1);
+}
+
+.empty-state {
+	margin-top: 28rpx;
+	padding: 48rpx 24rpx 56rpx;
+	border-radius: 30rpx;
+	background: rgba(255, 255, 255, 0.88);
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	box-shadow: 0 18rpx 46rpx rgba(228, 212, 190, 0.2);
+}
+
+.empty-image {
+	width: 200rpx;
+	height: 200rpx;
+	margin-bottom: 18rpx;
+}
+
+.empty-title {
+	font-size: 30rpx;
+	font-weight: 800;
+	color: #222222;
+	margin-bottom: 8rpx;
+}
+
+.empty-desc {
+	font-size: 24rpx;
+	color: #9c9c9c;
+}
 </style>

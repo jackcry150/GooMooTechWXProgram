@@ -1,85 +1,133 @@
 <template>
 	<view class="profile">
-		<view class="user-info" @click="goToProfile()">
-			<image class="avatar" :src="userInfo.avatar" mode="aspectFill" />
-			<view class="user-details">
-				<view class="user-name">{{ userInfo.nickName }}</view>
-				<view class="user-id">小橘ID: {{ userInfo.id }}</view>
+		<view class="profile-shell">
+			<view class="brand-head">
+				<view class="brand-lockup">
+					<view class="brand-icon-wrap">
+						<image class="brand-icon" src="/static/image/logo1.png" mode="aspectFit" />
+					</view>
+					<view class="brand-copy">
+						<text class="brand-en">GOOMOO PLAY</text>
+						<text class="brand-cn">橘猫智酷</text>
+					</view>
+				</view>
 			</view>
-		</view>
-
-		<view class="user-stats">
-			<view class="stat-item" @click="goToCollect">
-				<text class="stat-number">{{ collectCount }}</text>
-					<text class="stat-label">线上收藏</text>
+	
+			<view class="profile-card" @click="goToProfile()">
+				<image class="card-bg-image" src="/static/image/my-profile-card-bg.png" mode="scaleToFill" />
+				<view class="profile-top">
+					<image class="avatar" :src="userInfo.avatar || '/static/image/default_avatar.jpg'" mode="aspectFill" />
+					<view class="profile-info">
+						<view class="user-headline">
+							<view class="user-copy">
+								<view class="user-mainline">
+									<text class="user-name">{{ displayName }}</text>
+								</view>
+								<view class="user-id">橘猫智酷玩家</view>
+							</view>
+							<view class="profile-arrow"></view>
+						</view>
+						<view class="stats-grid">
+							<view class="stat-item" @click.stop="goToCollect">
+								<text class="stat-number">{{ collectCount }}</text>
+								<text class="stat-label">线上收藏</text>
+							</view>
+							<view class="stat-item stat-divider" @click.stop="goToBill">
+								<text class="stat-number">{{ userInfo.snailShells || 0 }}</text>
+								<text class="stat-label">我的猫饼</text>
+							</view>
+						</view>
+					</view>
+				</view>
 			</view>
-			<view class="stat-item" @click="goToBill">
-				<text class="stat-number">{{ userInfo.snailShells }}</text>
-					<text class="stat-label">我的猫饼</text>
+
+			<view class="welfare-banner" @click="goToGroup">
+				<image class="banner-bg-image" src="/static/image/my-welfare-banner-bg.png" mode="scaleToFill" />
+				<view class="banner-copy">
+					<text class="banner-title">社群福利·惊喜不断</text>
+					<text class="banner-desc">新品资讯·专属福利</text>
+				</view>
+				<view class="banner-btn">
+					<text>加入群聊</text>
+					<text class="banner-btn-arrow">›</text>
+				</view>
 			</view>
-		</view>
 
-		<view class="welfare-banner">
-			<image class="banner-icon" @click="goToGroup" src="/static/image/ad.png" mode="widthFix" />
-		</view>
-
-		<view class="order-section">
-			<view class="section-header">
+			<view class="order-section card-block">
+				<view class="section-header">
 					<text class="section-title">我的订单</text>
-					<text class="view-all" @click="goToOrders(0)">全部订单 <text class="right-arrow"></text></text>
-			</view>
-			<view class="order-status">
-				<view class="status-item" @click="goToOrders(1)">
-					<view class="status-icon"><image class="nav-item-image" src="/static/image/icon_pending.png" mode="widthFix"></image></view>
+					<view class="view-all" @click="goToOrders(0)">
+						<text>全部订单</text>
+						<text class="chevron">›</text>
+					</view>
+				</view>
+				<view class="order-status">
+					<view class="status-item" @click="goToOrders(1)">
+						<view class="status-icon"><image class="nav-item-image" src="/static/image/icon_pending.png" mode="aspectFit"></image></view>
 						<text class="status-text">待支付</text>
-				</view>
-				<view class="status-item" @click="goToOrders(8)">
-					<view class="status-icon"><image class="nav-item-image" src="/static/image/icon_booked.png" mode="widthFix"></image></view>
+					</view>
+					<view class="status-item" @click="goToOrders(8)">
+						<view class="status-icon"><image class="nav-item-image" src="/static/image/icon_booked.png" mode="aspectFit"></image></view>
 						<text class="status-text">已预定</text>
-				</view>
-				<view class="status-item" @click="goToOrders(2)">
-					<view class="status-icon"><image class="nav-item-image" src="/static/image/icon_shipped.png" mode="widthFix"></image></view>
+					</view>
+					<view class="status-item" @click="goToOrders(2)">
+						<view class="status-icon"><image class="nav-item-image" src="/static/image/icon_shipped.png" mode="aspectFit"></image></view>
 						<text class="status-text">待发货</text>
-				</view>
-				<view class="status-item" @click="goToOrders(6)">
-					<view class="status-icon"><image class="nav-item-image" src="/static/image/icon_received.png" mode="widthFix"></image></view>
+					</view>
+					<view class="status-item" @click="goToOrders(6)">
+						<view class="status-icon"><image class="nav-item-image" src="/static/image/icon_received.png" mode="aspectFit"></image></view>
 						<text class="status-text">待收货</text>
-				</view>
-				<view class="status-item" @click="goToOrders(7)">
-					<view class="status-icon"><image class="nav-item-image" src="/static/image/icon_completed.png" mode="widthFix"></image></view>
+					</view>
+					<view class="status-item" @click="goToOrders(7)">
+						<view class="status-icon"><image class="nav-item-image" src="/static/image/icon_completed.png" mode="aspectFit"></image></view>
 						<text class="status-text">已完成</text>
+					</view>
 				</view>
 			</view>
-		</view>
 
-		<view class="functions-section">
-				<view class="section-header"><text class="section-title">常用功能</text></view>
-			<view class="function-list">
-				<view class="function-item" @click="goToCart()">
-					<view class="function-icon"><image class="nav-item-image" src="/static/image/icon_cart.png" mode="widthFix"></image></view>
-						<text class="function-text">购物车</text>
-					<view class="cart-badge" v-if="cartCount > 0">{{ cartCount }}</view>
-					<text class="right-arrow"></text>
+			<view class="functions-section card-block">
+				<view class="section-header">
+					<text class="section-title">常用功能</text>
 				</view>
-				<view class="function-item" @click="goToProfile()">
-					<view class="function-icon"><image class="nav-item-image" src="/static/image/icon_profile.png" mode="widthFix"></image></view>
-						<text class="function-text">个人资料</text>
-					<text class="right-arrow"></text>
-				</view>
-				<view class="function-item" @click="goToCustomer()">
-					<view class="function-icon"><image class="nav-item-image" src="/static/image/icon_service.png" mode="widthFix"></image></view>
-						<text class="function-text">联系客服</text>
-					<text class="right-arrow"></text>
-				</view>
-				<view class="function-item" @click="goToAfterSales()">
-					<view class="function-icon"><image class="nav-item-image" src="/static/image/icon_question.png" mode="widthFix"></image></view>
-						<text class="function-text">售后说明</text>
-					<text class="right-arrow"></text>
-				</view>
-				<view class="function-item" @click="goToAgreement()">
-					<view class="function-icon"><image class="nav-item-image" src="/static/image/icon_document.png" mode="widthFix"></image></view>
-						<text class="function-text">服务协议</text>
-					<text class="right-arrow"></text>
+				<view class="function-list">
+					<view class="function-item" @click="goToCart()">
+						<view class="function-main">
+							<view class="function-icon"><image class="nav-item-image" src="/static/image/icon_cart.png" mode="aspectFit"></image></view>
+							<text class="function-text">购物车</text>
+						</view>
+						<view class="function-side">
+							<view class="cart-badge" v-if="cartCount > 0">{{ cartCount }}</view>
+							<text class="chevron">›</text>
+						</view>
+					</view>
+					<view class="function-item" @click="goToProfile()">
+						<view class="function-main">
+							<view class="function-icon"><image class="nav-item-image" src="/static/image/icon_profile.png" mode="aspectFit"></image></view>
+							<text class="function-text">个人资料</text>
+						</view>
+						<text class="chevron">›</text>
+					</view>
+					<view class="function-item" @click="goToCustomer()">
+						<view class="function-main">
+							<view class="function-icon"><image class="nav-item-image" src="/static/image/icon_service.png" mode="aspectFit"></image></view>
+							<text class="function-text">联系客服</text>
+						</view>
+						<text class="chevron">›</text>
+					</view>
+					<view class="function-item" @click="goToAfterSales()">
+						<view class="function-main">
+							<view class="function-icon"><image class="nav-item-image" src="/static/image/icon_question.png" mode="aspectFit"></image></view>
+							<text class="function-text">售后说明</text>
+						</view>
+						<text class="chevron">›</text>
+					</view>
+					<view class="function-item" @click="goToAgreement()">
+						<view class="function-main">
+							<view class="function-icon"><image class="nav-item-image" src="/static/image/icon_document.png" mode="aspectFit"></image></view>
+							<text class="function-text">服务协议</text>
+						</view>
+						<text class="chevron">›</text>
+					</view>
 				</view>
 			</view>
 		</view>
@@ -92,18 +140,23 @@
 	const ARRIVAL_SUBSCRIBE_ASKED_KEY = 'arrival_subscribe_asked_v1'
 	export default {
 		name: 'Profile',
-		data() {
-			return {
-				userInfo: {
+	data() {
+		return {
+			userInfo: {
 					nickName: '',
 					id: '',
 					avatar: '/static/image/default_avatar.jpg',
 					snailShells: 0
-				},
-				cartCount: 0,
-				collectCount: 0,
-			}
-		},
+			},
+			cartCount: 0,
+			collectCount: 0,
+		}
+	},
+	computed: {
+		displayName() {
+			return this.userInfo.nickName || '小橘酱'
+		}
+	},
 
 		onLoad() {
 
@@ -304,104 +357,345 @@
 <style scoped>
 	.profile {
 		padding-top: var(--status-bar-height);
-		background-color: #ffffff;
+		min-height: 100vh;
+		background:
+			radial-gradient(circle at 12% 0%, rgba(255, 192, 105, 0.16), transparent 24%),
+			radial-gradient(circle at 100% 8%, rgba(255, 214, 154, 0.22), transparent 26%),
+			linear-gradient(180deg, #fffdf8 0%, #fff8ef 100%);
 		padding-bottom: 150rpx;
+		box-sizing: border-box;
 	}
 
-	.user-info {
-		padding: 40rpx 30rpx;
-		display: flex;
+	.profile-shell {
+		padding: 28rpx 24rpx 0;
+	}
+
+	.brand-head {
+		padding: 14rpx 10rpx 28rpx;
+	}
+
+	.brand-lockup {
+		display: inline-flex;
 		align-items: center;
 	}
 
-	.avatar {
-		width: 200rpx;
-		height: 200rpx;
-		border-radius: 50%;
-		margin-right: 30rpx;
+	.brand-icon-wrap {
+		width: 74rpx;
+		height: 74rpx;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		margin-right: 16rpx;
 	}
 
-	.user-details {
+	.brand-icon {
+		width: 74rpx;
+		height: 74rpx;
+	}
+
+	.brand-copy {
+		display: flex;
+		flex-direction: column;
+	}
+
+	.brand-en {
+		font-size: 22rpx;
+		line-height: 1.1;
+		font-weight: 800;
+		color: #151515;
+		letter-spacing: 1rpx;
+	}
+
+	.brand-cn {
+		margin-top: 4rpx;
+		font-size: 40rpx;
+		line-height: 1.05;
+		font-weight: 900;
+		color: #141414;
+	}
+
+	.profile-card {
+		position: relative;
+		width: 690rpx;
+		height: 270rpx;
+		margin: 0 auto;
+		padding: 28rpx 30rpx 24rpx;
+		box-sizing: border-box;
+		border-radius: 30rpx;
+		box-shadow: 0 16rpx 40rpx rgba(243, 211, 167, 0.26);
+		overflow: hidden;
+	}
+
+	.card-bg-image {
+		position: absolute;
+		inset: 0;
+		width: 100%;
+		height: 100%;
+		z-index: 0;
+	}
+
+	.avatar {
+		flex: none;
+		width: 146rpx;
+		height: 146rpx;
+		border-radius: 50%;
+		border: 4rpx solid rgba(255, 255, 255, 0.9);
+		box-shadow: 0 10rpx 22rpx rgba(255, 174, 66, 0.16);
+	}
+
+	.profile-info {
 		flex: 1;
+		min-width: 0;
+		display: flex;
+		flex-direction: column;
+		justify-content: space-between;
+		padding: 8rpx 0 4rpx;
+		position: relative;
+		z-index: 1;
+	}
+
+	.user-headline {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		column-gap: 16rpx;
+	}
+
+	.user-copy {
+		flex: 1;
+		min-width: 0;
+	}
+
+	.user-mainline {
+		display: flex;
+		align-items: center;
+		flex-wrap: wrap;
+		gap: 8rpx;
+		justify-content: flex-start;
 	}
 
 	.user-name {
 		font-size: 40rpx;
-		color: #000000;
-		font-weight: bold;
-		margin-bottom: 10rpx;
+		color: #111111;
+		font-weight: 800;
+		line-height: 1.1;
+	}
+
+	.level-pill {
+		height: 34rpx;
+		padding: 0 12rpx;
+		border-radius: 18rpx;
+		background: rgba(255, 177, 64, 0.18);
+		border: 2rpx solid rgba(255, 177, 64, 0.46);
+		display: inline-flex;
+		align-items: center;
+		font-size: 18rpx;
+		font-weight: 700;
+		color: #ff8e0c;
+	}
+
+	.level-paw {
+		font-size: 14rpx;
+		margin-right: 2rpx;
 	}
 
 	.user-id {
+		margin-top: 10rpx;
 		font-size: 24rpx;
+		color: #6d655e;
 	}
 
-	.user-stats {
-		padding: 20rpx 50rpx;
+	.profile-arrow {
+		position: relative;
+		flex: none;
+		width: 52rpx;
+		height: 52rpx;
+		border-radius: 50%;
+		background: rgba(255, 255, 255, 0.68);
+	}
+
+	.profile-arrow::before {
+		content: '';
+		position: absolute;
+		left: 50%;
+		top: 50%;
+		width: 12rpx;
+		height: 12rpx;
+		border-top: 3rpx solid #111111;
+		border-right: 3rpx solid #111111;
+		transform: translate(-60%, -50%) rotate(45deg);
+	}
+
+	.stats-grid {
+		margin-top: 10px;
+		padding-top: 0;
 		display: flex;
 		justify-content: flex-start;
+		position: relative;
+		width: 100%;
+	}
+
+	.profile-top {
+		display: flex;
+		align-items: center;
+		column-gap: 28rpx;
+		height: 100%;
+		position: relative;
+		z-index: 1;
 	}
 
 	.stat-item {
-		width: 25%;
+		flex: 1;
 		display: flex;
 		flex-direction: column;
 		align-items: flex-start;
+		position: relative;
 	}
 
 	.stat-number {
-		font-size: 36rpx;
-		color: #000000;
-		font-weight: bold;
+		font-size: 42rpx;
+		line-height: 1;
+		color: #121212;
+		font-weight: 700;
 		margin-bottom: 8rpx;
 	}
 
 	.stat-label {
-		font-size: 24rpx;
-		color: #999999;
+		font-size: 22rpx;
+		color: #66605b;
+	}
+
+	.stat-divider::before,
+	.stat-divider::after {
+		content: '';
+		position: absolute;
+		top: 4rpx;
+		width: 2rpx;
+		height: 56rpx;
+		background: rgba(188, 170, 146, 0.36);
+	}
+
+	.stat-divider::before {
+		left: -86rpx;
+	}
+
+	.stat-divider::after {
+		display: none;
 	}
 
 	.welfare-banner {
-		padding: 20rpx;
+		margin-top: 26rpx;
+		width: 690rpx;
+		height: 244rpx;
+		margin-left: auto;
+		margin-right: auto;
+		padding: 34rpx 32rpx;
+		box-sizing: border-box;
+		border-radius: 34rpx;
+		box-shadow: 0 18rpx 48rpx rgba(243, 212, 171, 0.24);
+		overflow: hidden;
+		position: relative;
 	}
 
-	.banner-icon {
+	.banner-bg-image {
+		position: absolute;
+		inset: 0;
 		width: 100%;
-		height: auto;
+		height: 100%;
+		z-index: 0;
 	}
 
-	.order-section {
-		margin: 40rpx 30rpx 10rpx 30rpx;
+	.banner-copy {
+		 position: absolute;
+		    left: 32rpx;
+		    top: 80rpx;
+		    z-index: 1;
+		    max-width: 330rpx;
+	}
+
+	.banner-title {
+		display: block;
+		font-size: 32rpx;
+		line-height: 1.24;
+		font-weight: 900;
+		color: #1a1715;
+	}
+
+	.banner-desc {
+		display: block;
+		margin-top: 14rpx;
+		font-size: 24rpx;
+		line-height: 1.5;
+		color: #7c736b;
+	}
+
+	.banner-btn {
+		position: absolute;
+		right: 34rpx;
+		bottom: 15rpx;
+		z-index: 1;
+		height: 74rpx;
+		padding: 0 28rpx 0 30rpx;
+		border-radius: 40rpx;
+		background: linear-gradient(180deg, #ffa625 0%, #ff8c05 100%);
+		display: inline-flex;
+		align-items: center;
+		font-size: 28rpx;
+		font-weight: 800;
+		color: #ffffff;
+		box-shadow: 0 10rpx 26rpx rgba(255, 145, 19, 0.28);
+	}
+
+	.banner-btn-arrow {
+		font-size: 42rpx;
+		line-height: 1;
+		margin-left: 6rpx;
+	}
+
+	.card-block {
+		margin-top: 28rpx;
+		padding: 32rpx 26rpx;
+		background: rgba(255, 255, 255, 0.9);
+		border-radius: 34rpx;
+		box-shadow: 0 16rpx 46rpx rgba(234, 222, 209, 0.32);
 	}
 
 	.section-header {
 		display: flex;
 		justify-content: space-between;
 		align-items: center;
-		margin-bottom: 20rpx;
+		margin-bottom: 26rpx;
 	}
 
 	.section-title {
-		font-size: 36rpx;
-		color: #000000;
-		font-weight: bold;
-		text-indent: 20rpx
+		font-size: 40rpx;
+		color: #141414;
+		font-weight: 900;
 	}
 
 	.view-all {
-		font-size: 24rpx;
-		color: #999999;
+		display: inline-flex;
+		align-items: center;
+		font-size: 28rpx;
+		color: #8c847e;
+	}
+
+	.chevron {
+		font-size: 44rpx;
+		line-height: 1;
+		margin-left: 4rpx;
+		color: #9b938c;
 	}
 
 	.order-status {
 		display: flex;
-		justify-content: space-around;
-		background-color: #ffffff;
-		padding: 30rpx 0;
-		border-radius: 20rpx;
+		justify-content: space-between;
+		padding: 10rpx 0 0;
+		gap: 8rpx;
 	}
 
 	.status-item {
+		flex: 1;
 		display: flex;
 		flex-direction: column;
 		align-items: center;
@@ -410,69 +704,62 @@
 	.status-icon {
 		width: 70rpx;
 		height: 70rpx;
-		margin-bottom: 12rpx;
+		margin-bottom: 14rpx;
 	}
 
 	.status-text {
-		font-size: 24rpx;
-		color: #333333;
-	}
-
-	.functions-section {
-		margin: 0 30rpx;
+		font-size: 28rpx;
+		color: #222222;
+		font-weight: 500;
 	}
 
 	.function-list {
-		background-color: #ffffff;
-		border-radius: 20rpx;
 		overflow: hidden;
 	}
 
 	.function-item {
 		display: flex;
 		align-items: center;
-		padding: 10rpx 30rpx;
-		position: relative;
+		justify-content: space-between;
+		padding: 28rpx 10rpx;
+		border-bottom: 2rpx solid rgba(239, 232, 224, 0.9);
 	}
 
 	.function-item:last-child {
 		border-bottom: none;
 	}
 
+	.function-main,
+	.function-side {
+		display: flex;
+		align-items: center;
+	}
+
 	.function-icon {
-		width: 70rpx;
-		height: 70rpx;
-		margin-right: 10rpx;
+		width: 74rpx;
+		height: 74rpx;
+		margin-right: 18rpx;
+		flex-shrink: 0;
 	}
 
 	.nav-item-image {
 		width: 100%;
-		height: auto;
+		height: 100%;
 	}
 
 	.function-text {
-		flex: 1;
 		font-size: 28rpx;
-		color: #000000;
-		text-indent: 10rpx;
-		font-weight: 500;
+		color: #141414;
+		font-weight: 600;
 	}
 
 	.cart-badge {
-		background-color: #dc0000;
+		background-color: #ff8e10;
 		color: #ffffff;
 		font-size: 20rpx;
 		padding: 4rpx 12rpx;
 		border-radius: 20rpx;
-		margin-right: 16rpx;
+		margin-right: 12rpx;
 		font-weight: 800;
-	}
-
-	.right-arrow {
-		display: inline-block;
-		width: 40rpx;
-		height: 40rpx;
-		background-image: url('/static/image/right-arrow.png');
-		background-size: 100%;
 	}
 </style>
