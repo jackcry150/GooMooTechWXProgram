@@ -166,7 +166,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
     }),
     b: $data.addressList.length === 0
   }, $data.addressList.length === 0 ? {
-    c: common_assets._imports_0$1
+    c: common_assets._imports_0
   } : {}, {
     d: common_vendor.o((...args) => $options.addAddress && $options.addAddress(...args), "5f"),
     e: common_vendor.o((...args) => $options.importWechatAddress && $options.importWechatAddress(...args), "87")

@@ -1,18 +1,37 @@
 "use strict";
 const common_vendor = require("../../common/vendor.js");
 const utils_request = require("../../utils/request.js");
+const common_assets = require("../../common/assets.js");
 const _sfc_main = {
   data() {
     return {
+      statusBarHeight: 44,
       userInfo: {
         nickName: "",
         id: "",
-        avatar: "/static/image/default_avatar.jpg"
+        avatar: "/static/image/default_avatar.jpg",
+        gender: "",
+        birthday: "",
+        province: "",
+        city: "",
+        district: ""
       },
       uploadResult: false
     };
   },
+  computed: {
+    addressText() {
+      const addressParts = [
+        this.userInfo.province,
+        this.userInfo.city,
+        this.userInfo.district
+      ].filter(Boolean);
+      return addressParts.length ? addressParts.join(" ") : "未设置";
+    }
+  },
   onLoad() {
+    const systemInfo = common_vendor.index.getSystemInfoSync ? common_vendor.index.getSystemInfoSync() : {};
+    this.statusBarHeight = systemInfo.statusBarHeight || 22;
     this.getProfileInfo();
   },
   methods: {
@@ -29,6 +48,11 @@ const _sfc_main = {
             nickName: profile.nickName || "",
             id: profile.id || "",
             avatar: profile.avatar || "/static/image/default_avatar.jpg",
+            gender: profile.gender || "",
+            birthday: profile.birthday || "",
+            province: profile.province || "",
+            city: profile.city || "",
+            district: profile.district || "",
             ...profile
           };
         } catch (error) {
@@ -49,7 +73,13 @@ const _sfc_main = {
         });
       }
     },
-    // 上传头像并更新到后台
+    focusNickname() {
+      const query = common_vendor.index.createSelectorQuery().in(this);
+      query.select("#profile-nickname-input").fields({ node: true }, (res) => {
+        var _a, _b;
+        (_b = (_a = res == null ? void 0 : res.node) == null ? void 0 : _a.focus) == null ? void 0 : _b.call(_a);
+      }).exec();
+    },
     async onChooseAvatar(event) {
       common_vendor.index.showLoading({
         title: "上传中..."
@@ -62,7 +92,6 @@ const _sfc_main = {
         that.avatar = "data:image/jpeg;base64," + base64Data;
         this.uploadResult = true;
       } catch (error) {
-        common_vendor.index.__f__("error", "at pages/my/profile.vue:87", "Base64 转换失败:", error);
         common_vendor.index.hideLoading();
         common_vendor.index.showToast({
           title: "头像处理失败",
@@ -91,12 +120,16 @@ const _sfc_main = {
       }
     },
     async handleBlur(event) {
+      const nickName = String(event.detail.value || "").trim();
+      if (nickName === this.userInfo.nickName) {
+        return;
+      }
       try {
         const params = {
-          nickName: event.detail.value
+          nickName
         };
         const response = await utils_request.api.user.nickName(params);
-        this.userInfo.nickName = event.detail.value;
+        this.userInfo.nickName = nickName;
         common_vendor.index.showToast({
           title: response.msg,
           icon: "success"
@@ -118,10 +151,16 @@ const _sfc_main = {
 function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   return {
     a: $data.userInfo && $data.userInfo.avatar ? $data.userInfo.avatar : "/static/image/default_avatar.jpg",
-    b: common_vendor.o((...args) => $options.onChooseAvatar && $options.onChooseAvatar(...args), "ca"),
-    c: common_vendor.o((...args) => $options.handleBlur && $options.handleBlur(...args), "89"),
-    d: $data.userInfo && $data.userInfo.nickName ? $data.userInfo.nickName : "",
-    e: common_vendor.o((...args) => $options.goToAddress && $options.goToAddress(...args), "52")
+    b: common_assets._imports_0$6,
+    c: common_vendor.o((...args) => $options.onChooseAvatar && $options.onChooseAvatar(...args), "49"),
+    d: common_assets._imports_1$5,
+    e: common_vendor.o((...args) => $options.handleBlur && $options.handleBlur(...args), "3d"),
+    f: $data.userInfo && $data.userInfo.nickName ? $data.userInfo.nickName : "",
+    g: common_vendor.o((...args) => $options.focusNickname && $options.focusNickname(...args), "5d"),
+    h: common_assets._imports_2$4,
+    i: common_vendor.t($options.addressText),
+    j: common_vendor.o((...args) => $options.goToAddress && $options.goToAddress(...args), "53"),
+    k: `${$data.statusBarHeight + 18}px`
   };
 }
 const MiniProgramPage = /* @__PURE__ */ common_vendor._export_sfc(_sfc_main, [["render", _sfc_render], ["__scopeId", "data-v-daa3bc30"]]);

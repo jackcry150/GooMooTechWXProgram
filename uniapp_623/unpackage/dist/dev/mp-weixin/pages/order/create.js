@@ -347,7 +347,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   return common_vendor.e({
     a: $data.address
   }, $data.address ? {
-    b: common_assets._imports_0$5,
+    b: common_assets._imports_0$3,
     c: common_vendor.o((...args) => $options.selectAddress && $options.selectAddress(...args), "99"),
     d: common_vendor.t($data.address.name),
     e: common_vendor.t($data.address.phone),
@@ -356,7 +356,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
     h: common_vendor.t($data.address.area),
     i: common_vendor.t($data.address.detail)
   } : {
-    j: common_assets._imports_0$5,
+    j: common_assets._imports_0$3,
     k: common_vendor.o((...args) => $options.selectAddress && $options.selectAddress(...args), "28")
   }, {
     l: common_vendor.f($data.product, (item, index, i0) => {

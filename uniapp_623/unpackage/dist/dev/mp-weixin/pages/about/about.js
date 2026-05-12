@@ -68,8 +68,8 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
         b: common_vendor.t(item.title)
       };
     }),
-    b: common_assets._imports_0$4,
-    c: common_assets._imports_1$3,
+    b: common_assets._imports_0$2,
+    c: common_assets._imports_1$2,
     d: common_vendor.f($data.followUs, (item, index, i0) => {
       return {
         a: item.image[0],
@@ -78,9 +78,9 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
     }),
     e: common_vendor.t($data.aboutContent),
     f: common_vendor.t($data.webSetting.contactUs),
-    g: common_assets._imports_0$5,
+    g: common_assets._imports_0$3,
     h: common_vendor.t($data.webSetting.address),
-    i: common_assets._imports_3$2,
+    i: common_assets._imports_3$1,
     j: common_vendor.t($data.webSetting.email)
   };
 }

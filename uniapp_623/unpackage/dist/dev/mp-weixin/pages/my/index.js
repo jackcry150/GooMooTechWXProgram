@@ -18,6 +18,11 @@ const _sfc_main = {
       collectCount: 0
     };
   },
+  computed: {
+    displayName() {
+      return this.userInfo.nickName || "小橘酱";
+    }
+  },
   onLoad() {
   },
   onShow() {
@@ -77,7 +82,7 @@ const _sfc_main = {
             common_vendor.index.navigateTo({ url: "/pages/login/login" });
             return;
           } else if (res.cancel) {
-            common_vendor.index.__f__("log", "at pages/my/index.vue:175", "user cancel login");
+            common_vendor.index.__f__("log", "at pages/my/index.vue:228", "user cancel login");
             return;
           }
         }
@@ -193,41 +198,42 @@ const _sfc_main = {
 };
 function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   return common_vendor.e({
-    a: $data.userInfo.avatar,
-    b: common_vendor.t($data.userInfo.nickName),
-    c: common_vendor.t($data.userInfo.id),
-    d: common_vendor.o(($event) => $options.goToProfile(), "83"),
+    a: common_assets._imports_0$1,
+    b: common_assets._imports_1$1,
+    c: $data.userInfo.avatar || "/static/image/default_avatar.jpg",
+    d: common_vendor.t($options.displayName),
     e: common_vendor.t($data.collectCount),
-    f: common_vendor.o((...args) => $options.goToCollect && $options.goToCollect(...args), "06"),
-    g: common_vendor.t($data.userInfo.snailShells),
-    h: common_vendor.o((...args) => $options.goToBill && $options.goToBill(...args), "cb"),
-    i: common_vendor.o((...args) => $options.goToGroup && $options.goToGroup(...args), "22"),
-    j: common_assets._imports_0$3,
-    k: common_vendor.o(($event) => $options.goToOrders(0), "b0"),
-    l: common_assets._imports_1$2,
-    m: common_vendor.o(($event) => $options.goToOrders(1), "2f"),
-    n: common_assets._imports_2$1,
-    o: common_vendor.o(($event) => $options.goToOrders(8), "64"),
-    p: common_assets._imports_3$1,
-    q: common_vendor.o(($event) => $options.goToOrders(2), "44"),
-    r: common_assets._imports_4$1,
-    s: common_vendor.o(($event) => $options.goToOrders(6), "bd"),
-    t: common_assets._imports_5$1,
-    v: common_vendor.o(($event) => $options.goToOrders(7), "0f"),
-    w: common_assets._imports_6,
-    x: $data.cartCount > 0
+    f: common_vendor.o((...args) => $options.goToCollect && $options.goToCollect(...args), "00"),
+    g: common_vendor.t($data.userInfo.snailShells || 0),
+    h: common_vendor.o((...args) => $options.goToBill && $options.goToBill(...args), "3f"),
+    i: common_vendor.o(($event) => $options.goToProfile(), "a3"),
+    j: common_assets._imports_2$1,
+    k: common_vendor.o((...args) => $options.goToGroup && $options.goToGroup(...args), "f3"),
+    l: common_vendor.o(($event) => $options.goToOrders(0), "f3"),
+    m: common_assets._imports_3,
+    n: common_vendor.o(($event) => $options.goToOrders(1), "c2"),
+    o: common_assets._imports_4$1,
+    p: common_vendor.o(($event) => $options.goToOrders(8), "0c"),
+    q: common_assets._imports_5,
+    r: common_vendor.o(($event) => $options.goToOrders(2), "01"),
+    s: common_assets._imports_6,
+    t: common_vendor.o(($event) => $options.goToOrders(6), "c4"),
+    v: common_assets._imports_7,
+    w: common_vendor.o(($event) => $options.goToOrders(7), "dd"),
+    x: common_assets._imports_8,
+    y: $data.cartCount > 0
   }, $data.cartCount > 0 ? {
-    y: common_vendor.t($data.cartCount)
+    z: common_vendor.t($data.cartCount)
   } : {}, {
-    z: common_vendor.o(($event) => $options.goToCart(), "db"),
-    A: common_assets._imports_7,
-    B: common_vendor.o(($event) => $options.goToProfile(), "a3"),
-    C: common_assets._imports_8,
-    D: common_vendor.o(($event) => $options.goToCustomer(), "58"),
-    E: common_assets._imports_9,
-    F: common_vendor.o(($event) => $options.goToAfterSales(), "5a"),
-    G: common_assets._imports_10,
-    H: common_vendor.o(($event) => $options.goToAgreement(), "7a")
+    A: common_vendor.o(($event) => $options.goToCart(), "e0"),
+    B: common_assets._imports_9,
+    C: common_vendor.o(($event) => $options.goToProfile(), "89"),
+    D: common_assets._imports_10,
+    E: common_vendor.o(($event) => $options.goToCustomer(), "5a"),
+    F: common_assets._imports_11,
+    G: common_vendor.o(($event) => $options.goToAfterSales(), "ba"),
+    H: common_assets._imports_12,
+    I: common_vendor.o(($event) => $options.goToAgreement(), "d4")
   });
 }
 const MiniProgramPage = /* @__PURE__ */ common_vendor._export_sfc(_sfc_main, [["render", _sfc_render], ["__scopeId", "data-v-f97bc692"]]);

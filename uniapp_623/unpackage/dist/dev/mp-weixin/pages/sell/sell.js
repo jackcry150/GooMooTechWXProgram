@@ -166,7 +166,7 @@ const _sfc_main = {
 };
 function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   return common_vendor.e({
-    a: common_assets._imports_0$6,
+    a: common_assets._imports_0$4,
     b: common_vendor.o(($event) => $options.goToOrders(0), "0e"),
     c: $data.sellInfo && $data.sellInfo.promoImages && $data.sellInfo.promoImages.length > 0
   }, $data.sellInfo && $data.sellInfo.promoImages && $data.sellInfo.promoImages.length > 0 ? {
@@ -178,7 +178,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
     }),
     e: common_vendor.t($options.sellStateText),
     f: common_vendor.o((...args) => $options.handleBuyClick && $options.handleBuyClick(...args), "30"),
-    g: common_assets._imports_1$4,
+    g: common_assets._imports_1$3,
     h: common_vendor.o((...args) => $options.handleBuyClick && $options.handleBuyClick(...args), "95")
   } : {}, {
     i: $data.sellInfo && $data.sellInfo.reservationNotice && $data.sellInfo.reservationNotice.length > 0

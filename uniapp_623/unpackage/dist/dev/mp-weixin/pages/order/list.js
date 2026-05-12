@@ -181,7 +181,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
     }),
     c: $data.orderList.length === 0
   }, $data.orderList.length === 0 ? {
-    d: common_assets._imports_0$1
+    d: common_assets._imports_0
   } : {});
 }
 const MiniProgramPage = /* @__PURE__ */ common_vendor._export_sfc(_sfc_main, [["render", _sfc_render], ["__scopeId", "data-v-456ecf67"]]);

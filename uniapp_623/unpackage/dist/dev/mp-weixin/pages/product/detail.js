@@ -511,17 +511,17 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       };
     })
   } : {}, {
-    ad: common_assets._imports_0$7,
-    ae: common_assets._imports_1$5,
+    ad: common_assets._imports_0$5,
+    ae: common_assets._imports_1$4,
     af: common_vendor.o((...args) => $options.goToCustomer && $options.goToCustomer(...args), "a7"),
     ag: $data.productCollect === 1
   }, $data.productCollect === 1 ? {
     ah: common_assets._imports_2$3
   } : {
-    ai: common_assets._imports_3$3
+    ai: common_assets._imports_3$2
   }, {
     aj: common_vendor.o((...args) => $options.goToCollect && $options.goToCollect(...args), "6f"),
-    ak: common_assets._imports_4$2,
+    ak: common_assets._imports_4,
     al: $data.cartNumbers > 0
   }, $data.cartNumbers > 0 ? {
     am: common_vendor.t($data.cartNumbers)
