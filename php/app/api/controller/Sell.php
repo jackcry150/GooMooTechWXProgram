@@ -14,10 +14,12 @@ class Sell
     {
         $data = ['code' => 0, 'msg' => '暂无贩售', 'data' => null];
 
-        $row = Db::name('product')
+        $query = Db::name('product')
             ->field('id, productId, stock, status as productStatus, promoImages, reservationNotice, startTime, endTime, sort')
             ->where('isSpecialSale', 1)
-            ->where('status', 1)
+            ->where('status', 1);
+        apply_app_code_scope($query, 'product');
+        $row = $query
             ->order('sort desc, id desc')
             ->limit(1)
             ->find();

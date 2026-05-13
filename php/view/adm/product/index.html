@@ -22,6 +22,14 @@
     <div class="text-c">
         <form action="" method="get">
             <span class="select-box inline">
+			<select class="select" id="app_code" name="app_code">
+				<option value="">全部小程序</option>
+				{foreach name="appCodeOptions" key="k" item="v"}
+				<option {if $k == $app_code} selected {/if} value="{$k}">{$v}</option>
+                {/foreach}
+			</select>
+			</span>
+            <span class="select-box inline">
 			<select class="select" data-tip="类型" id="type" name="type">
 				<option selected value="">请选择类型</option>
 				{foreach name="productType" key="k" item="v"}
@@ -46,7 +54,7 @@
 			</select>
 			</span>
             <button class="btn btn-success radius" type="submit"><i class="Hui-iconfont">&#xe665;</i> 搜索</button>
-            <button class="btn btn-primary radius" onclick="show_html('添加','/adm/product/add')" name="action" type="button" value="export"><i class="Hui-iconfont">&#xe600;</i> 添加</button>
+            <button class="btn btn-primary radius" onclick="show_html('添加','/adm/product/add?app_code={$app_code|default='goomoo'}')" name="action" type="button" value="export"><i class="Hui-iconfont">&#xe600;</i> 添加</button>
         </form>
     </div>
     <div class="mt-10">
@@ -54,6 +62,7 @@
             <thead>
             <tr class="text-c">
                 <th>ID</th>
+                <th>小程序</th>
                 <th>主图</th>
                 <th>类型</th>
                 <th>标题</th>
@@ -72,6 +81,7 @@
             {foreach name="list" item="v"}
             <tr class="text-c">
                 <td>{$v.id}</td>
+                <td>{$v.appCodeName}</td>
                 <td>
                     {if condition="$v.mainImage"}
                     <img src="{$v.mainImage}" style="width:60px;height:60px;object-fit:cover;border-radius:4px;cursor:pointer;" onclick="showImage('{$v.mainImage}')" alt="主图" title="点击查看大图">

@@ -9,37 +9,30 @@
     <link href="/static/h-ui.admin/css/H-ui.admin.css" rel="stylesheet" type="text/css"/>
     <link href="/static/Hui-iconfont/1.0.8/iconfont.css" rel="stylesheet" type="text/css"/>
     <link href="/static/h-ui.admin/skin/default/skin.css" rel="stylesheet" type="text/css"/>
-    <title>列表</title>
+    <title>抽奖奖品</title>
 </head>
 <body>
 <nav class="breadcrumb">
     <i class="Hui-iconfont">&#xe67f;</i> 首页
-    <span class="c-gray en">&gt;</span> 图册管理
-    <span class="c-gray en">&gt;</span> 列表
+    <span class="c-gray en">&gt;</span> 抽奖管理
+    <span class="c-gray en">&gt;</span> 奖品列表
     <a class="btn btn-success radius r" href="javascript:location.replace(location.href);" style="line-height:1.6em;margin-top:3px" title="刷新"><i class="Hui-iconfont">&#xe68f;</i></a>
 </nav>
 <div class="page-container">
     <div class="text-c">
         <form action="" method="get">
-            <span class="select-box inline">
-			<select class="select" id="app_code" name="app_code">
-				<option value="">全部小程序</option>
-				{foreach name="appCodeOptions" key="k" item="v"}
-				<option {if $k == $app_code} selected {/if} value="{$k}">{$v}</option>
-                {/foreach}
-			</select>
-			</span>
-            <input class="input-text" name="title" id="title" placeholder="标题" style="width:150px" type="text" value="{$title}">
-            <span class="select-box inline">
-			<select class="select" data-tip="状态" id="status" name="status">
-				<option selected value="">请选择状态</option>
-				{foreach name="statusType" key="k" item="v"}
-				<option {if $k == $status} selected {/if} value="{$k}">{$v}</option>
-                {/foreach}
-			</select>
-			</span>
+            <input class="input-text" name="name" placeholder="奖品名称" style="width:180px" type="text" value="{$name}">
+            <span class="select-box inline" style="width:160px;">
+                <select class="select" name="status">
+                    <option value="">全部状态</option>
+                    {foreach name="statusType" item="v" key="k"}
+                    <option value="{$k}" {if $status == $k}selected{/if}>{$v}</option>
+                    {/foreach}
+                </select>
+            </span>
             <button class="btn btn-success radius" type="submit"><i class="Hui-iconfont">&#xe665;</i> 搜索</button>
-            <button class="btn btn-primary radius" onclick="show_html('添加','/adm/album/add?app_code={$app_code|default='goomoo'}')" name="action" type="button" value="export"><i class="Hui-iconfont">&#xe600;</i> 添加</button>
+            <button class="btn btn-primary radius" onclick="show_html('添加奖品','/adm/lottery/add')" type="button"><i class="Hui-iconfont">&#xe600;</i> 添加奖品</button>
+            <a class="btn btn-secondary radius" href="/adm/lottery/record">查看抽奖记录</a>
         </form>
     </div>
     <div class="mt-10">
@@ -47,11 +40,15 @@
             <thead>
             <tr class="text-c">
                 <th>ID</th>
-                <th>小程序</th>
-                <th>标题</th>
-                <th>封面图</th>
+                <th>图片</th>
+                <th>奖品名称</th>
+                <th>奖励类型</th>
+                <th>奖励数值</th>
+                <th>权重</th>
+                <th>库存</th>
                 <th>状态</th>
                 <th>排序</th>
+                <th>说明</th>
                 <th>操作</th>
             </tr>
             </thead>
@@ -59,14 +56,24 @@
             {foreach name="list" item="v"}
             <tr class="text-c">
                 <td>{$v.id}</td>
-                <td>{$v.appCodeName}</td>
-                <td>{$v.title}</td>
-                <td><img src="{$v.image}" style="height: 100px; width: 100px;"></td>
-                <td>{$v.status}</td>
+                <td>
+                    {if condition="$v.imageDisplay"}
+                    <img src="{$v.imageDisplay}" style="width:56px;height:56px;object-fit:cover;border-radius:4px;">
+                    {else /}
+                    <span style="color:#999;">无图</span>
+                    {/if}
+                </td>
+                <td>{$v.name}</td>
+                <td>{$v.rewardTypeText}</td>
+                <td>{$v.rewardValue}</td>
+                <td>{$v.weight}</td>
+                <td>{$v.stockText}</td>
+                <td>{$v.statusText}</td>
                 <td>{$v.sort}</td>
+                <td>{$v.description|default='-'}</td>
                 <td class="td-manage">
-                    <a title="编辑" href="javascript:;" onclick="show_html('编辑','{:url('adm/album/edit',array('id'=>$v.id))}')" style="text-decoration:none">编辑</a>&nbsp;|&nbsp;
-                    <a title="删除" href="javascript:;" onclick="del('{$v.id}')" style="text-decoration:none">删除</a>
+                    <a href="javascript:;" onclick="show_html('编辑奖品','/adm/lottery/edit?id={$v.id}')" style="text-decoration:none">编辑</a>&nbsp;|&nbsp;
+                    <a href="javascript:;" onclick="delPrize('{$v.id}')" style="text-decoration:none">删除</a>
                 </td>
             </tr>
             {/foreach}
@@ -77,26 +84,21 @@
         </div>
     </div>
 </div>
-<!--_footer 作为公共模版分离出去-->
 <script type="text/javascript" src="/static/js/jquery.min.js"></script>
 <script type="text/javascript" src="/static/layer/2.4/layer.js"></script>
 <script type="text/javascript" src="/static/h-ui/js/H-ui.min.js"></script>
 <script type="text/javascript" src="/static/h-ui.admin/js/H-ui.admin.js"></script>
-<!--/_footer 作为公共模版分离出去-->
 <script>
-    function del(id) {
-        $.ajax({
-            type: 'POST',
-            url: '/adm/album/del',
-            data: {id: id},
-            dataType: 'json',
-            success: function (data) {
-                layer.msg(data.msg, {time: 1000}, function () {
+    function delPrize(id) {
+        layer.confirm('确认删除该奖品？', {btn: ['确认', '取消']}, function(index) {
+            $.post('/adm/lottery/del', {id: id}, function(data) {
+                layer.msg(data.msg, {time: 1000}, function() {
                     if (data.code == 1) {
                         location.reload();
                     }
                 });
-            }
+            }, 'json');
+            layer.close(index);
         });
     }
 </script>

@@ -9,62 +9,58 @@
     <link href="/static/h-ui.admin/css/H-ui.admin.css" rel="stylesheet" type="text/css"/>
     <link href="/static/Hui-iconfont/1.0.8/iconfont.css" rel="stylesheet" type="text/css"/>
     <link href="/static/h-ui.admin/skin/default/skin.css" rel="stylesheet" type="text/css"/>
-    <title>用户列表</title>
+    <title>抽奖记录</title>
 </head>
 <body>
 <nav class="breadcrumb">
     <i class="Hui-iconfont">&#xe67f;</i> 首页
-    <span class="c-gray en">&gt;</span> 用户管理
-    <span class="c-gray en">&gt;</span> 用户列表
+    <span class="c-gray en">&gt;</span> 抽奖管理
+    <span class="c-gray en">&gt;</span> 抽奖记录
     <a class="btn btn-success radius r" href="javascript:location.replace(location.href);" style="line-height:1.6em;margin-top:3px" title="刷新"><i class="Hui-iconfont">&#xe68f;</i></a>
 </nav>
 <div class="page-container">
     <div class="text-c">
         <form action="" method="get">
-            <input class="input-text" name="nickName" id="nickName" placeholder="昵称" style="width:150px" type="text" value="{$nickName}">
-            <input class="input-text" name="phone" id="phone" placeholder="手机号" style="width:150px" type="text" value="{$phone}">
+            <input class="input-text" name="nickName" placeholder="用户昵称" style="width:180px" type="text" value="{$nickName}">
+            <input class="input-text" name="prizeName" placeholder="奖品名称" style="width:180px" type="text" value="{$prizeName}">
             <button class="btn btn-success radius" type="submit"><i class="Hui-iconfont">&#xe665;</i> 搜索</button>
+            <a class="btn btn-secondary radius" href="/adm/lottery/index">返回奖品列表</a>
         </form>
     </div>
     <div class="mt-10">
         <table class="table table-border table-bordered table-hover table-bg">
             <thead>
             <tr class="text-c">
-                <th width="80">用户ID</th>
-                <th width="120">昵称</th>
-                <th width="100">头像</th>
-                <th width="120">手机号</th>
-                <th width="100">猫饼</th>
-                <th width="120">收藏卡数量</th>
-                <th width="160">注册时间</th>
-                <th width="160">登录时间</th>
+                <th>ID</th>
+                <th>用户</th>
+                <th>奖品</th>
+                <th>类型</th>
+                <th>奖励</th>
+                <th>消耗猫饼</th>
+                <th>抽奖前</th>
+                <th>抽奖后</th>
+                <th>说明</th>
+                <th>时间</th>
             </tr>
             </thead>
             <tbody>
-            {if condition="empty($list)"}
-            <tr class="text-c">
-                <td colspan="8">暂无数据</td>
-            </tr>
-            {else /}
             {foreach name="list" item="v"}
             <tr class="text-c">
                 <td>{$v.id}</td>
                 <td>{$v.nickName}</td>
                 <td>
-                    {if condition="$v.avatar"}
-                    <img src="{$v.avatar}" style="width:50px;height:50px;border-radius:50%;object-fit:cover;" alt="头像">
-                    {else /}
-                    <span>-</span>
-                    {/if}
+                    {if condition="$v.prizeImageDisplay"}<img src="{$v.prizeImageDisplay}" style="width:40px;height:40px;object-fit:cover;vertical-align:middle;border-radius:4px;margin-right:8px;">{/if}
+                    {$v.prizeName}
                 </td>
-                <td>{$v.phone}</td>
-                <td>{$v.snailShells}</td>
-                <td>{$v.collectionCards}</td>
-                <td>{$v.regDate}</td>
-                <td>{$v.loginDate}</td>
+                <td>{$v.rewardTypeText}</td>
+                <td>{$v.rewardValue}</td>
+                <td>{$v.costShells}</td>
+                <td>{$v.snailShellsBefore}</td>
+                <td>{$v.snailShellsAfter}</td>
+                <td>{$v.description|default='-'}</td>
+                <td>{$v.createDate}</td>
             </tr>
             {/foreach}
-            {/if}
             </tbody>
         </table>
         <div class="pages">{$page|raw}
@@ -72,13 +68,9 @@
         </div>
     </div>
 </div>
-<!--_footer 作为公共模版分离出去-->
 <script type="text/javascript" src="/static/js/jquery.min.js"></script>
 <script type="text/javascript" src="/static/layer/2.4/layer.js"></script>
 <script type="text/javascript" src="/static/h-ui/js/H-ui.min.js"></script>
 <script type="text/javascript" src="/static/h-ui.admin/js/H-ui.admin.js"></script>
-<!--/_footer 作为公共模版分离出去-->
 </body>
 </html>
-
-

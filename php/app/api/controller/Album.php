@@ -17,7 +17,9 @@ class Album
                 return json($data);
             }
 
-            $list = Db::name('album')->field('id, title, labels, image')->where('status', 1)->order('sort desc, id desc')->select()->toArray();
+            $query = Db::name('album')->field('id, title, labels, image')->where('status', 1);
+            apply_app_code_scope($query, 'album');
+            $list = $query->order('sort desc, id desc')->select()->toArray();
 
             $domain = Request::domain();
             foreach ($list as &$v) {
@@ -53,7 +55,11 @@ class Album
                 'id' => $id,
                 'status' => 1
             ];
-            $info = Db::name('album')->field('id, title, image, labels, proportion, size, material, copyright, price, content, images, type')->where($where)->find();
+            $query = Db::name('album')
+                ->field('id, title, image, labels, proportion, size, material, copyright, price, content, images, type')
+                ->where($where);
+            apply_app_code_scope($query, 'album');
+            $info = $query->find();
             if (!$info) {
                 return json($data);
             }

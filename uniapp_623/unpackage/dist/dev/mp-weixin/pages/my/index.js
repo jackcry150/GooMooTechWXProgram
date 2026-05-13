@@ -82,7 +82,7 @@ const _sfc_main = {
             common_vendor.index.navigateTo({ url: "/pages/login/login" });
             return;
           } else if (res.cancel) {
-            common_vendor.index.__f__("log", "at pages/my/index.vue:228", "user cancel login");
+            common_vendor.index.__f__("log", "at pages/my/index.vue:235", "user cancel login");
             return;
           }
         }
@@ -227,13 +227,15 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   } : {}, {
     A: common_vendor.o(($event) => $options.goToCart(), "e0"),
     B: common_assets._imports_9,
-    C: common_vendor.o(($event) => $options.goToProfile(), "89"),
+    C: common_vendor.o(($event) => $options.goToBill(), "26"),
     D: common_assets._imports_10,
-    E: common_vendor.o(($event) => $options.goToCustomer(), "5a"),
+    E: common_vendor.o(($event) => $options.goToProfile(), "fb"),
     F: common_assets._imports_11,
-    G: common_vendor.o(($event) => $options.goToAfterSales(), "ba"),
+    G: common_vendor.o(($event) => $options.goToCustomer(), "3d"),
     H: common_assets._imports_12,
-    I: common_vendor.o(($event) => $options.goToAgreement(), "d4")
+    I: common_vendor.o(($event) => $options.goToAfterSales(), "60"),
+    J: common_assets._imports_9,
+    K: common_vendor.o(($event) => $options.goToAgreement(), "9f")
   });
 }
 const MiniProgramPage = /* @__PURE__ */ common_vendor._export_sfc(_sfc_main, [["render", _sfc_render], ["__scopeId", "data-v-f97bc692"]]);

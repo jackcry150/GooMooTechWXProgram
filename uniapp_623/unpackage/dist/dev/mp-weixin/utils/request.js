@@ -177,6 +177,11 @@ const api = {
     // 退出登录
     logout: () => request.post("/user/logout")
   },
+  // 抽奖相关
+  lottery: {
+    info: () => request.get("/lottery/info"),
+    draw: () => request.post("/lottery/draw")
+  },
   // 订单相关
   order: {
     // 创建订单

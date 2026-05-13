@@ -23,7 +23,9 @@ class Banner
                 'type' => $type,
                 'status' => 1
             ];
-            $list = Db::name('ad')->field('id, title, image, link')->where($adWhere)->order('sort desc, id desc')->select()->toArray();
+            $query = Db::name('ad')->field('id, title, image, link')->where($adWhere);
+            apply_app_code_scope($query, 'ad');
+            $list = $query->order('sort desc, id desc')->select()->toArray();
             $domain = Request::domain();
             foreach ($list as &$v) {
                 $v['image'] = $domain . $v['image'];

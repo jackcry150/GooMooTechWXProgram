@@ -22,11 +22,15 @@ class Product
 
     public function index()
     {
+        $appCode = trim((string) Request::get('app_code', ''));
         $type = Request::get('type');
         $title = Request::get('title');
         $mode = Request::get('mode');
         $isSpecialSale = Request::get('isSpecialSale');
         $where = [];
+        if ($appCode !== '' && table_has_app_code('product')) {
+            $where[] = ['app_code', '=', normalize_app_code_value($appCode)];
+        }
         if ($type !== '' && $type !== null) {
             $where[] = ['type', '=', $type];
         }
@@ -58,6 +62,7 @@ class Product
             $val['statusText'] = status($val['status'] ?? 1);
             $val['statusValue'] = $val['status'] ?? 1;
             $val['isSpecialSaleText'] = ($val['isSpecialSale'] ?? 0) == 1 ? '是' : '否';
+            $val['appCodeName'] = app_code_text($val['app_code'] ?? '');
 
             // 处理主图：从JSON中提取第一张图片
             $val['mainImage'] = '';
@@ -83,6 +88,8 @@ class Product
         View::assign('mode', $mode);
         View::assign('productMode', productMode());
         View::assign('isSpecialSale', $isSpecialSale);
+        View::assign('app_code', $appCode);
+        View::assign('appCodeOptions', app_code_options());
 
         return View::fetch();
     }
@@ -91,6 +98,11 @@ class Product
     {
         if (Request::isPost()) {
             $post = Request::post();
+            if (table_has_app_code('product')) {
+                $post['app_code'] = normalize_app_code_value($post['app_code'] ?? 'goomoo');
+            } else {
+                unset($post['app_code']);
+            }
             $post['startT'] = strtotime($post['startTime']);
             $post['endT'] = strtotime($post['endTime']);
             // 新添加的商品默认上架
@@ -126,6 +138,8 @@ class Product
             View::assign('productType', productType());
             View::assign('statusType', status());
             View::assign('productMode', productMode());
+            View::assign('app_code', normalize_app_code_value(Request::get('app_code', 'goomoo')));
+            View::assign('appCodeOptions', app_code_options());
 
             return View::fetch();
         }
@@ -163,10 +177,15 @@ class Product
             }
 
             unset($post['id']);
+            if (table_has_app_code('product')) {
+                $post['app_code'] = normalize_app_code_value($post['app_code'] ?? 'goomoo');
+            } else {
+                unset($post['app_code']);
+            }
             $post['startT'] = strtotime($post['startTime']);
             $post['endT'] = strtotime($post['endTime']);
             $res = Db::name('product')->where('id', $id)->update($post);
-            if ($res) {
+            if ($res !== false) {
                 $data['msg'] = '修改成功！';
                 $data['code'] = 1;
                 return json($data);
@@ -255,9 +274,11 @@ class Product
             View::assign('shippingTemplates', $shippingTemplates);
 
             View::assign('info', $info);
+            View::assign('selectedAppCode', normalize_app_code_value($info['app_code'] ?? 'goomoo'));
             View::assign('productType', productType());
             View::assign('statusType', status());
             View::assign('productMode', productMode());
+            View::assign('appCodeOptions', app_code_options());
 
             return View::fetch();
         }

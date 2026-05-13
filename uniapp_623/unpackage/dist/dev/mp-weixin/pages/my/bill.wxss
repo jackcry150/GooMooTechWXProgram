@@ -1,17 +1,185 @@
 
-.empty-state.data-v-8ba69474 {
+.lottery-page.data-v-8ba69474 {
+		min-height: 100vh;
+		padding: 24rpx;
+		background:
+			radial-gradient(circle at top left, rgba(255, 197, 90, 0.18), transparent 28%),
+			linear-gradient(180deg, #fffaf2 0%, #fff6ea 100%);
+		box-sizing: border-box;
+}
+.hero-card.data-v-8ba69474,
+	.rule-card.data-v-8ba69474,
+	.action-card.data-v-8ba69474,
+	.prize-card.data-v-8ba69474,
+	.record-card.data-v-8ba69474 {
+		background: rgba(255, 255, 255, 0.9);
+		border-radius: 28rpx;
+		padding: 28rpx;
+		box-shadow: 0 16rpx 36rpx rgba(222, 182, 123, 0.12);
+		margin-bottom: 22rpx;
+}
+.hero-card.data-v-8ba69474 {
+		display: flex;
+		align-items: flex-start;
+		justify-content: space-between;
+		gap: 24rpx;
+		background: linear-gradient(135deg, #fff1cf 0%, #ffe1a9 100%);
+}
+.hero-copy.data-v-8ba69474 {
+		display: flex;
+		flex-direction: column;
+}
+.hero-title.data-v-8ba69474 {
+		font-size: 44rpx;
+		font-weight: 900;
+		color: #1d1305;
+}
+.hero-subtitle.data-v-8ba69474 {
+		margin-top: 12rpx;
+		font-size: 24rpx;
+		color: #6a5334;
+}
+.shell-balance.data-v-8ba69474 {
+		min-width: 180rpx;
+		padding: 18rpx 20rpx;
+		border-radius: 22rpx;
+		background: rgba(255, 255, 255, 0.72);
+		text-align: right;
+}
+.shell-label.data-v-8ba69474,
+	.section-meta.data-v-8ba69474,
+	.section-cost.data-v-8ba69474,
+	.prize-stock.data-v-8ba69474,
+	.record-time.data-v-8ba69474,
+	.draw-tip.data-v-8ba69474 {
+		font-size: 22rpx;
+		color: #8f7858;
+}
+.shell-value.data-v-8ba69474 {
+		display: block;
+		margin-top: 8rpx;
+		font-size: 44rpx;
+		font-weight: 900;
+		color: #b85d00;
+}
+.section-head.data-v-8ba69474 {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		margin-bottom: 18rpx;
+		gap: 16rpx;
+}
+.section-title.data-v-8ba69474 {
+		font-size: 30rpx;
+		font-weight: 800;
+		color: #1d1a15;
+}
+.rule-text.data-v-8ba69474 {
+		font-size: 24rpx;
+		line-height: 1.7;
+		color: #5e5244;
+}
+.draw-btn.data-v-8ba69474 {
+		height: 92rpx;
+		border: none;
+		border-radius: 999rpx;
+		background: linear-gradient(135deg, #ff9c2f 0%, #ff6b1a 100%);
+		color: #fff;
+		font-size: 30rpx;
+		font-weight: 800;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		box-shadow: 0 18rpx 28rpx rgba(255, 115, 16, 0.18);
+}
+.draw-btn[disabled].data-v-8ba69474 {
+		opacity: 0.65;
+}
+.draw-tip.data-v-8ba69474 {
+		display: block;
+		margin-top: 16rpx;
+		text-align: center;
+}
+.prize-grid.data-v-8ba69474 {
+		display: grid;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: 18rpx;
+}
+.prize-item.data-v-8ba69474 {
+		background: #fff8ef;
+		border-radius: 22rpx;
+		padding: 20rpx;
 		display: flex;
 		flex-direction: column;
 		align-items: center;
-		justify-content: center;
-		padding: 280rpx 0;
+		text-align: center;
+		min-height: 260rpx;
 }
-.empty-icon.data-v-8ba69474 {
-		width: 400rpx;
-		height: auto;
-		margin-bottom: 30rpx;
+.prize-image.data-v-8ba69474,
+	.prize-fallback.data-v-8ba69474 {
+		width: 110rpx;
+		height: 110rpx;
+		border-radius: 24rpx;
+}
+.prize-fallback.data-v-8ba69474 {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		background: linear-gradient(135deg, #ffd77f 0%, #ffc164 100%);
+		font-size: 30rpx;
+		font-weight: 800;
+		color: #6f3a00;
+}
+.prize-name.data-v-8ba69474 {
+		margin-top: 16rpx;
+		font-size: 28rpx;
+		font-weight: 800;
+		color: #1e1a16;
+}
+.prize-type.data-v-8ba69474 {
+		margin-top: 10rpx;
+		font-size: 22rpx;
+		color: #675949;
+		line-height: 1.5;
+}
+.record-list.data-v-8ba69474 {
+		display: flex;
+		flex-direction: column;
+		gap: 16rpx;
+}
+.record-item.data-v-8ba69474 {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 20rpx;
+		padding: 18rpx 0;
+		border-bottom: 1rpx solid rgba(225, 211, 189, 0.72);
+}
+.record-item.data-v-8ba69474:last-child {
+		border-bottom: none;
+		padding-bottom: 0;
+}
+.record-main.data-v-8ba69474 {
+		flex: 1;
+		min-width: 0;
+		display: flex;
+		flex-direction: column;
+}
+.record-name.data-v-8ba69474 {
+		font-size: 28rpx;
+		font-weight: 700;
+		color: #1f1a14;
+}
+.record-desc.data-v-8ba69474 {
+		margin-top: 8rpx;
+		font-size: 22rpx;
+		color: #7a6b5e;
+}
+.empty-state.data-v-8ba69474 {
+		padding: 30rpx 0 10rpx;
+		text-align: center;
 }
 .empty-text.data-v-8ba69474 {
 		font-size: 24rpx;
-		color: #999999;
+		color: #948679;
 }

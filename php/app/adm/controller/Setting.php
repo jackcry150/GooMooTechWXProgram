@@ -22,18 +22,37 @@ class Setting
 
     public function index()
     {
-        $info = Db::name('setting')->where('id', 1)->find();
+        $appCode = normalize_app_code_value(Request::get('app_code', 'goomoo'));
+        if (table_has_app_code('setting')) {
+            $info = Db::name('setting')->where('app_code', $appCode)->find();
+            if (!$info) {
+                $fallback = Db::name('setting');
+                apply_app_code_scope($fallback, 'setting', $appCode, true);
+                $fallback = $fallback->orderRaw(build_app_code_priority_order($appCode))
+                    ->order('id asc')
+                    ->find();
+                $info = $fallback ?: [];
+                $info['id'] = '';
+                $info['app_code'] = $appCode;
+            }
+        } else {
+            $info = Db::name('setting')->where('id', 1)->find();
+        }
         View::assign('info', $info);
+        View::assign('app_code', $appCode);
+        View::assign('appCodeOptions', app_code_options());
+        View::assign('currentAppCodeName', app_code_text($appCode));
 
         return View::fetch();
     }
 
 
 
-    function updateCacheSetting()
+    function updateCacheSetting($appCode = '')
     {
-        $info = Db::name('setting')->where('id', 1)->find();
-        Cache::set('setting', $info);
+        foreach (app_code_cache_targets($appCode) as $cacheAppCode) {
+            Cache::delete('setting:' . $cacheAppCode);
+        }
     }
 
 
@@ -41,9 +60,24 @@ class Setting
     {
         if (Request::isPost()) {
             $post = Request::post();
-            $res = Db::name('setting')->where('id', $post['id'])->update($post);
-            if ($res) {
-                self::updateCacheSetting();
+            $appCode = normalize_app_code_value($post['app_code'] ?? 'goomoo');
+            if (table_has_app_code('setting')) {
+                $post['app_code'] = $appCode;
+            } else {
+                unset($post['app_code']);
+            }
+
+            $id = $post['id'] ?? '';
+            $res = false;
+            if ($id) {
+                $res = Db::name('setting')->where('id', $id)->update($post);
+            } else {
+                unset($post['id']);
+                $res = Db::name('setting')->insert($post);
+            }
+
+            if ($res !== false) {
+                self::updateCacheSetting($appCode);
                 $data['msg'] = "修改成功！";
                 $data['code'] = 1;
                 return json($data);

@@ -38,9 +38,11 @@ class Product
                 ]
             ];
 
-            $list = Db::name('product')
+            $query = Db::name('product')
                 ->field('id, title, subtitle, type, mode, image, price, deposit, deduct, endT, endTime')
-                ->where($where)
+                ->where($where);
+            apply_app_code_scope($query, 'product');
+            $list = $query
                 ->order('sort desc, id desc')
                 ->select()
                 ->toArray();
@@ -115,7 +117,11 @@ class Product
                     1  // 只显示上架的商品
                 ]
             ];
-            $info = Db::name('product')->field('id, productId, title, subtitle, type, image, price, deposit, deduct, version, content, purchaseNotice, stock, limitStock, startT, startTime, endT, endTime, shippingTemplateId, proportion, dimensions, material, copyright')->where($where)->find();
+            $query = Db::name('product')
+                ->field('id, productId, title, subtitle, type, image, price, deposit, deduct, version, content, purchaseNotice, stock, limitStock, startT, startTime, endT, endTime, shippingTemplateId, proportion, dimensions, material, copyright')
+                ->where($where);
+            apply_app_code_scope($query, 'product');
+            $info = $query->find();
             
             // 如果产品有运费模板，获取模板信息
             if ($info && $info['shippingTemplateId']) {

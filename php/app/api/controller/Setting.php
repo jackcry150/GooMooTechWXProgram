@@ -19,10 +19,11 @@ class Setting
                 return json($data);
             }
 
-            $info = Cache::get('setting');
+            $cacheKey = 'setting:' . current_app_code();
+            $info = Cache::get($cacheKey);
             if (!$info) {
-                $info = Db::name('setting')->where('id', 1)->find();
-                Cache::set('setting', $info);
+                $info = find_brand_setting();
+                Cache::set($cacheKey, $info);
             }
 
             $data['code'] = 200;

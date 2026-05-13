@@ -39,10 +39,14 @@ class News
                 $where = ['id' => $id];
             }
 
-            $info = Db::name('news')
+            $query = Db::name('news')
                 ->field('id, code, title, content')
-                ->where($where)
-                ->find();
+                ->where($where);
+            apply_app_code_scope($query, 'news');
+            if ($code) {
+                $query->orderRaw(build_app_code_priority_order(current_app_code()))->order('id asc');
+            }
+            $info = $query->find();
 
             if (!$info) {
                 $data['msg'] = '记录不存在';
@@ -59,4 +63,3 @@ class News
         }
     }
 }
-

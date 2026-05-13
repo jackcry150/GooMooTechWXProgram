@@ -22,9 +22,13 @@ class Album
 
     public function index()
     {
+        $appCode = trim((string) Request::get('app_code', ''));
         $title = Request::get('title');
         $status = Request::get('status');
         $where = [];
+        if ($appCode !== '' && table_has_app_code('album')) {
+            $where[] = ['app_code', '=', normalize_app_code_value($appCode)];
+        }
 
         if ($title) {
             $searchWhere = [
@@ -61,6 +65,7 @@ class Album
             $val['status'] = status($val['status']);
             $image = json_decode($val['image'], true);
             $val['image'] = $image[0];
+            $val['appCodeName'] = app_code_text($val['app_code'] ?? '');
         }
 
         View::assign('list', $list);
@@ -68,6 +73,8 @@ class Album
         View::assign('title', $title);
         View::assign('status', $status);
         View::assign('statusType', status());
+        View::assign('app_code', $appCode);
+        View::assign('appCodeOptions', app_code_options());
 
         return View::fetch();
     }
@@ -76,6 +83,11 @@ class Album
     {
         if (Request::isPost()) {
             $post = Request::post();
+            if (table_has_app_code('album')) {
+                $post['app_code'] = normalize_app_code_value($post['app_code'] ?? 'goomoo');
+            } else {
+                unset($post['app_code']);
+            }
             $res = Db::name('album')->insert($post);
             if ($res) {
                 $data['msg'] = "添加成功！";
@@ -89,6 +101,8 @@ class Album
         } else {
 
             View::assign('statusType', status());
+            View::assign('app_code', normalize_app_code_value(Request::get('app_code', 'goomoo')));
+            View::assign('appCodeOptions', app_code_options());
 
             return View::fetch();
         }
@@ -118,8 +132,13 @@ class Album
     {
         if (Request::isPost()) {
             $post = Request::post();
+            if (table_has_app_code('album')) {
+                $post['app_code'] = normalize_app_code_value($post['app_code'] ?? 'goomoo');
+            } else {
+                unset($post['app_code']);
+            }
             $res = Db::name('album')->where('id', $post['id'])->update($post);
-            if ($res) {
+            if ($res !== false) {
                 $data['msg'] = "修改成功！";
                 $data['code'] = 1;
                 return json($data);
@@ -133,8 +152,10 @@ class Album
             $id = Request::get('id');
             $info = Db::name('album')->where('id', $id)->find();
             View::assign('info', $info);
+            View::assign('selectedAppCode', normalize_app_code_value($info['app_code'] ?? 'goomoo'));
 
             View::assign('statusType', status());
+            View::assign('appCodeOptions', app_code_options());
 
             return View::fetch();
         }

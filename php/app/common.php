@@ -1,6 +1,11 @@
 <?php
 // 应用公共文件
 
+use think\facade\Cache;
+use think\facade\Config;
+use think\facade\Db;
+use think\facade\Request;
+
 /**
  * 加密
  * @param $data
@@ -91,6 +96,153 @@ function serverType($key = '')
         return isset($data[$key]) ? $data[$key] : '';
     }
     return $data;
+}
+
+function lotteryRewardType($key = '')
+{
+    $data = [
+        1 => '谢谢参与',
+        2 => '猫饼',
+        3 => '收藏卡',
+        4 => '实物奖品',
+    ];
+    if ($key !== '' && $key !== null) {
+        return isset($data[$key]) ? $data[$key] : '';
+    }
+    return $data;
+}
+
+function lotteryStockText($stock)
+{
+    if ((int)$stock < 0) {
+        return '不限';
+    }
+    return (string) max(0, (int) $stock);
+}
+
+function app_code_options()
+{
+    return [
+        'goomoo' => 'GooMoo',
+        'hasuki' => 'Hasuki',
+        'common' => '通用',
+    ];
+}
+
+function normalize_app_code_value($appCode = '')
+{
+    $appCode = strtolower(trim((string) $appCode));
+    $appCode = preg_replace('/[^a-zA-Z0-9_-]/', '', $appCode);
+    $options = app_code_options();
+    if (!$appCode || !isset($options[$appCode])) {
+        return 'goomoo';
+    }
+    return $appCode;
+}
+
+function app_code_text($appCode = '')
+{
+    $options = app_code_options();
+    return $options[$appCode] ?? ($appCode ?: '未设置');
+}
+
+function current_app_code()
+{
+    static $appCode = null;
+    if ($appCode !== null) {
+        return $appCode;
+    }
+
+    $candidates = [
+        trim((string) Request::header('X-App-Code', '')),
+        trim((string) Request::param('appCode', '')),
+        trim((string) Request::param('app_code', '')),
+    ];
+
+    foreach ($candidates as $candidate) {
+        if ($candidate !== '') {
+            $appCode = normalize_app_code_value($candidate);
+            return $appCode;
+        }
+    }
+
+    $host = strtolower((string) Request::host());
+    if (strpos($host, 'hasuki') !== false) {
+        $appCode = 'hasuki';
+        return $appCode;
+    }
+
+    $appCode = 'goomoo';
+    return $appCode;
+}
+
+function table_has_app_code($table)
+{
+    static $tableColumnMap = [];
+    if (array_key_exists($table, $tableColumnMap)) {
+        return $tableColumnMap[$table];
+    }
+
+    $defaultConnection = Config::get('database.default', 'mysql');
+    $prefix = Config::get('database.connections.' . $defaultConnection . '.prefix', '');
+    $tableName = $prefix . $table;
+    $columns = Db::query("SHOW COLUMNS FROM `" . $tableName . "` LIKE 'app_code'");
+    $exists = !empty($columns);
+    $tableColumnMap[$table] = $exists;
+    return $exists;
+}
+
+function build_app_code_priority_order($appCode = '')
+{
+    $appCode = $appCode ?: current_app_code();
+    $appCode = addslashes($appCode);
+    return "CASE 
+        WHEN app_code = '{$appCode}' THEN 0
+        WHEN app_code = 'common' THEN 1
+        WHEN app_code = '' OR app_code IS NULL THEN 2
+        ELSE 3
+    END";
+}
+
+function apply_app_code_scope($query, $table, $appCode = '', $includeShared = true)
+{
+    if (!table_has_app_code($table)) {
+        return $query;
+    }
+
+    $appCode = $appCode ?: current_app_code();
+    $query->where(function ($subQuery) use ($appCode, $includeShared) {
+        $subQuery->where('app_code', $appCode);
+        if ($includeShared) {
+            $subQuery->whereOr('app_code', 'common')
+                ->whereOr('app_code', '')
+                ->whereOrRaw('app_code IS NULL');
+        }
+    });
+
+    return $query;
+}
+
+function find_brand_setting()
+{
+    $appCode = current_app_code();
+    if (!table_has_app_code('setting')) {
+        return Db::name('setting')->where('id', 1)->find();
+    }
+
+    $query = Db::name('setting');
+    apply_app_code_scope($query, 'setting', $appCode, true);
+    return $query->orderRaw(build_app_code_priority_order($appCode))
+        ->order('id asc')
+        ->find();
+}
+
+function app_code_cache_targets($appCode = '')
+{
+    if ($appCode === 'common') {
+        return array_keys(app_code_options());
+    }
+    return [normalize_app_code_value($appCode ?: current_app_code())];
 }
 
 /**

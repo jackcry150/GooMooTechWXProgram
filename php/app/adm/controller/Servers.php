@@ -22,10 +22,14 @@ class Servers
 
     public function index()
     {
+        $appCode = trim((string) Request::get('app_code', ''));
         $type = Request::get('type');
         $title = Request::get('title');
         $status = Request::get('status');
         $where = [];
+        if ($appCode !== '' && table_has_app_code('server')) {
+            $where[] = ['app_code', '=', normalize_app_code_value($appCode)];
+        }
         if ($type) {
             $searchWhere = [
                 [
@@ -71,6 +75,7 @@ class Servers
             $val['status'] = status($val['status']);
             $images = json_decode($val['image'], true);
             $val['image'] = isset($images[0]) ? $images[0] : '';
+            $val['appCodeName'] = app_code_text($val['app_code'] ?? '');
         }
 
         View::assign('list', $list);
@@ -80,6 +85,8 @@ class Servers
         View::assign('title', $title);
         View::assign('status', $status);
         View::assign('statusType', status());
+        View::assign('app_code', $appCode);
+        View::assign('appCodeOptions', app_code_options());
 
         return View::fetch();
     }
@@ -88,9 +95,15 @@ class Servers
     {
         if (Request::isPost()) {
             $post = Request::post();
+            $appCode = normalize_app_code_value($post['app_code'] ?? 'goomoo');
+            if (table_has_app_code('server')) {
+                $post['app_code'] = $appCode;
+            } else {
+                unset($post['app_code']);
+            }
             $res = Db::name('server')->insert($post);
             if ($res) {
-                self::updateCacheServer();
+                self::updateCacheServer($post['type'] ?? 1, $appCode);
                 $data['msg'] = "添加成功！";
                 $data['code'] = 1;
                 return json($data);
@@ -103,22 +116,19 @@ class Servers
 
             View::assign('serverType', serverType());
             View::assign('statusType', status());
+            View::assign('app_code', normalize_app_code_value(Request::get('app_code', 'goomoo')));
+            View::assign('appCodeOptions', app_code_options());
 
             return View::fetch();
         }
     }
 
-    function updateCacheServer($type = 1)
+    function updateCacheServer($type = 1, $appCode = '')
     {
-        if ($type == 1){
-            $list = Db::name('server')
-                ->field('id, type, title, image, link')
-                ->where('status', 1)
-                ->order('sort desc, id desc')
-                ->select()
-                ->toArray();
-            Cache::set('server', $list);
-        }elseif ($type == 2){
+        foreach (app_code_cache_targets($appCode) as $cacheAppCode) {
+            Cache::delete('server:' . $cacheAppCode . ':' . $type);
+        }
+        if ($type == 2){
             $list = Db::name('server_online')
                 ->field('id, type, title, image, link, corpId')
                 ->where('status', 1)
@@ -134,9 +144,10 @@ class Servers
     {
         if (Request::isPost()) {
             $post = Request::post();
+            $info = Db::name('server')->where('id', $post['id'])->find();
             $res = Db::name('server')->delete($post);
             if ($res) {
-                self::updateCacheServer();
+                self::updateCacheServer($info['type'] ?? 1, $info['app_code'] ?? '');
                 $data['msg'] = "成功！";
                 $data['code'] = 1;
                 return json($data);
@@ -154,9 +165,15 @@ class Servers
     {
         if (Request::isPost()) {
             $post = Request::post();
+            $appCode = normalize_app_code_value($post['app_code'] ?? 'goomoo');
+            if (table_has_app_code('server')) {
+                $post['app_code'] = $appCode;
+            } else {
+                unset($post['app_code']);
+            }
             $res = Db::name('server')->where('id', $post['id'])->update($post);
-            if ($res) {
-                self::updateCacheServer();
+            if ($res !== false) {
+                self::updateCacheServer($post['type'] ?? 1, $appCode);
                 $data['msg'] = "修改成功！";
                 $data['code'] = 1;
                 return json($data);
@@ -192,9 +209,11 @@ class Servers
             }
             
             View::assign('info', $info);
+            View::assign('selectedAppCode', normalize_app_code_value($info['app_code'] ?? 'goomoo'));
 
             View::assign('serverType', serverType());
             View::assign('statusType', status());
+            View::assign('appCodeOptions', app_code_options());
 
             return View::fetch();
         }

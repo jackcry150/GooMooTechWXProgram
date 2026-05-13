@@ -25,6 +25,18 @@
             </div>
         </div>
         <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-3">小程序：</label>
+            <div class="formControls col-xs-8 col-sm-9">
+                <span class="select-box">
+				<select class="select" id="app_code" name="app_code">
+                    {foreach name="appCodeOptions" key="k" item="v"}
+                    <option value="{$k}" {if $selectedAppCode == $k}selected{/if}>{$v}</option>
+                    {/foreach}
+				</select>
+				</span>
+            </div>
+        </div>
+        <div class="row cl">
             <label class="form-label col-xs-4 col-sm-3">标题：</label>
             <div class="formControls col-xs-8 col-sm-9">
                 <input class="input-text" data-verify="标题不能为空" id="title" name="title" type="text" value="{$info.title}">
@@ -93,4 +105,3 @@
 </body>
 
 </html>
-

@@ -20,7 +20,8 @@ class Server
 
             $type = Request::get('type', 1);
 
-            $list = Cache::get('server');
+            $cacheKey = 'server:' . current_app_code() . ':' . $type;
+            $list = Cache::get($cacheKey);
             $newsList = [];
             $domain = Request::domain();
 
@@ -42,9 +43,11 @@ class Server
                     'type' => $type,
                     'status' => 1
                 ];
-                $newsList = Db::name('server')
+                $query = Db::name('server')
                     ->field('id, type, title, image, link, corpId')
-                    ->where($where)
+                    ->where($where);
+                apply_app_code_scope($query, 'server');
+                $newsList = $query
                     ->order('sort desc, id desc')
                     ->select()
                     ->toArray();
@@ -57,6 +60,7 @@ class Server
                     $v['image'] = $img;
                     unset($v['type']);
                 }
+                Cache::set($cacheKey, $newsList);
             }
 
             $data['code'] = 200;

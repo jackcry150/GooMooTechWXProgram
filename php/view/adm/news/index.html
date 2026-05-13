@@ -20,11 +20,25 @@
     <a class="btn btn-success radius r" href="javascript:location.replace(location.href);" style="line-height:1.6em;margin-top:3px" title="刷新"><i class="Hui-iconfont">&#xe68f;</i></a>
 </nav>
 <div class="page-container">
+    <div class="text-c" style="margin-bottom: 15px;">
+        <form action="" method="get">
+            <span class="select-box inline" style="width:220px;">
+			<select class="select" id="app_code" name="app_code">
+				<option value="">全部小程序</option>
+				{foreach name="appCodeOptions" key="k" item="v"}
+				<option {if $k == $app_code} selected {/if} value="{$k}">{$v}</option>
+                {/foreach}
+			</select>
+			</span>
+            <button class="btn btn-success radius" type="submit"><i class="Hui-iconfont">&#xe665;</i> 搜索</button>
+        </form>
+    </div>
     <div class="mt-10">
         <table class="table table-border table-bordered table-hover table-bg">
             <thead>
             <tr class="text-c">
                 <th>ID</th>
+                <th>小程序</th>
                 <th>标识</th>
                 <th>标题</th>
                 <th>操作</th>
@@ -34,6 +48,7 @@
             {foreach name="list" item="v"}
             <tr class="text-c">
                 <td>{$v.id}</td>
+                <td>{$v.appCodeName}</td>
                 <td>{$v.code}</td>
                 <td>{$v.title}</td>
                 <td class="td-manage">
@@ -54,4 +69,3 @@
 </body>
 
 </html>
-

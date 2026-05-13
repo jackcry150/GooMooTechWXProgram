@@ -22,10 +22,14 @@ class Ad
 
     public function index()
     {
+        $appCode = trim((string) Request::get('app_code', ''));
         $type = Request::get('type');
         $name = Request::get('name');
         $status = Request::get('status');
         $where = [];
+        if ($appCode !== '' && table_has_app_code('ad')) {
+            $where[] = ['app_code', '=', normalize_app_code_value($appCode)];
+        }
         if ($type) {
             $searchWhere = [
                 [
@@ -69,6 +73,7 @@ class Ad
         foreach ($list as &$val) {
             $val['type'] = adType($val['type']);
             $val['status'] = status($val['status']);
+            $val['appCodeName'] = app_code_text($val['app_code'] ?? '');
         }
 
         View::assign('list', $list);
@@ -78,6 +83,8 @@ class Ad
         View::assign('name', $name);
         View::assign('status', $status);
         View::assign('statusType', status());
+        View::assign('app_code', $appCode);
+        View::assign('appCodeOptions', app_code_options());
 
         return View::fetch();
     }
@@ -86,6 +93,11 @@ class Ad
     {
         if (Request::isPost()) {
             $post = Request::post();
+            if (table_has_app_code('ad')) {
+                $post['app_code'] = normalize_app_code_value($post['app_code'] ?? 'goomoo');
+            } else {
+                unset($post['app_code']);
+            }
             $res = Db::name('ad')->insert($post);
             if ($res) {
                 $data['msg'] = "添加成功！";
@@ -100,6 +112,8 @@ class Ad
 
             View::assign('adType', adType());
             View::assign('statusType', status());
+            View::assign('app_code', normalize_app_code_value(Request::get('app_code', 'goomoo')));
+            View::assign('appCodeOptions', app_code_options());
 
             return View::fetch();
         }
@@ -128,8 +142,13 @@ class Ad
     {
         if (Request::isPost()) {
             $post = Request::post();
+            if (table_has_app_code('ad')) {
+                $post['app_code'] = normalize_app_code_value($post['app_code'] ?? 'goomoo');
+            } else {
+                unset($post['app_code']);
+            }
             $res = Db::name('ad')->where('id', $post['id'])->update($post);
-            if ($res) {
+            if ($res !== false) {
                 $data['msg'] = "修改成功！";
                 $data['code'] = 1;
                 return json($data);
@@ -156,9 +175,11 @@ class Ad
             }
             
             View::assign('info', $info);
+            View::assign('selectedAppCode', normalize_app_code_value($info['app_code'] ?? 'goomoo'));
 
             View::assign('adType', adType());
             View::assign('statusType', status());
+            View::assign('appCodeOptions', app_code_options());
 
             return View::fetch();
         }

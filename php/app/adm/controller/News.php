@@ -23,9 +23,19 @@ class News
      */
     public function index()
     {
-        $list = Db::name('news')->order('id asc')->select()->toArray();
+        $appCode = trim((string) Request::get('app_code', ''));
+        $query = Db::name('news');
+        if ($appCode !== '' && table_has_app_code('news')) {
+            $query->where('app_code', normalize_app_code_value($appCode));
+        }
+        $list = $query->order('id asc')->select()->toArray();
+        foreach ($list as &$item) {
+            $item['appCodeName'] = app_code_text($item['app_code'] ?? '');
+        }
 
         View::assign('list', $list);
+        View::assign('app_code', $appCode);
+        View::assign('appCodeOptions', app_code_options());
         return View::fetch();
     }
 
@@ -48,6 +58,9 @@ class News
                 'title' => $post['title'] ?? '',
                 'content' => $post['content'] ?? '',
             ];
+            if (table_has_app_code('news')) {
+                $update['app_code'] = normalize_app_code_value($post['app_code'] ?? 'goomoo');
+            }
 
             $res = Db::name('news')->where('id', $id)->update($update);
             if ($res !== false) {
@@ -75,8 +88,9 @@ class News
             }
 
             View::assign('info', $info);
+            View::assign('selectedAppCode', normalize_app_code_value($info['app_code'] ?? 'goomoo'));
+            View::assign('appCodeOptions', app_code_options());
             return View::fetch();
         }
     }
 }
-

@@ -19,7 +19,24 @@
     <a class="btn btn-success radius r" href="javascript:location.replace(location.href);" style="line-height:1.6em;margin-top:3px" title="刷新"><i class="Hui-iconfont">&#xe68f;</i></a>
 </nav>
 <div class="page-container">
+    <div class="text-c" style="margin-bottom: 20px;">
+        <form action="" method="get">
+            <span class="select-box inline" style="width: 220px;">
+                <select class="select" id="app_code" name="app_code" onchange="this.form.submit()">
+                    {foreach name="appCodeOptions" key="k" item="v"}
+                    <option value="{$k}" {if $k == $app_code}selected{/if}>{$v}</option>
+                    {/foreach}
+                </select>
+            </span>
+        </form>
+    </div>
     <form class="form form-horizontal" id="editForm">
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-3">当前小程序：</label>
+            <div class="formControls col-xs-8 col-sm-9" style="padding-top: 3px;">
+                <span class="label label-primary radius">{$currentAppCodeName}</span>
+            </div>
+        </div>
         <div class="row cl">
             <label class="form-label col-xs-4 col-sm-3" for="name">网址名称：</label>
             <div class="formControls col-xs-8 col-sm-9">
@@ -52,10 +69,23 @@
                 <input class="input-text" data-verify="公司邮箱不能为空" id="email" name="email" placeholder="" type="text" value="{$info.email}">
             </div>
         </div>
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-3" for="lotteryCost">单次抽奖消耗猫饼：</label>
+            <div class="formControls col-xs-8 col-sm-9">
+                <input class="input-text" data-verify="抽奖消耗不能为空" id="lotteryCost" name="lotteryCost" type="number" min="1" value="{$info.lotteryCost|default='10'}">
+            </div>
+        </div>
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-3" for="lotteryRule">抽奖规则：</label>
+            <div class="formControls col-xs-8 col-sm-9">
+                <textarea class="textarea" id="lotteryRule" name="lotteryRule" rows="">{$info.lotteryRule}</textarea>
+            </div>
+        </div>
 
         <div class="row cl">
             <div class="col-9 col-offset-3">
                 <input name="id" type="hidden" value="{$info.id}"/>
+                <input name="app_code" type="hidden" value="{$app_code}"/>
                 <input class="btn btn-primary radius" id="edit" type="button" value="&nbsp;&nbsp;提交&nbsp;&nbsp;">
             </div>
         </div>
