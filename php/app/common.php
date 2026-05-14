@@ -245,6 +245,24 @@ function app_code_cache_targets($appCode = '')
     return [normalize_app_code_value($appCode ?: current_app_code())];
 }
 
+function table_has_column($table, $column)
+{
+    static $tableColumnMap = [];
+    $cacheKey = $table . ':' . $column;
+    if (array_key_exists($cacheKey, $tableColumnMap)) {
+        return $tableColumnMap[$cacheKey];
+    }
+
+    $defaultConnection = Config::get('database.default', 'mysql');
+    $prefix = Config::get('database.connections.' . $defaultConnection . '.prefix', '');
+    $tableName = $prefix . $table;
+    $column = preg_replace('/[^a-zA-Z0-9_]/', '', (string) $column);
+    $columns = Db::query("SHOW COLUMNS FROM `" . $tableName . "` LIKE '" . $column . "'");
+    $exists = !empty($columns);
+    $tableColumnMap[$cacheKey] = $exists;
+    return $exists;
+}
+
 /**
  * 获取订单状态配置
  * 统一管理订单状态：状态码、名称、颜色、描述

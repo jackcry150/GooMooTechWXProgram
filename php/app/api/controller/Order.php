@@ -11,6 +11,11 @@ use think\facade\Request;
 
 class Order
 {
+    private function orderTradeField()
+    {
+        return table_has_column('order', 'tradeNo') ? 'tradeNo' : 'orderNo';
+    }
+
     public function list()
     {
         $data['code'] = 100;
@@ -365,8 +370,9 @@ class Order
             ];
 
             // 获取订单详细信息，包括定金尾款信息
-            $orderInfo = Db::name('order')->field('id, tradeNo, totalPrice, product, address, orderDetails, status, depositAmount, depositPaid, balanceAmount, balancePaid, balanceDueTimeStamp')->where
-            ($orderWhere)->find();
+            $tradeField = $this->orderTradeField();
+            $orderInfo = Db::name('order')->field("id, {$tradeField} as tradeNo, totalPrice, product, address, orderDetails, status, depositAmount, depositPaid, balanceAmount, balancePaid, balanceDueTimeStamp")->where
+                ($orderWhere)->find();
 
             if (!$orderInfo) {
                 $data['msg'] = '订单不存在';
@@ -570,9 +576,11 @@ class Order
                         'id' => $id,
                     ];
                     $userUpdate = [
-                        'tradeNo' => $tradeNo,
                         'payType' => $payType
                     ];
+                    if (table_has_column('order', 'tradeNo')) {
+                        $userUpdate['tradeNo'] = $tradeNo;
+                    }
                     Db::name('order')->where($orderWhere)->update($userUpdate);
 
                     $data['code'] = 200;
@@ -709,12 +717,14 @@ class Order
                     'createTime' => time(),
                     'createDate' => date('Y-m-d H:i:s'),
                     'createIp' => Request::ip(),
-                    'tradeNo' => $orderNo,
                     'orderNo' => $orderNo,
                     'status' => $initialStatus,
                     'apiStatus' => 0,
                     'apiMsg' => '订单已创建，等待支付',
                 ];
+                if (table_has_column('order', 'tradeNo')) {
+                    $orderInsert['tradeNo'] = $orderNo;
+                }
 
                 if ($hasPresale) {
                     $orderInsert['depositAmount'] = $depositAmount;
@@ -856,8 +866,9 @@ class Order
         if (isset($output) && $output['resp_code'] == '00000000') {
             $resData = json_decode($output['resp_data'], true);
             if (isset($resData) && $resData['resp_code'] == '00000000') {
+                $tradeField = $this->orderTradeField();
                 $orderWhere = [
-                    'tradeNo' => $resData['mer_ord_id'],
+                    $tradeField => $resData['mer_ord_id'],
                 ];
                 $orderInfo = Db::name('order')->field('id, status, orderNo, totalPrice, product, payType, orderDetails, address')->where($orderWhere)->find();
 

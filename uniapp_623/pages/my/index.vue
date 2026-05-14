@@ -32,7 +32,7 @@
 								<text class="stat-number">{{ collectCount }}</text>
 								<text class="stat-label">线上收藏</text>
 							</view>
-							<view class="stat-item stat-divider" @click.stop="goToBill">
+							<view v-if="showLotteryEntry" class="stat-item stat-divider" @click.stop="goToBill">
 								<text class="stat-number">{{ userInfo.snailShells || 0 }}</text>
 								<text class="stat-label">我的猫饼</text>
 							</view>
@@ -100,7 +100,7 @@
 							<text class="chevron">›</text>
 						</view>
 					</view>
-					<view class="function-item" @click="goToBill()">
+					<view v-if="showLotteryEntry" class="function-item" @click="goToBill()">
 						<view class="function-main">
 							<view class="function-icon"><image class="nav-item-image" src="/static/image/icon_document.png" mode="aspectFit"></image></view>
 							<text class="function-text">猫饼抽奖</text>
@@ -149,6 +149,7 @@
 		name: 'Profile',
 	data() {
 		return {
+			showLotteryEntry: false,
 			userInfo: {
 					nickName: '',
 					id: '',
