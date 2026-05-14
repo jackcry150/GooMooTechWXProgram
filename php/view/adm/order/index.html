@@ -120,6 +120,9 @@
                 <td>{$v.createDate}</td>
                 <td class="td-manage">
                     <a title="详情" href="javascript:;" onclick="showOrderDetail({$v.id})" style="text-decoration:none;">详情</a>
+                    {if condition="$v.status == 10"}
+                    &nbsp;|&nbsp;<a title="通知补尾款" href="javascript:;" onclick="notifyBalancePayment({$v.id})" style="text-decoration:none;color:#ff6b00;">通知补尾款</a>
+                    {/if}
                     {if condition="$v.status == 6 && $v.arrivalConfirmStatus != 2"}
                     &nbsp;|&nbsp;<a title="标记到货" href="javascript:;" onclick="markArrival({$v.id})" style="text-decoration:none;color:#f39c12;">标记到货</a>
                     {/if}
@@ -221,6 +224,30 @@
                     layer.msg(data.msg || '重发失败', {time: 2000});
                 }
             }
+        });
+    }
+
+    function notifyBalancePayment(id) {
+        layer.confirm('确认发送“商品已到货，请支付尾款”通知吗？', {
+            btn: ['发送', '取消'],
+            icon: 3
+        }, function(index) {
+            $.ajax({
+                type: 'POST',
+                url: '/adm/order/notifyBalancePayment',
+                data: { id: id },
+                dataType: 'json',
+                success: function(data) {
+                    if (data.code == 1) {
+                        layer.msg(data.msg, {time: 1200}, function() {
+                            location.reload();
+                        });
+                    } else {
+                        layer.msg(data.msg || '发送失败', {time: 2000});
+                    }
+                }
+            });
+            layer.close(index);
         });
     }
 

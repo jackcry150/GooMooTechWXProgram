@@ -118,7 +118,13 @@ class Auth
         curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 3);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 5);
         $response = curl_exec($ch);
+        if ($response === false) {
+            curl_close($ch);
+            return false;
+        }
         curl_close($ch);
 
         return json_decode($response, true);

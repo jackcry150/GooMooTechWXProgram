@@ -16,6 +16,64 @@ class Order
         return table_has_column('order', 'tradeNo') ? 'tradeNo' : 'orderNo';
     }
 
+    private function loadProductsMap(array $productIds)
+    {
+        $productIds = array_values(array_unique(array_filter(array_map('intval', $productIds))));
+        if (empty($productIds)) {
+            return [];
+        }
+
+        $list = Db::name('product')->where('id', 'in', $productIds)->select()->toArray();
+        $map = [];
+        foreach ($list as $item) {
+            $map[intval($item['id'])] = $item;
+        }
+        return $map;
+    }
+
+    private function expandOrderProducts($productRaw, $domain, array $productMap = [])
+    {
+        $productList = is_array($productRaw) ? $productRaw : json_decode($productRaw ?? '[]', true);
+        if (!is_array($productList)) {
+            return [];
+        }
+
+        $expanded = [];
+        foreach ($productList as $item) {
+            if (isset($item['title']) || isset($item['productCode'])) {
+                if (isset($item['image']) && strpos($item['image'], 'http') === false) {
+                    $item['image'] = $domain . $item['image'];
+                }
+                $expanded[] = $item;
+                continue;
+            }
+
+            $productId = intval($item['productId'] ?? 0);
+            if (!$productId || !isset($productMap[$productId])) {
+                continue;
+            }
+
+            $productInfo = $productMap[$productId];
+            $images = json_decode($productInfo['image'] ?? '[]', true);
+            $img0 = is_array($images) && !empty($images) ? $images[0] : '';
+            $expanded[] = [
+                'productId' => $productId,
+                'productCode' => $productInfo['productId'] ?? '',
+                'title' => $productInfo['title'] ?? '',
+                'subtitle' => $productInfo['subtitle'] ?? '',
+                'image' => $img0 ? (strpos($img0, 'http') === 0 ? $img0 : $domain . $img0) : '',
+                'price' => intval($productInfo['type'] ?? 1) == 2 ? ($productInfo['deposit'] ?? 0) : ($productInfo['price'] ?? 0),
+                'version' => $item['version'] ?? '',
+                'quantity' => intval($item['quantity'] ?? 0),
+                'type' => intval($productInfo['type'] ?? 1),
+                'deposit' => $productInfo['deposit'] ?? 0,
+                'balance' => floatval($productInfo['price'] ?? 0) - floatval($productInfo['deposit'] ?? 0),
+            ];
+        }
+
+        return $expanded;
+    }
+
     public function list()
     {
         $data['code'] = 100;
@@ -41,46 +99,34 @@ class Order
             ];
             $status = Request::get('status');
             if ($status !== '0') {
-                $where['status'] = $status;
+                if (strval($status) === '8') {
+                    $where[] = ['status', 'in', [8, 10]];
+                } else {
+                    $where['status'] = $status;
+                }
             } else {
                 // 全部订单时排除已删除的
                 $where[] = ['status', '<>', 5];
             }
             $list = Db::name('order')->field('id, totalPrice, product, orderNo, status')->where($where)->order('id desc')->select()->toArray();
             $domain = Request::domain();
+            $productIds = [];
+            foreach ($list as $item) {
+                $productList = json_decode($item['product'] ?? '[]', true);
+                if (!is_array($productList)) {
+                    continue;
+                }
+                foreach ($productList as $productItem) {
+                    if (!isset($productItem['title']) && !empty($productItem['productId'])) {
+                        $productIds[] = intval($productItem['productId']);
+                    }
+                }
+            }
+            $productMap = $this->loadProductsMap($productIds);
             foreach ($list as &$v) {
                 $v['statusClass'] = 'color:' . orderStatusClass($v['status']);
                 $v['statusVal'] = orderStatus($v['status']);
-                $product = json_decode($v['product'] ?? '[]', true);
-                if (is_array($product)) {
-                    $expanded = [];
-                    foreach ($product as $vv) {
-                        if (isset($vv['title']) || isset($vv['productCode'])) {
-                            if (isset($vv['image']) && strpos($vv['image'], 'http') === false) {
-                                $vv['image'] = $domain . $vv['image'];
-                            }
-                            $expanded[] = $vv;
-                        } else {
-                            $pid = intval($vv['productId'] ?? 0);
-                            $pi = $pid ? Db::name('product')->where('id', $pid)->find() : null;
-                            if ($pi) {
-                                $imgs = json_decode($pi['image'] ?? '[]', true);
-                                $img0 = is_array($imgs) && !empty($imgs) ? $imgs[0] : '';
-                                $expanded[] = [
-                                    'productId' => $pid,
-                                    'title' => $pi['title'] ?? '',
-                                    'subtitle' => $pi['subtitle'] ?? '',
-                                    'image' => $img0 ? (strpos($img0, 'http') === 0 ? $img0 : $domain . $img0) : '',
-                                    'price' => $pi['type'] == 2 ? ($pi['deposit'] ?? 0) : ($pi['price'] ?? 0),
-                                    'version' => $vv['version'] ?? '',
-                                    'quantity' => intval($vv['quantity'] ?? 0),
-                                    'type' => $pi['type'] ?? 1,
-                                ];
-                            }
-                        }
-                    }
-                    $v['product'] = $expanded;
-                }
+                $v['product'] = $this->expandOrderProducts($v['product'] ?? '[]', $domain, $productMap);
             }
 
             $data['code'] = 200;
@@ -169,7 +215,7 @@ class Order
     }
 
     /**
-     * 确认收货，并奖励蜗壳（一元一蜗壳）
+     * 确认收货，并奖励猫饼（一元一猫饼）
      */
     public function confirmReceipt()
     {
@@ -210,7 +256,7 @@ class Order
             }
 
             $totalPrice = floatval($orderInfo['totalPrice'] ?? 0);
-            $snailShells = intval($totalPrice); // 一元一蜗壳
+            $snailShells = intval($totalPrice); // 一元一猫饼
 
             Db::startTrans();
             try {
@@ -226,7 +272,7 @@ class Order
                 }
                 Db::commit();
                 $data['code'] = 200;
-                $data['msg'] = '确认收货成功' . ($snailShells > 0 ? '，获得' . $snailShells . '蜗壳' : '');
+                $data['msg'] = '确认收货成功' . ($snailShells > 0 ? '，获得' . $snailShells . '猫饼' : '');
                 $data['data'] = ['snailShells' => $snailShells];
                 return json($data);
             } catch (Exception $e) {
@@ -675,7 +721,7 @@ class Order
                         $productPrice = floatval($productInfo['price'] ?? 0);
                         $depositAmount += $deposit * $quantity;
                         $balanceAmount += ($productPrice - $deposit) * $quantity;
-                        $endT = intval($productInfo['endTime'] ?? 0);
+                        $endT = !empty($productInfo['endTime']) ? strtotime($productInfo['endTime']) : 0;
                         if ($endT > $presaleEndTime) $presaleEndTime = $endT;
                     } else {
                         $totalPrice += floatval($productInfo['price'] ?? 0) * $quantity;
@@ -867,101 +913,163 @@ class Order
             $resData = json_decode($output['resp_data'], true);
             if (isset($resData) && $resData['resp_code'] == '00000000') {
                 $tradeField = $this->orderTradeField();
-                $orderWhere = [
-                    $tradeField => $resData['mer_ord_id'],
-                ];
-                $orderInfo = Db::name('order')->field('id, status, orderNo, totalPrice, product, payType, orderDetails, address')->where($orderWhere)->find();
+                $transAmt = round(floatval($resData['trans_amt'] ?? 0), 2);
+                $dateString = $resData['end_time'];
+                $formattedDateString = substr($dateString, 0, 4) . '-' . substr($dateString, 4, 2) . '-' . substr($dateString, 6, 2) . ' ' . substr($dateString, 8, 2) . ':' . substr($dateString, 10, 2) . ':' . substr($dateString, 12, 2);
+                $formattedDateTime = strtotime($formattedDateString);
 
-                if ($orderInfo && $orderInfo['status'] == 1 && $resData['trans_amt'] * 100 == $orderInfo['totalPrice'] * 100) {
+                Db::startTrans();
+                try {
+                    $orderWhere = [
+                        $tradeField => $resData['mer_ord_id'],
+                    ];
+                    $orderInfo = Db::name('order')
+                        ->field('id, status, orderNo, totalPrice, depositAmount, depositPaid, balanceAmount, balancePaid, product, payType, orderDetails, address')
+                        ->where($orderWhere)
+                        ->lock(true)
+                        ->find();
 
-                    $dateString = $resData['end_time'];
-                    $formattedDateString = substr($dateString, 0, 4) . '-' . substr($dateString, 4, 2) . '-' . substr($dateString, 6, 2) . ' ' . substr($dateString, 8, 2) . ':' . substr($dateString, 10, 2) . ':' . substr($dateString, 12, 2);
-                    $formattedDateTime = strtotime($formattedDateString);
-                    $needSync = false;
-                    $orderTradeType = 0;
-
-                    if ($orderInfo['payType'] === 'deposit') {
-                        // 定金支付
-                        if ($orderInfo['depositPaid'] == 0 && $orderInfo['status'] == 8) {
-                            $updateData['depositPaid'] = 1;
-                            $updateData['depositPayTime'] = $formattedDateString;
-                            $updateData['depositPayTimeStamp'] = $formattedDateTime;
-                            $updateData['status'] = $resData['trans_stat'] == 'S' ? 10 : 8; // 已付定金待付尾款
-                            $updateData['payNo'] = $resData['out_trans_id'] ? $resData['out_trans_id'] : $resData['hf_seq_id'];
-                        }
-                    } elseif ($orderInfo['payType'] === 'balance') {
-                        // 尾款支付
-                        if ($orderInfo['balancePaid'] == 0 && $orderInfo['depositPaid'] == 1 && $orderInfo['status'] == 10) {
-                            $updateData['balancePaid'] = 1;
-                            $updateData['balancePayTime'] = $formattedDateString;
-                            $updateData['balancePayTimeStamp'] = $formattedDateTime;
-                            $updateData['status'] = $resData['trans_stat'] == 'S' ? 2 : 10; // 待发货
-                            $updateData['payNo'] = $resData['out_trans_id'] ? $resData['out_trans_id'] : $resData['hf_seq_id'];
-                            $updateData['payDate'] = $formattedDateString;
-                            $updateData['payTime'] = $formattedDateTime;
-                            $needSync = true; // 尾款支付完成后同步
-                            $orderTradeType = 1;
-                        }
-                    } else {
-                        // 全额支付（普通订单或预售订单首次支付）
-                        if (in_array($orderInfo['status'], [1, 8])) {
-                            // 检查是否为预售订单
-                            $isPresale = (isset($orderInfo['depositAmount']) && $orderInfo['depositAmount'] > 0);
-
-                            if ($isPresale && $orderInfo['depositPaid'] == 0) {
-                                // 预售订单：支付定金
-                                $updateData['depositPaid'] = 1;
-                                $updateData['depositPayTime'] = $formattedDateString;
-                                $updateData['depositPayTimeStamp'] = $formattedDateTime;
-                                $updateData['status'] = $resData['trans_stat'] == 'S' ? 10 : 8; // 已付定金待付尾款
-                                $updateData['payNo'] = $resData['out_trans_id'] ? $resData['out_trans_id'] : $resData['hf_seq_id'];
-                            } else {
-                                // 普通订单：全额支付
-                                $updateData['status'] = $resData['trans_stat'] == 'S' ? 2 : 3; // 待发货
-                                $updateData['payNo'] = $resData['out_trans_id'] ? $resData['out_trans_id'] : $resData['hf_seq_id'];
-                                $updateData['payDate'] = $formattedDateString;
-                                $updateData['payTime'] = $formattedDateTime;
-                                $needSync = true; // 全额支付完成后同步
-                            }
-                        }
-                    }
-                    // 开始事务
-                    Db::startTrans();
-
-                    try {
-                        // 更新订单状态
-                        if (!empty($updateData)) {
-                            $orderWhere = [
-                                'id' => $orderInfo['id'],
-                            ];
-                            Db::name('order')->where($orderWhere)->update($updateData);
-                        }
-
-                        $productList = json_decode($orderInfo['product'], true);
-                        foreach ($productList as $su) {
-                            Db::name('product')->where('id', $su['productId'])->dec('stock', $su['quantity'])->update();
-                        }
-                        if ($needSync) {
-                            self::subOrder($orderInfo['orderNo'], 2, $orderTradeType, $orderInfo['totalPrice'], json_decode($orderInfo['orderDetails'], true), json_decode($orderInfo['address'], true));
-                        }
-
-                        Db::commit();
-                        return 'SUCCESS';
-
-                    } catch (Exception $e) {
+                    if (!$orderInfo) {
                         Db::rollback();
-
                         $key = 'notifyresData' . time() . rand(100000, 999999);
-                        $content = '更是数据库失败，' . $e->getMessage();
+                        $content = '没有查询到订单，' . $output['resp_data'];
                         Cache::set($key, $content);
-
                         return 'FAIL';
                     }
 
-                } else {
+                    $matchOrder = false;
+                    $isDuplicateNotify = false;
+                    $updateData = [];
+                    $needSync = false;
+                    $orderTradeType = 0;
+                    $shouldDeductStock = false;
+
+                    if ($orderInfo['payType'] === 'deposit') {
+                        $matchOrder = intval($orderInfo['status']) === 8
+                            && intval($orderInfo['depositPaid']) === 0
+                            && $transAmt * 100 == round(floatval($orderInfo['depositAmount'] ?? 0), 2) * 100;
+                        $isDuplicateNotify = intval($orderInfo['depositPaid']) === 1
+                            && $transAmt * 100 == round(floatval($orderInfo['depositAmount'] ?? 0), 2) * 100;
+
+                        if ($matchOrder) {
+                            $updateData['depositPaid'] = 1;
+                            $updateData['depositPayTime'] = $formattedDateString;
+                            $updateData['depositPayTimeStamp'] = $formattedDateTime;
+                            $updateData['status'] = $resData['trans_stat'] == 'S' ? 10 : 8;
+                            $updateData['payNo'] = $resData['out_trans_id'] ? $resData['out_trans_id'] : $resData['hf_seq_id'];
+                            $shouldDeductStock = $resData['trans_stat'] == 'S';
+                        }
+                    } elseif ($orderInfo['payType'] === 'balance') {
+                        $matchOrder = intval($orderInfo['status']) === 10
+                            && intval($orderInfo['depositPaid']) === 1
+                            && intval($orderInfo['balancePaid']) === 0
+                            && $transAmt * 100 == round(floatval($orderInfo['balanceAmount'] ?? 0), 2) * 100;
+                        $isDuplicateNotify = intval($orderInfo['balancePaid']) === 1
+                            && $transAmt * 100 == round(floatval($orderInfo['balanceAmount'] ?? 0), 2) * 100;
+
+                        if ($matchOrder) {
+                            $updateData['balancePaid'] = 1;
+                            $updateData['balancePayTime'] = $formattedDateString;
+                            $updateData['balancePayTimeStamp'] = $formattedDateTime;
+                            $updateData['status'] = $resData['trans_stat'] == 'S' ? 2 : 10;
+                            $updateData['payNo'] = $resData['out_trans_id'] ? $resData['out_trans_id'] : $resData['hf_seq_id'];
+                            $updateData['payDate'] = $formattedDateString;
+                            $updateData['payTime'] = $formattedDateTime;
+                            $needSync = $resData['trans_stat'] == 'S';
+                            $orderTradeType = 1;
+                        }
+                    } else {
+                        $isPresale = isset($orderInfo['depositAmount']) && floatval($orderInfo['depositAmount']) > 0;
+                        if ($isPresale) {
+                            $matchOrder = intval($orderInfo['status']) === 8
+                                && intval($orderInfo['depositPaid']) === 0
+                                && $transAmt * 100 == round(floatval($orderInfo['depositAmount'] ?? 0), 2) * 100;
+                            $isDuplicateNotify = intval($orderInfo['depositPaid']) === 1
+                                && $transAmt * 100 == round(floatval($orderInfo['depositAmount'] ?? 0), 2) * 100;
+
+                            if ($matchOrder) {
+                                $updateData['depositPaid'] = 1;
+                                $updateData['depositPayTime'] = $formattedDateString;
+                                $updateData['depositPayTimeStamp'] = $formattedDateTime;
+                                $updateData['status'] = $resData['trans_stat'] == 'S' ? 10 : 8;
+                                $updateData['payNo'] = $resData['out_trans_id'] ? $resData['out_trans_id'] : $resData['hf_seq_id'];
+                                $shouldDeductStock = $resData['trans_stat'] == 'S';
+                            }
+                        } else {
+                            $matchOrder = intval($orderInfo['status']) === 1
+                                && $transAmt * 100 == round(floatval($orderInfo['totalPrice'] ?? 0), 2) * 100;
+                            $isDuplicateNotify = in_array(intval($orderInfo['status']), [2, 6, 7], true)
+                                && $transAmt * 100 == round(floatval($orderInfo['totalPrice'] ?? 0), 2) * 100;
+
+                            if ($matchOrder) {
+                                $updateData['status'] = $resData['trans_stat'] == 'S' ? 2 : 3;
+                                $updateData['payNo'] = $resData['out_trans_id'] ? $resData['out_trans_id'] : $resData['hf_seq_id'];
+                                $updateData['payDate'] = $formattedDateString;
+                                $updateData['payTime'] = $formattedDateTime;
+                                $needSync = $resData['trans_stat'] == 'S';
+                                $shouldDeductStock = $resData['trans_stat'] == 'S';
+                            }
+                        }
+                    }
+
+                    if ($isDuplicateNotify) {
+                        Db::commit();
+                        return 'SUCCESS';
+                    }
+
+                    if (!$matchOrder) {
+                        Db::rollback();
+                        $key = 'notifyresData' . time() . rand(100000, 999999);
+                        $content = '没有查询到订单或者订单状态不对获取金额不对，' . $output['resp_data'];
+                        Cache::set($key, $content);
+                        return 'FAIL';
+                    }
+
+                    if (!empty($updateData)) {
+                        Db::name('order')->where('id', $orderInfo['id'])->update($updateData);
+                    }
+
+                    if ($shouldDeductStock) {
+                        $productList = json_decode($orderInfo['product'], true);
+                        if (is_array($productList)) {
+                            foreach ($productList as $su) {
+                                $productId = intval($su['productId'] ?? 0);
+                                $quantity = intval($su['quantity'] ?? 0);
+                                if ($productId > 0 && $quantity > 0) {
+                                    Db::name('product')->where('id', $productId)->dec('stock', $quantity)->update();
+                                }
+                            }
+                        }
+                    }
+
+                    Db::commit();
+
+                    if ($needSync) {
+                        try {
+                            self::subOrder(
+                                $orderInfo['orderNo'],
+                                2,
+                                $orderTradeType,
+                                $orderInfo['totalPrice'],
+                                json_decode($orderInfo['orderDetails'], true),
+                                json_decode($orderInfo['address'], true)
+                            );
+                        } catch (Exception $syncException) {
+                            $key = 'notifySyncFail' . time() . rand(100000, 999999);
+                            $content = '支付成功后同步外部订单失败，orderNo=' . $orderInfo['orderNo'] . '，' . $syncException->getMessage();
+                            Cache::set($key, $content);
+                        }
+                    }
+
+                    return 'SUCCESS';
+                } catch (Exception $e) {
+                    Db::rollback();
+
                     $key = 'notifyresData' . time() . rand(100000, 999999);
-                    $content = '没有查询到订单或者订单状态不对获取金额不对，' . $output['resp_data'];
+                    $content = '更是数据库失败，' . $e->getMessage();
                     Cache::set($key, $content);
+
+                    return 'FAIL';
                 }
             } else {
                 $key = 'notifyresData' . time() . rand(100000, 999999);
@@ -1042,41 +1150,17 @@ class Order
                 }
             }
 
-            // 处理商品信息（若为 minimal 则从商品表展开详情）
-            $products = [];
-            if ($orderInfo['product']) {
-                $productList = json_decode($orderInfo['product'], true);
-                if (is_array($productList)) {
-                    foreach ($productList as $p) {
-                        if (isset($p['title']) || isset($p['productCode'])) {
-                            if (isset($p['image']) && strpos($p['image'], 'http') === false) {
-                                $p['image'] = $domain . $p['image'];
-                            }
-                            $products[] = $p;
-                        } else {
-                            $productId = intval($p['productId'] ?? 0);
-                            $productInfo = $productId ? Db::name('product')->where('id', $productId)->find() : null;
-                            if ($productInfo) {
-                                $images = json_decode($productInfo['image'] ?? '[]', true);
-                                $img0 = is_array($images) && !empty($images) ? $images[0] : '';
-                                $products[] = [
-                                    'productId' => $productId,
-                                    'productCode' => $productInfo['productId'] ?? '',
-                                    'title' => $productInfo['title'] ?? '',
-                                    'subtitle' => $productInfo['subtitle'] ?? '',
-                                    'image' => $img0 ? (strpos($img0, 'http') === 0 ? $img0 : $domain . $img0) : '',
-                                    'price' => $productInfo['type'] == 2 ? ($productInfo['deposit'] ?? 0) : ($productInfo['price'] ?? 0),
-                                    'version' => $p['version'] ?? '',
-                                    'quantity' => intval($p['quantity'] ?? 0),
-                                    'type' => $productInfo['type'] ?? 1,
-                                    'deposit' => $productInfo['deposit'] ?? 0,
-                                    'balance' => floatval($productInfo['price'] ?? 0) - floatval($productInfo['deposit'] ?? 0),
-                                ];
-                            }
-                        }
+            $productIds = [];
+            $productList = json_decode($orderInfo['product'] ?? '[]', true);
+            if (is_array($productList)) {
+                foreach ($productList as $productItem) {
+                    if (!isset($productItem['title']) && !empty($productItem['productId'])) {
+                        $productIds[] = intval($productItem['productId']);
                     }
                 }
             }
+            $productMap = $this->loadProductsMap($productIds);
+            $products = $this->expandOrderProducts($orderInfo['product'] ?? '[]', $domain, $productMap);
 
             // 处理地址信息
             $addressInfo = [];

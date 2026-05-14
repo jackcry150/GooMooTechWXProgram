@@ -15,7 +15,7 @@
 <body>
 <div class="page-container" style="padding: 20px;">
     <form class="form form-horizontal" id="shipForm">
-        <input type="hidden" name="id" value="{$orderInfo.id}">
+        <input type="hidden" id="id" name="id" value="{$orderInfo.id}">
         <div class="row cl">
             <label class="form-label col-xs-4 col-sm-3">订单号：</label>
             <div class="formControls col-xs-8 col-sm-9">
@@ -64,21 +64,21 @@
         $('#submitBtn').click(function () {
             const content = $("#shipForm").serializeArray();
             let flag = 0;
+            const $btn = $(this);
             
             $.each(content, function (i, item) {
                 let id = $('#' + content[i].name);
                 let verify = id.data("verify");
-                if (item['value'] == '' && verify != '') {
+                if ($.trim(item['value']) === '' && verify) {
                     layer.msg(verify, {time: 1000});
                     id.focus();
                     flag = 1;
                     return false;
-                } else {
-                    flag = 0;
                 }
             });
             
             if (!flag) {
+                $btn.prop('disabled', true).val('提交中...');
                 $.ajax({
                     type: 'POST',
                     url: '/adm/order/ship',
@@ -93,6 +93,15 @@
                         } else {
                             layer.msg(data.msg, {time: 2000});
                         }
+                    },
+                    error: function (xhr) {
+                        const msg = xhr.responseJSON && xhr.responseJSON.msg
+                            ? xhr.responseJSON.msg
+                            : '请求失败，请稍后重试';
+                        layer.msg(msg, {time: 2000});
+                    },
+                    complete: function () {
+                        $btn.prop('disabled', false).val('\u00a0\u00a0确认发货\u00a0\u00a0');
                     }
                 });
                 return false;
@@ -102,6 +111,5 @@
 </script>
 </body>
 </html>
-
 
 

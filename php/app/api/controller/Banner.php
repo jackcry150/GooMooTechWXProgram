@@ -3,6 +3,7 @@
 namespace app\api\controller;
 
 use Exception;
+use think\facade\Cache;
 use think\facade\Db;
 use think\facade\Request;
 
@@ -18,6 +19,15 @@ class Banner
             }
 
             $type = Request::get('type', 1);
+            $domain = Request::domain();
+            $cacheKey = 'banner:list:' . current_app_code() . ':' . $type . ':' . md5($domain);
+            $cached = Cache::get($cacheKey);
+            if ($cached) {
+                $data['code'] = 200;
+                $data['msg'] = "成功！";
+                $data['data'] = $cached;
+                return json($data);
+            }
 
             $adWhere = [
                 'type' => $type,
@@ -26,10 +36,10 @@ class Banner
             $query = Db::name('ad')->field('id, title, image, link')->where($adWhere);
             apply_app_code_scope($query, 'ad');
             $list = $query->order('sort desc, id desc')->select()->toArray();
-            $domain = Request::domain();
             foreach ($list as &$v) {
                 $v['image'] = $domain . $v['image'];
             }
+            Cache::set($cacheKey, $list, 120);
 
             $data['code'] = 200;
             $data['msg'] = "成功！";

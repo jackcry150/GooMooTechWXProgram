@@ -32,7 +32,7 @@
 								<text class="stat-number">{{ collectCount }}</text>
 								<text class="stat-label">线上收藏</text>
 							</view>
-							<view v-if="showLotteryEntry" class="stat-item stat-divider" @click.stop="goToBill">
+							<view class="stat-item stat-divider">
 								<text class="stat-number">{{ userInfo.snailShells || 0 }}</text>
 								<text class="stat-label">我的猫饼</text>
 							</view>

@@ -3,6 +3,7 @@
 namespace app\api\controller;
 
 use Exception;
+use think\facade\Cache;
 use think\facade\Db;
 use think\facade\Request;
 
@@ -17,37 +18,30 @@ class Product
                 return json($data);
             }
 
+            $domain = Request::domain();
+            $cacheKey = 'product:list:' . current_app_code() . ':' . md5($domain);
+            $cached = Cache::get($cacheKey);
+            if ($cached) {
+                $data['code'] = 200;
+                $data['msg'] = "成功！";
+                $data['data'] = $cached;
+                return json($data);
+            }
+
             $listHot = [];
             $listRecom = [];
-
             $where = [
-                [
-                    'startT',
-                    '<=',
-                    time()
-                ],
-                [
-                    'endT',
-                    '>=',
-                    time()
-                ],
-                [
-                    'status',
-                    '=',
-                    1  // 只显示上架的商品
-                ]
+                ['startT', '<=', time()],
+                ['endT', '>=', time()],
+                ['status', '=', 1]
             ];
 
             $query = Db::name('product')
                 ->field('id, title, subtitle, type, mode, image, price, deposit, deduct, endT, endTime')
                 ->where($where);
             apply_app_code_scope($query, 'product');
-            $list = $query
-                ->order('sort desc, id desc')
-                ->select()
-                ->toArray();
+            $list = $query->order('sort desc, id desc')->select()->toArray();
 
-            $domain = Request::domain();
             foreach ($list as &$v) {
                 $images = json_decode($v['image'], true);
                 $img = [];
@@ -55,12 +49,7 @@ class Product
                     $img[] = $domain . $image;
                 }
                 $v['image'] = $img;
-                // 添加结束时间戳（前端倒计时使用）
-                if (isset($v['endT'])) {
-                    $v['endTimeStamp'] = intval($v['endT']);
-                } else {
-                    $v['endTimeStamp'] = 0;
-                }
+                $v['endTimeStamp'] = isset($v['endT']) ? intval($v['endT']) : 0;
                 if ($v['mode'] == 2) {
                     $listHot[] = $v;
                 } else {
@@ -68,13 +57,15 @@ class Product
                 }
             }
 
-
-            $data['code'] = 200;
-            $data['msg'] = "成功！";
-            $data['data'] = [
+            $payload = [
                 'hot' => $listHot,
                 'recom' => $listRecom
             ];
+            Cache::set($cacheKey, $payload, 60);
+
+            $data['code'] = 200;
+            $data['msg'] = "成功！";
+            $data['data'] = $payload;
             return json($data);
         } catch (Exception $e) {
             $data['msg'] = $e->getMessage();

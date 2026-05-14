@@ -261,6 +261,32 @@ class Order
         return json(['code' => 1, 'msg' => '重发成功，用户将收到确认通知']);
     }
 
+    public function notifyBalancePayment()
+    {
+        if (!Request::isPost()) {
+            return json(['code' => 0, 'msg' => '请求方式错误']);
+        }
+        $id = intval(Request::post('id', 0));
+        if ($id <= 0) {
+            return json(['code' => 0, 'msg' => '参数错误']);
+        }
+
+        $orderInfo = Db::name('order')->field('id,status,depositPaid,balancePaid')->where('id', $id)->find();
+        if (!$orderInfo) {
+            return json(['code' => 0, 'msg' => '订单不存在']);
+        }
+        if (intval($orderInfo['status']) !== 10 || intval($orderInfo['depositPaid']) !== 1 || intval($orderInfo['balancePaid']) === 1) {
+            return json(['code' => 0, 'msg' => '仅已付定金待付尾款订单允许发送补尾款通知']);
+        }
+
+        $notifyRes = $this->sendBalancePaymentNotify($id);
+        if (!$notifyRes['ok']) {
+            return json(['code' => 0, 'msg' => '发送失败：' . $notifyRes['msg']]);
+        }
+
+        return json(['code' => 1, 'msg' => '已发送补尾款通知']);
+    }
+
     private function sendArrivalConfirmNotify($orderId)
     {
         $orderInfo = Db::name('order')
@@ -330,6 +356,75 @@ class Order
             'arrivalConfirmStatus' => 1,
             'arrivalNotifiedAt' => date('Y-m-d H:i:s'),
         ]);
+
+        return ['ok' => true, 'msg' => '发送成功'];
+    }
+
+    private function sendBalancePaymentNotify($orderId)
+    {
+        $orderInfo = Db::name('order')
+            ->field('id, userId, orderNo')
+            ->where('id', $orderId)
+            ->find();
+        if (!$orderInfo) {
+            return ['ok' => false, 'msg' => '订单不存在'];
+        }
+
+        $userInfo = Db::name('user')->field('openId')->where('id', $orderInfo['userId'])->find();
+        $openId = $userInfo['openId'] ?? '';
+        if (!$openId) {
+            return ['ok' => false, 'msg' => '用户缺少 openId'];
+        }
+        if (!$this->arrivalTemplateId) {
+            return ['ok' => false, 'msg' => '未配置到货确认订阅模板 ID'];
+        }
+
+        $tokenRes = $this->getWechatAccessToken();
+        if (!$tokenRes['ok']) {
+            return $tokenRes;
+        }
+
+        $templateData = [];
+        $titleKey = $this->normalizeTemplateFieldKey($this->arrivalFieldTitle);
+        $orderNoKey = $this->normalizeTemplateFieldKey($this->arrivalFieldOrderNo);
+        $timeKey = $this->normalizeTemplateFieldKey($this->arrivalFieldTime);
+        $tipKey = $this->normalizeTemplateFieldKey($this->arrivalFieldTip);
+        if ($titleKey) {
+            $templateData[$titleKey] = ['value' => '商品已到货'];
+        }
+        if ($orderNoKey) {
+            $templateData[$orderNoKey] = ['value' => $orderInfo['orderNo']];
+        }
+        if ($timeKey) {
+            $templateData[$timeKey] = ['value' => date('Y-m-d H:i:s')];
+        }
+        if ($tipKey) {
+            $templateData[$tipKey] = ['value' => '请尽快支付尾款'];
+        }
+        if (empty($templateData)) {
+            return ['ok' => false, 'msg' => '模板字段映射为空或格式错误，请配置 WECHAT_ARRIVAL_FIELD_*'];
+        }
+
+        $payload = [
+            'touser' => $openId,
+            'template_id' => $this->arrivalTemplateId,
+            'page' => '/pages/order/detail?id=' . $orderInfo['id'],
+            'data' => $templateData,
+            'miniprogram_state' => 'developer',
+        ];
+
+        $sendUrl = 'https://api.weixin.qq.com/cgi-bin/message/subscribe/send?access_token=' . $tokenRes['token'];
+        $resp = $this->httpPostJson($sendUrl, $payload);
+        if (!$resp['ok']) {
+            return $resp;
+        }
+        $resData = json_decode($resp['body'], true);
+        if (!is_array($resData) || !isset($resData['errcode'])) {
+            return ['ok' => false, 'msg' => '微信返回格式异常'];
+        }
+        if (intval($resData['errcode']) !== 0) {
+            return ['ok' => false, 'msg' => '微信发送失败：' . ($resData['errmsg'] ?? 'unknown')];
+        }
 
         return ['ok' => true, 'msg' => '发送成功'];
     }
@@ -665,4 +760,3 @@ class Order
         return json(['msg' => '拒绝退款失败', 'code' => 0]);
     }
 }
-
