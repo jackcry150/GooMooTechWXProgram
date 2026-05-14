@@ -559,7 +559,7 @@ class Order
                     'tradeType' => 'T_MINIAPP',
                     'transAmt' => number_format($payAmount, 2, '.', ''),
 //                    'notifyUrl' => Request::domain() . '/Api/Notify',
-                    'notifyUrl' => 'https://mp.goomooplay.com/api/order/notify',
+                    'notifyUrl' => 'https://api.goomooplay.com/api/order/notify',
                     'openId' => $userToken['openId'] ?? '',
                     'profit' => number_format(($payAmount - $splitTotal), 2, '.', ''),
                 ];
