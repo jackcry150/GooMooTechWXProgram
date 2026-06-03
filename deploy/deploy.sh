@@ -43,6 +43,7 @@ sync_php() {
         --exclude 'runtime/' \
         --exclude 'public/uploads/' \
         --exclude 'config/ai.local.php' \
+        --exclude 'config/ai-chat-config.php' \
         --exclude 'vendor/' \
         --exclude 'composer.phar' \
         --exclude 'composer-setup.php' \
