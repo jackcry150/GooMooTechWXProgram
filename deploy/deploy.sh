@@ -51,6 +51,11 @@ sync_php() {
     log "确保容器内工具完整"
     docker exec "${PHP_CONTAINER}" bash -c "apt-get update -qq && apt-get install -y -qq zip git 2>&1" || log "工具安装失败，跳过"
 
+    log "检查并安装 bcmath 扩展"
+    if ! docker exec "${PHP_CONTAINER}" php -m | grep -qi '^bcmath$'; then
+        docker exec "${PHP_CONTAINER}" bash -c "docker-php-ext-install bcmath 2>&1" || fail "bcmath 扩展安装失败"
+    fi
+
     log "安装 Composer 依赖"
     docker exec "${PHP_CONTAINER}" bash -c "cd /var/www/html && php composer.phar install --no-interaction 2>&1" || log "composer install 失败，请手动检查"
 

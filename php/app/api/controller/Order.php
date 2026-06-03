@@ -99,7 +99,9 @@ class Order
             ];
             $status = Request::get('status');
             if ($status !== '0') {
-                if (strval($status) === '8') {
+                if (strval($status) === '1') {
+                    $where[] = ['status', 'in', [1, 8]];
+                } elseif (strval($status) === '8') {
                     $where[] = ['status', 'in', [8, 10]];
                 } else {
                     $where['status'] = $status;

@@ -8,6 +8,23 @@ use think\facade\Request;
 
 class Address
 {
+    private function parseBoolValue($value, $default = false)
+    {
+        if ($value === null || $value === '') {
+            return $default;
+        }
+
+        if (is_bool($value)) {
+            return $value;
+        }
+
+        if (is_numeric($value)) {
+            return (int)$value === 1;
+        }
+
+        $normalized = strtolower(trim((string)$value));
+        return in_array($normalized, ['1', 'true', 'on', 'yes'], true);
+    }
 
     public function create()
     {
@@ -36,12 +53,18 @@ class Address
             $insert['city'] = Request::post('city');
             $insert['region'] = Request::post('region');
             $insert['detail'] = Request::post('detail');
-            $insert['isDefault'] = Request::post('isDefault');
+            $insert['isDefault'] = $this->parseBoolValue(Request::post('isDefault'), false) ? 1 : 0;
             $insert['isDelete'] = 1;
             if (empty($insert['userId']) || empty($insert['name']) || empty($insert['phone']) || empty($insert['province']) || empty($insert['detail'])) {
                 return json($data);
             }
-            if (!$insert['isDefault']) {
+            if ($insert['isDefault']) {
+                $where = [
+                    'userId' => $userToken['userId'],
+                    'isDelete' => 1
+                ];
+                Db::name('address')->where($where)->update(['isDefault' => false]);
+            } else {
                 $where = [
                     'userId' => $userToken['userId'],
                     'isDelete' => 1
@@ -128,7 +151,7 @@ class Address
             ];
 
             $info = Db::name('address')->field('id, name, phone, province, city, region, detail, isDefault')->where($where)->find();
-            if (!empty($info)) {
+            if (empty($info)) {
                 $where = [
                     'userId' => $userToken['userId'],
                     'isDelete' => 1,
@@ -247,38 +270,41 @@ class Address
             } elseif ($type == 2) {
                 Db::startTrans();
                 try {
-                    $isDefault = Request::post('isDefault');
-                    if ($isDefault === true) {
-                        if (Request::post('isDefault')) {
-                            $where = [
-                                'userId' => $userToken['userId'],
-                                'isDelete' => 1
-                            ];
-                            $update = [
-                                'isDefault' => false
-                            ];
-                            Db::name('address')->where($where)->update($update);
-                        }
-                    } else {
+                    $addressId = (int) Request::post('id');
+                    $where = [
+                        'userId' => $userToken['userId'],
+                        'id' => $addressId,
+                        'isDelete' => 1
+                    ];
+                    $currentInfo = Db::name('address')->where($where)->find();
+                    if (!$currentInfo) {
+                        throw new Exception('地址不存在');
+                    }
+
+                    $isDefault = $this->parseBoolValue(Request::post('isDefault'), (bool) $currentInfo['isDefault']);
+                    if ($isDefault) {
                         $where = [
                             'userId' => $userToken['userId'],
                             'isDelete' => 1
                         ];
-                        $lastInfo = Db::name('address')->where($where)->order('id desc')->find();
-                        if ($lastInfo) {
-                            $where = [
-                                'id' => $lastInfo['id']
-                            ];
-                            $update = [
-                                'isDefault' => true
-                            ];
-                            Db::name('address')->where($where)->update($update);
+                        Db::name('address')->where($where)->update(['isDefault' => false]);
+                    } elseif ((int) $currentInfo['isDefault'] === 1) {
+                        $fallbackWhere = [
+                            ['userId', '=', $userToken['userId']],
+                            ['isDelete', '=', 1],
+                            ['id', '<>', $addressId]
+                        ];
+                        $fallbackInfo = Db::name('address')->where($fallbackWhere)->order('id desc')->find();
+                        if ($fallbackInfo) {
+                            Db::name('address')->where(['id' => $fallbackInfo['id']])->update(['isDefault' => true]);
+                        } else {
+                            $isDefault = true;
                         }
                     }
 
                     $where = [
                         'userId' => $userToken['userId'],
-                        'id' => Request::post('id')
+                        'id' => $addressId
                     ];
                     $update = [
                         'name' => Request::post('name'),
@@ -287,7 +313,7 @@ class Address
                         'city' => Request::post('city'),
                         'region' => Request::post('region'),
                         'detail' => Request::post('detail'),
-                        'isDefault' => Request::post('isDefault'),
+                        'isDefault' => $isDefault ? 1 : 0,
                     ];
                     Db::name('address')->where($where)->update($update);
                     // 提交事务

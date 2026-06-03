@@ -100,6 +100,18 @@
 			cityPicker
 		},
 		methods: {
+			applyAddressData(address = {}) {
+				this.form = {
+					...this.form,
+					name: address.userName || address.name || '',
+					phone: address.telNumber || address.phone || '',
+					province: address.provinceName || address.province || '',
+					city: address.cityName || address.city || '',
+					region: address.countyName || address.areaName || address.region || '',
+					detail: address.detailInfo || address.detail || ''
+				}
+				this.region = this.form.province + ' ' + this.form.city + ' ' + this.form.region
+			},
 
 			goLogin() {
 				uni.showModal({
@@ -142,15 +154,7 @@
 			getWxAddress() {
 				uni.chooseAddress({
 					success: (res) => {
-						this.form = {
-							name: res.userName,
-							phone: res.telNumber,
-							province: res.provinceName,
-							city: res.cityName,
-							region: res.countyName,
-							detail: res.detailInfo
-						}
-						this.region = this.form.province + ' ' + this.form.city + ' ' + this.form.region
+						this.applyAddressData(res)
 						this.getFromValue()
 						uni.showToast({
 							title: '地址选择成功',
@@ -167,15 +171,7 @@
 			},
 			
 			loadWxAddress(e){
-				this.form = {
-					name: e.userName,
-					phone: e.telNumber,
-					province: e.provinceName,
-					city: e.cityName,
-					region: e.countyName,
-					detail: e.detailInfo
-				}
-				this.region = this.form.province + ' ' + this.form.city + ' ' + this.form.region
+				this.applyAddressData(e)
 				this.getFromValue()
 			},
 

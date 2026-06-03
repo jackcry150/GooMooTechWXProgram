@@ -2,11 +2,11 @@
 class Request {
 	constructor() {
 		// #ifdef  MP-WEIXIN
-		this.baseURL = 'http://127.0.0.1:8080/api'
+		this.baseURL = 'https://api.goomooplay.com/api'
 		// #endif
 		
 		// #ifdef H5
-		this.baseURL = 'http://127.0.0.1:8080/api'
+		this.baseURL = 'https://api.goomooplay.com/api'
 		// #endif
 		this.timeout = 10000
 		this.header = {

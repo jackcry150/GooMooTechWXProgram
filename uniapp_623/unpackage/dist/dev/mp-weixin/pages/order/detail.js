@@ -303,7 +303,7 @@ const _sfc_main = {
     async handleConfirmReceipt() {
       common_vendor.index.showModal({
         title: "确认收货",
-        content: "确认已收到商品？确认后将获得蜗壳奖励",
+        content: "确认已收到商品？确认后将获得猫饼奖励",
         success: async (res) => {
           if (!res.confirm)
             return;

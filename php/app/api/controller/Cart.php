@@ -280,7 +280,7 @@ class Cart
                 'userId' => $userToken['userId']
             ];
 
-            $list = Db::name('cart')->field('c.id, c.productId, c.productCode, p.title, p.subtitle, p.image, p.price, p.type, p.shippingTemplateId, c.version, c.quantity')
+            $list = Db::name('cart')->field('c.id, c.productId, c.productCode, p.title, p.subtitle, p.image, p.price, p.deposit, p.type, p.shippingTemplateId, c.version, c.quantity')
                 ->alias('c')
                 ->join('product p', 'p.id = c.productId')
                 ->where($where)

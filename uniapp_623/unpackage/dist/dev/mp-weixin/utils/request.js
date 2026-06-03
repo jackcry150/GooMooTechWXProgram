@@ -2,7 +2,7 @@
 const common_vendor = require("../common/vendor.js");
 class Request {
   constructor() {
-    this.baseURL = "http://127.0.0.1:8080/api";
+    this.baseURL = "https://api.goomooplay.com/api";
     this.timeout = 1e4;
     this.header = {
       "Content-Type": "application/json"
