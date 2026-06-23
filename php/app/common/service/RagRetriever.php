@@ -42,14 +42,11 @@ class RagRetriever
                 if (!$chunk || intval($chunk['embeddingStatus'] ?? 0) !== 1) {
                     continue;
                 }
-                $contexts[] = [
-                    'sourceId' => intval($chunk['sourceId']),
-                    'chunkId' => intval($chunk['id']),
-                    'sourceType' => (string) $chunk['sourceType'],
-                    'title' => (string) $chunk['title'],
-                    'content' => (string) $chunk['content'],
-                    'score' => round(floatval($item['score'] ?? 0), 4),
-                ];
+                $contexts[] = $this->formatContext($chunk, round(floatval($item['score'] ?? 0), 4));
+            }
+
+            if (empty($contexts)) {
+                $contexts = $this->keywordFallback($question, $options, intval($config['search_limit'] ?? 6));
             }
 
             return ['enabled' => true, 'contexts' => $contexts, 'error' => ''];
@@ -67,5 +64,65 @@ class RagRetriever
         }
 
         return empty($must) ? [] : ['must' => $must];
+    }
+
+    private function keywordFallback(string $question, array $options, int $limit): array
+    {
+        $terms = $this->extractKeywordTerms($question);
+        if (empty($terms)) {
+            return [];
+        }
+
+        $appCode = (string) ($options['app_code'] ?? 'hasuki');
+        $query = Db::name('ai_knowledge_chunk')
+            ->where('embeddingStatus', 1);
+
+        if ($appCode !== '') {
+            $query->where('app_code', $appCode);
+        }
+
+        $query->where(function ($query) use ($terms) {
+            foreach ($terms as $term) {
+                $like = '%' . $term . '%';
+                $query->whereOr('title', 'like', $like)
+                    ->whereOr('content', 'like', $like);
+            }
+        });
+
+        $rows = $query->order('sourceType asc, id asc')
+            ->limit(max(1, $limit))
+            ->select()
+            ->toArray();
+
+        $contexts = [];
+        foreach ($rows as $row) {
+            $contexts[] = $this->formatContext($row, 1.0);
+        }
+
+        return $contexts;
+    }
+
+    private function extractKeywordTerms(string $question): array
+    {
+        $terms = [];
+        if (preg_match_all('/[a-z0-9][a-z0-9_-]{1,}/i', $question, $matches)) {
+            foreach ($matches[0] as $match) {
+                $terms[] = strtolower($match);
+            }
+        }
+
+        return array_values(array_unique($terms));
+    }
+
+    private function formatContext(array $chunk, float $score): array
+    {
+        return [
+            'sourceId' => intval($chunk['sourceId']),
+            'chunkId' => intval($chunk['id']),
+            'sourceType' => (string) $chunk['sourceType'],
+            'title' => (string) $chunk['title'],
+            'content' => (string) $chunk['content'],
+            'score' => $score,
+        ];
     }
 }
