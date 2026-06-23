@@ -337,7 +337,7 @@
 
 			goToCustomer() {
 				uni.navigateTo({
-					url: '/pages/customer/customer'
+					url: '/pages/ai/customer?scene=presale&sourcePage=my'
 				})
 			},
 

@@ -446,8 +446,9 @@
 			},
 
 			goToCustomer() {
+				const productId = this.product && this.product.id ? this.product.id : ''
 				uni.navigateTo({
-					url: '/pages/customer/customer'
+					url: `/pages/ai/customer?scene=presale&productId=${productId}&sourcePage=product`
 				})
 			},
 

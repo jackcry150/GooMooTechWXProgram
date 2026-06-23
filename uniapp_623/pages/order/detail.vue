@@ -342,8 +342,9 @@
 				})
 			},
 			goToAiCustomer() {
+				const orderId = this.orderId || (this.order && this.order.id) || ''
 				uni.navigateTo({
-					url: '/pages/customer/customer'
+					url: `/pages/ai/customer?scene=aftersale&orderId=${orderId}&sourcePage=order`
 				})
 			},
 			goProduct(id) {

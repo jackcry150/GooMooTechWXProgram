@@ -117,7 +117,7 @@ export default {
 					title: '联系客服',
 					desc: '贴心为您服务',
 					icon: '/static/image/icon_customer.png',
-					url: '/pages/customer/customer'
+					url: '/pages/ai/customer?scene=presale&sourcePage=index'
 				},
 				{
 					title: '特别贩售',
