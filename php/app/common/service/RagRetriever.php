@@ -61,7 +61,7 @@ class RagRetriever
     private function buildFilter(array $options): array
     {
         $must = [];
-        $appCode = (string) ($options['app_code'] ?? 'goomoo');
+        $appCode = (string) ($options['app_code'] ?? 'hasuki');
         if ($appCode !== '') {
             $must[] = ['key' => 'app_code', 'match' => ['value' => $appCode]];
         }

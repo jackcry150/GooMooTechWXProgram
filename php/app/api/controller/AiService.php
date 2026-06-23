@@ -38,7 +38,7 @@ class AiService
                 'scene' => $scene,
                 'productId' => $productId,
                 'orderId' => $orderId,
-                'app_code' => Request::post('appCode', Request::header('X-App-Code', 'goomoo')),
+                'app_code' => Request::post('appCode', Request::header('X-App-Code', 'hasuki')),
             ]);
             $knowledge['ragContexts'] = $ragResult['contexts'] ?? [];
             $fallbackReply = $scene === 'aftersale'
