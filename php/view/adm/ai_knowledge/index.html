@@ -1,0 +1,97 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta content="width=device-width,initial-scale=1" name="viewport"/>
+    <link href="/static/h-ui/css/H-ui.min.css" rel="stylesheet" type="text/css"/>
+    <link href="/static/h-ui.admin/css/H-ui.admin.css" rel="stylesheet" type="text/css"/>
+    <link href="/static/Hui-iconfont/1.0.8/iconfont.css" rel="stylesheet" type="text/css"/>
+    <title>AI知识库</title>
+</head>
+<body>
+<nav class="breadcrumb">
+    <i class="Hui-iconfont">&#xe67f;</i> 首页
+    <span class="c-gray en">&gt;</span> AI客服
+    <span class="c-gray en">&gt;</span> 知识库
+    <a class="btn btn-success radius r" href="javascript:location.replace(location.href);" style="line-height:1.6em;margin-top:3px" title="刷新"><i class="Hui-iconfont">&#xe68f;</i></a>
+</nav>
+<div class="page-container">
+    <div class="text-c">
+        <form action="" method="get">
+            <input class="input-text" name="title" placeholder="标题" style="width:200px" type="text" value="{$title}">
+            <span class="select-box inline" style="width:160px;">
+                <select class="select" name="sourceType">
+                    <option value="">全部来源</option>
+                    <option value="manual" {if $sourceType=='manual'}selected{/if}>人工知识</option>
+                    <option value="product" {if $sourceType=='product'}selected{/if}>商品</option>
+                    <option value="news" {if $sourceType=='news'}selected{/if}>资讯</option>
+                </select>
+            </span>
+            <button class="btn btn-success radius" type="submit"><i class="Hui-iconfont">&#xe665;</i> 搜索</button>
+            <button class="btn btn-primary radius" onclick="show_html('新增知识','/adm/ai_knowledge/add')" type="button"><i class="Hui-iconfont">&#xe600;</i> 新增人工知识</button>
+            <button class="btn btn-secondary radius" onclick="runJobs()" type="button">处理向量队列</button>
+        </form>
+    </div>
+    <div class="mt-10">
+        <table class="table table-border table-bordered table-hover table-bg">
+            <thead>
+            <tr class="text-c">
+                <th>ID</th>
+                <th>来源</th>
+                <th>小程序</th>
+                <th>标题</th>
+                <th>状态</th>
+                <th>切片</th>
+                <th>待处理</th>
+                <th>最后索引</th>
+                <th>操作</th>
+            </tr>
+            </thead>
+            <tbody>
+            {foreach name="list" item="v"}
+            <tr class="text-c">
+                <td>{$v.id}</td>
+                <td>{$v.sourceType}</td>
+                <td>{$v.app_code}</td>
+                <td class="text-l">{$v.title}</td>
+                <td>{if $v.status==1}启用{else}停用{/if}</td>
+                <td>{$v.chunkCount}</td>
+                <td>{$v.pendingJobCount}</td>
+                <td>{$v.lastIndexedAt|default=''}</td>
+                <td>
+                    {if $v.sourceType=='manual'}<a href="javascript:;" onclick="show_html('编辑知识','/adm/ai_knowledge/edit?id={$v.id}')">编辑</a> | <a href="javascript:;" onclick="delKnowledge({$v.id})">删除</a> | {/if}
+                    <a href="javascript:;" onclick="syncKnowledge({$v.id})">同步</a> |
+                    <a href="javascript:;" onclick="show_html('切片','/adm/ai_knowledge/chunks?id={$v.id}')">切片</a>
+                </td>
+            </tr>
+            {/foreach}
+            </tbody>
+        </table>
+        <div class="page-bootstrap">{$page|raw}</div>
+    </div>
+</div>
+<script src="/static/js/jquery.min.js" type="text/javascript"></script>
+<script src="/static/layer/2.4/layer.js" type="text/javascript"></script>
+<script src="/static/h-ui/js/H-ui.min.js" type="text/javascript"></script>
+<script src="/static/h-ui.admin/js/H-ui.admin.js" type="text/javascript"></script>
+<script>
+function syncKnowledge(id) {
+    $.post('/adm/ai_knowledge/sync', {id: id}, function (res) {
+        layer.msg(res.msg || '完成', {time: 1200}, function () { location.reload(); });
+    }, 'json');
+}
+function delKnowledge(id) {
+    layer.confirm('确认删除这条人工知识？', function () {
+        $.post('/adm/ai_knowledge/del', {id: id}, function (res) {
+            layer.msg(res.msg || '完成', {time: 1200}, function () { location.reload(); });
+        }, 'json');
+    });
+}
+function runJobs() {
+    $.post('/adm/ai_knowledge/runJobs', {limit: 20}, function (res) {
+        layer.msg(res.msg || '完成', {time: 1600}, function () { location.reload(); });
+    }, 'json');
+}
+</script>
+</body>
+</html>

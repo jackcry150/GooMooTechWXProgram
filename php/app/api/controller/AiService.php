@@ -2,6 +2,7 @@
 
 namespace app\api\controller;
 
+use app\common\service\RagRetriever;
 use Exception;
 use think\facade\Db;
 use think\facade\Request;
@@ -33,6 +34,13 @@ class AiService
             }
 
             $knowledge = $this->buildKnowledgeContext($scene, $productId, $orderId, $userId);
+            $ragResult = (new RagRetriever())->retrieve($content, [
+                'scene' => $scene,
+                'productId' => $productId,
+                'orderId' => $orderId,
+                'app_code' => Request::post('appCode', Request::header('X-App-Code', 'goomoo')),
+            ]);
+            $knowledge['ragContexts'] = $ragResult['contexts'] ?? [];
             $fallbackReply = $scene === 'aftersale'
                 ? $this->buildAftersaleReply($content, $knowledge, $userId)
                 : $this->buildPresaleReply($content, $knowledge);
@@ -52,6 +60,7 @@ class AiService
                 'question' => $content,
                 'reply' => $reply,
                 'needTransfer' => $needTransfer,
+                'ragContexts' => $ragResult['contexts'] ?? [],
             ]);
 
             $data['code'] = 200;
@@ -122,8 +131,9 @@ class AiService
     {
         return implode("\n", [
             'You are the customer service assistant for JuMao mini app.',
-            'Only answer from the provided business context.',
+            'Only answer from the provided retrieved knowledge, product facts, order facts, settings, and policy articles.',
             'Do not invent product, order, refund, logistics, or platform policy details.',
+            'If retrieved knowledge is weak or missing, say the current information is insufficient and suggest human support.',
             'If the issue involves compensation, complaints, quality disputes, law, special refunds, or manual review, advise transfer to human support.',
             'Keep the answer concise, polite, and natural.',
             'Use JuMao as the platform name.',
@@ -151,6 +161,7 @@ class AiService
         $setting = $knowledge['setting'] ?? [];
         $afterSale = $knowledge['afterSaleArticle'] ?? [];
         $agreement = $knowledge['serviceAgreementArticle'] ?? [];
+        $ragContexts = $knowledge['ragContexts'] ?? [];
 
         if (!empty($product)) {
             $lines[] = 'Product:';
@@ -183,6 +194,18 @@ class AiService
 
         if (!empty($agreement)) {
             $lines[] = 'Agreement: ' . $this->shortText($agreement['content'] ?? '', 180);
+        }
+
+        if (!empty($ragContexts) && is_array($ragContexts)) {
+            $lines[] = 'Retrieved Knowledge:';
+            foreach (array_slice($ragContexts, 0, 6) as $context) {
+                $sourceType = (string) ($context['sourceType'] ?? 'unknown');
+                $sourceId = intval($context['sourceId'] ?? 0);
+                $score = (string) ($context['score'] ?? '');
+                $title = (string) ($context['title'] ?? '');
+                $content = $this->shortText($context['content'] ?? '', 500);
+                $lines[] = '- [' . $sourceType . ' #' . $sourceId . ' score ' . $score . '] ' . $title . ': ' . $content;
+            }
         }
 
         if (empty($lines)) {
@@ -260,6 +283,27 @@ class AiService
                 'updateTime' => date('Y-m-d H:i:s'),
             ]);
 
+            $ragContexts = $payload['ragContexts'] ?? [];
+            $retrievalSourceIds = [];
+            if (is_array($ragContexts)) {
+                foreach ($ragContexts as $context) {
+                    if (isset($context['sourceId'])) {
+                        $retrievalSourceIds[] = intval($context['sourceId']);
+                    }
+                }
+            }
+            $aiMessage = [
+                'sessionId' => $sessionId,
+                'role' => 'ai',
+                'content' => (string) ($payload['reply'] ?? ''),
+                'needTransfer' => intval($payload['needTransfer'] ?? 0),
+                'createTime' => date('Y-m-d H:i:s'),
+            ];
+            if ($this->tableHasColumn('ai_service_message', 'retrievalContext')) {
+                $aiMessage['retrievalContext'] = json_encode($ragContexts, JSON_UNESCAPED_UNICODE);
+                $aiMessage['retrievalSourceIds'] = implode(',', array_unique($retrievalSourceIds));
+            }
+
             Db::name('ai_service_message')->insertAll([
                 [
                     'sessionId' => $sessionId,
@@ -268,13 +312,7 @@ class AiService
                     'needTransfer' => 0,
                     'createTime' => date('Y-m-d H:i:s'),
                 ],
-                [
-                    'sessionId' => $sessionId,
-                    'role' => 'ai',
-                    'content' => (string) ($payload['reply'] ?? ''),
-                    'needTransfer' => intval($payload['needTransfer'] ?? 0),
-                    'createTime' => date('Y-m-d H:i:s'),
-                ],
+                $aiMessage,
             ]);
 
             Db::commit();
@@ -299,6 +337,21 @@ class AiService
             return $cache[$name];
         } catch (Exception $e) {
             $cache[$name] = false;
+            return false;
+        }
+    }
+
+    private function tableHasColumn($table, $column)
+    {
+        if (function_exists('table_has_column')) {
+            return table_has_column($table, $column);
+        }
+
+        try {
+            $tableName = Db::getConfig('prefix') . $table;
+            $result = Db::query('SHOW COLUMNS FROM `' . $tableName . '` LIKE ?', [$column]);
+            return !empty($result);
+        } catch (Exception $e) {
             return false;
         }
     }

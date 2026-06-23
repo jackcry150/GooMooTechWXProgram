@@ -1,0 +1,28 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <meta charset="utf-8">
+    <link href="/static/h-ui/css/H-ui.min.css" rel="stylesheet" type="text/css"/>
+    <link href="/static/h-ui.admin/css/H-ui.admin.css" rel="stylesheet" type="text/css"/>
+    <title>知识切片</title>
+</head>
+<body>
+<div class="page-container">
+    <h4>{$source.title|default='知识切片'}</h4>
+    <table class="table table-border table-bordered table-hover table-bg">
+        <thead><tr class="text-c"><th>序号</th><th>状态</th><th>Point ID</th><th>内容</th><th>错误</th></tr></thead>
+        <tbody>
+        {foreach name="chunks" item="v"}
+        <tr>
+            <td class="text-c">{$v.chunkIndex}</td>
+            <td class="text-c">{$v.embeddingStatus}</td>
+            <td>{$v.qdrantPointId}</td>
+            <td style="max-width:520px;white-space:pre-wrap;">{$v.content}</td>
+            <td>{$v.embeddingError}</td>
+        </tr>
+        {/foreach}
+        </tbody>
+    </table>
+</div>
+</body>
+</html>

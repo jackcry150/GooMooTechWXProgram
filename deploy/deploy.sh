@@ -41,9 +41,13 @@ sync_php() {
         --exclude '.git/' \
         --exclude '.env' \
         --exclude 'runtime/' \
+        --exclude 'extend/Guanjiapo.php' \
         --exclude 'public/uploads/' \
+        --exclude 'public/geoflow-shopify-article.php' \
         --exclude 'config/ai.local.php' \
         --exclude 'config/ai-chat-config.php' \
+        --exclude 'config/rag.local.php' \
+        --exclude 'config/shopify-publisher-config.php' \
         --exclude 'vendor/' \
         --exclude 'composer.phar' \
         --exclude 'composer-setup.php' \

@@ -2,6 +2,7 @@
 
 namespace app\adm\controller;
 
+use app\common\service\KnowledgeIndexer;
 use think\facade\Cache;
 use think\facade\Db;
 use think\facade\Request;
@@ -109,8 +110,9 @@ class Product
             if (!isset($post['status'])) {
                 $post['status'] = 1;
             }
-            $res = Db::name('product')->insert($post);
+            $res = Db::name('product')->insertGetId($post);
             if ($res) {
+                $this->queueRagProductSync((int) $res);
                 $data['msg'] = '添加成功！';
                 $data['code'] = 1;
                 return json($data);
@@ -186,6 +188,7 @@ class Product
             $post['endT'] = strtotime($post['endTime']);
             $res = Db::name('product')->where('id', $id)->update($post);
             if ($res !== false) {
+                $this->queueRagProductSync((int) $id);
                 $data['msg'] = '修改成功！';
                 $data['code'] = 1;
                 return json($data);
@@ -443,6 +446,7 @@ class Product
 
             $res = Db::name('product')->where('id', $id)->update(['status' => 1]);
             if ($res) {
+                $this->queueRagProductSync((int) $id);
                 $data['msg'] = '上架成功！';
                 $data['code'] = 1;
                 return json($data);
@@ -469,6 +473,7 @@ class Product
 
             $res = Db::name('product')->where('id', $id)->update(['status' => 2]);
             if ($res) {
+                $this->queueRagProductSync((int) $id);
                 $data['msg'] = '下架成功！';
                 $data['code'] = 1;
                 return json($data);
@@ -531,5 +536,13 @@ class Product
         View::assign('endTime', $endTime);
 
         return View::fetch();
+    }
+
+    private function queueRagProductSync(int $productId): void
+    {
+        try {
+            (new KnowledgeIndexer())->syncProduct($productId);
+        } catch (\Throwable $e) {
+        }
     }
 }

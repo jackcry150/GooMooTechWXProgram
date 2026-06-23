@@ -5,5 +5,6 @@
 return [
     // 指令定义
     'commands' => [
+        'rag:sync' => app\command\RagSync::class,
     ],
 ];

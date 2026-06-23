@@ -2,6 +2,7 @@
 
 namespace app\adm\controller;
 
+use app\common\service\KnowledgeIndexer;
 use think\facade\Db;
 use think\facade\Request;
 use think\facade\Session;
@@ -64,6 +65,7 @@ class News
 
             $res = Db::name('news')->where('id', $id)->update($update);
             if ($res !== false) {
+                $this->queueRagNewsSync((int) $id);
                 $data['msg'] = '修改成功！';
                 $data['code'] = 1;
                 return json($data);
@@ -91,6 +93,14 @@ class News
             View::assign('selectedAppCode', normalize_app_code_value($info['app_code'] ?? 'goomoo'));
             View::assign('appCodeOptions', app_code_options());
             return View::fetch();
+        }
+    }
+
+    private function queueRagNewsSync(int $newsId): void
+    {
+        try {
+            (new KnowledgeIndexer())->syncNews($newsId);
+        } catch (\Throwable $e) {
         }
     }
 }
