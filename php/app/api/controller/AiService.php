@@ -218,11 +218,17 @@ class AiService
     private function loadAiConfig()
     {
         $localFile = dirname(__DIR__, 3) . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . 'ai.local.php';
+        $legacyFile = dirname(__DIR__, 3) . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . 'ai-chat-config.php';
         $exampleFile = dirname(__DIR__, 3) . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . 'ai.example.php';
 
         if (is_file($localFile)) {
             $config = include $localFile;
             return is_array($config) ? $config : [];
+        }
+
+        if (is_file($legacyFile)) {
+            $config = include $legacyFile;
+            return is_array($config) ? $this->normalizeLegacyAiConfig($config) : [];
         }
 
         if (is_file($exampleFile)) {
@@ -231,6 +237,19 @@ class AiService
         }
 
         return [];
+    }
+
+    private function normalizeLegacyAiConfig(array $config)
+    {
+        return [
+            'enabled' => !empty($config['AI_CHAT_API_KEY']) && !empty($config['AI_CHAT_PROVIDER_URL']) && !empty($config['AI_CHAT_MODEL']),
+            'base_url' => (string) ($config['AI_CHAT_PROVIDER_URL'] ?? ''),
+            'api_key' => (string) ($config['AI_CHAT_API_KEY'] ?? ''),
+            'model' => (string) ($config['AI_CHAT_MODEL'] ?? ''),
+            'temperature' => 0.2,
+            'max_tokens' => 800,
+            'timeout' => 30,
+        ];
     }
 
     private function postJson($url, $payload, $headers, $timeout)
