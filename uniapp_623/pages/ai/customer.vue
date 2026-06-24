@@ -1,49 +1,81 @@
-﻿<template>
+<template>
 	<view class="ai-customer-page">
-		<view class="page-top">
-			<view class="top-bar">
-				<view class="back-btn" @click="goBack">
-					<image class="back-icon" src="/static/image/left-arrow.png" mode="aspectFit"></image>
+		<view class="page-shell">
+			<view class="page-top">
+				<view class="top-bar">
+					<view class="back-btn" @click="goBack">
+						<image class="back-icon" src="/static/image/left-arrow.png" mode="aspectFit"></image>
+					</view>
+					<view class="brand-block">
+						<image class="brand-logo" src="/static/image/logo.png" mode="aspectFit"></image>
+						<view class="brand-copy">
+							<text class="brand-en">GooMoo</text>
+							<text class="brand-cn">AI 客服</text>
+						</view>
+					</view>
+					<view class="top-spacer"></view>
 				</view>
-				<view class="top-title">AI客服</view>
-				<view class="top-spacer"></view>
 			</view>
-		</view>
 
-		<scroll-view class="chat-scroll" scroll-y :scroll-into-view="scrollIntoView">
-			<view class="chat-inner">
-				<view
-					v-for="(item, index) in messages"
-					:id="'msg-' + index"
-					:key="index"
-					:class="['bubble-row', item.role === 'user' ? 'bubble-row-user' : 'bubble-row-ai']"
-				>
-					<view :class="['bubble', item.role === 'user' ? 'bubble-user' : 'bubble-ai']">
-						<text class="bubble-text">{{ item.content }}</text>
+			<view class="hero-card">
+				<view class="hero-copy">
+					<text class="hero-title">AI 客服小沐</text>
+					<text class="hero-subtitle">商品、预售、订单问题都可以先问我</text>
+					<view class="online-pill">
+						<text class="online-dot"></text>
+						<text>在线</text>
 					</view>
 				</view>
-			</view>
-		</scroll-view>
-
-		<view class="shortcut-panel">
-			<view class="switch-row">
-				<view :class="['switch-pill', activeTab === 'faq' ? 'switch-pill-active' : '']" @click="activeTab = 'faq'">常见问题</view>
-				<view :class="['switch-pill', activeTab === 'service' ? 'switch-pill-active' : '']" @click="activeTab = 'service'">服务分类</view>
-			</view>
-
-			<view v-if="activeTab === 'faq'" class="chip-list">
-				<view v-for="(item, index) in quickQuestions" :key="'faq-' + index" class="chip-item" @click="fillQuestion(item)">
-					{{ item }}
+				<view class="hero-character">
+					<image class="hero-icon" src="/static/image/icon_customer.png" mode="aspectFit"></image>
 				</view>
 			</view>
 
-			<view v-else class="chip-list">
-				<view class="chip-item" @click="fillQuestion(scene === 'aftersale' ? '我想咨询售后问题。' : '我想咨询预售商品。')">
-					{{ scene === 'aftersale' ? '售后咨询' : '售前咨询' }}
+			<scroll-view class="chat-scroll" scroll-y :scroll-into-view="scrollIntoView">
+				<view class="chat-inner">
+					<view class="ai-notice">本服务为AI生成内容，结果仅供参考</view>
+					<view
+						v-for="(item, index) in messages"
+						:id="'msg-' + index"
+						:key="index"
+						:class="['message-row', item.role === 'user' ? 'message-row-user' : 'message-row-ai']"
+					>
+						<view v-if="item.role !== 'user'" class="ai-avatar-wrap">
+							<image class="ai-avatar" src="/static/image/default_avatar.jpg" mode="aspectFill"></image>
+						</view>
+						<view class="message-main">
+							<view :class="['speaker-line', item.role === 'user' ? 'speaker-line-user' : '']">
+								<text>{{ item.role === 'user' ? '我' : '小沐' }}</text>
+								<text v-if="item.role !== 'user'" class="ai-tag">AI</text>
+							</view>
+							<view :class="['bubble', item.role === 'user' ? 'bubble-user' : 'bubble-ai']">
+								<text class="bubble-text">{{ item.content }}</text>
+							</view>
+						</view>
+					</view>
 				</view>
-				<view class="chip-item" v-if="orderId" @click="fillQuestion('请帮我查看订单状态。')">订单状态</view>
-				<view class="chip-item" v-if="productId" @click="fillQuestion('请帮我介绍这个商品。')">商品咨询</view>
-				<view class="chip-item chip-item-outline" @click="goToManualCustomer">转人工客服</view>
+			</scroll-view>
+
+			<view class="question-panel">
+				<view class="question-head">
+					<text class="question-title">猜你想问</text>
+					<view class="refresh-btn" @click="refreshQuestions">
+						<text>换一换</text>
+						<text class="refresh-icon">↻</text>
+					</view>
+				</view>
+				<view class="question-grid">
+					<view
+						v-for="(item, index) in quickCards"
+						:key="'quick-' + index"
+						class="question-card"
+						@click="handleQuickCard(item)"
+					>
+						<image class="question-icon" :src="item.icon" mode="aspectFit"></image>
+						<text class="question-label">{{ item.label }}</text>
+						<text class="question-arrow">›</text>
+					</view>
+				</view>
 			</view>
 		</view>
 
@@ -52,7 +84,8 @@
 				v-model="draftQuestion"
 				class="composer-input"
 				maxlength="300"
-				placeholder="请输入您的问题"
+				placeholder="请输入您的问题..."
+				placeholder-class="composer-placeholder"
 				confirm-type="send"
 				@confirm="sendMessage"
 			/>
@@ -83,6 +116,13 @@ const QUICK_QUESTIONS = {
 	]
 }
 
+const QUICK_CARD_META = [
+	{ label: '发货时间', icon: '/static/image/icon_shipped.png' },
+	{ label: '预售规则', icon: '/static/image/booking-notice.png' },
+	{ label: '支付方式', icon: '/static/image/icon_cart.png' },
+	{ label: '转人工', icon: '/static/image/icon_service.png' }
+]
+
 export default {
 	data() {
 		return {
@@ -93,19 +133,28 @@ export default {
 			draftQuestion: '',
 			sending: false,
 			messages: [],
-			activeTab: 'faq',
+			questionOffset: 0,
 			scrollIntoView: ''
 		}
 	},
 	computed: {
 		welcomeText() {
 			if (this.scene === 'aftersale') {
-				return '请输入您的问题，订单、退款、物流等问题我会先帮您梳理。'
+				return '你好呀！我是小沐，很高兴为您服务。\n订单、退款、物流问题都可以先告诉我。'
 			}
-			return '请输入您的问题，商品、预售、尾款、发货等问题我都可以先帮您解答。'
+			return '你好呀！我是小沐，很高兴为您服务。\n商品、预售、发货、尾款问题都可以先问我。'
 		},
 		quickQuestions() {
 			return QUICK_QUESTIONS[this.scene] || QUICK_QUESTIONS.presale
+		},
+		quickCards() {
+			return QUICK_CARD_META.map((item, index) => {
+				const questionIndex = (this.questionOffset + index) % this.quickQuestions.length
+				return {
+					...item,
+					question: this.quickQuestions[questionIndex]
+				}
+			})
 		}
 	},
 	onLoad(options) {
@@ -114,12 +163,9 @@ export default {
 		this.orderId = options.orderId || ''
 		this.sourcePage = options.sourcePage || ''
 		this.messages = [
-			{ role: 'user', content: this.welcomeText },
 			{
 				role: 'ai',
-				content: this.scene === 'aftersale'
-					? '我可以先帮您处理订单、物流、退款和售后相关问题，复杂情况也可以转人工客服。'
-					: '我可以先帮您解答商品、预售、发货、尾款和支付相关问题，必要时也可以转人工客服。'
+				content: this.welcomeText
 			}
 		]
 		this.scrollToBottom()
@@ -138,8 +184,15 @@ export default {
 				this.scrollIntoView = 'msg-' + (this.messages.length - 1)
 			})
 		},
-		fillQuestion(question) {
-			this.draftQuestion = question
+		handleQuickCard(item) {
+			if (item.question === '请帮我转人工客服。') {
+				this.goToManualCustomer()
+				return
+			}
+			this.draftQuestion = item.question
+		},
+		refreshQuestions() {
+			this.questionOffset = (this.questionOffset + 1) % this.quickQuestions.length
 		},
 		async sendMessage() {
 			if (this.sending) return
@@ -184,27 +237,30 @@ export default {
 <style scoped>
 	.ai-customer-page {
 		min-height: 100vh;
-		background: #fffdf8;
-		padding-bottom: calc(210rpx + env(safe-area-inset-bottom));
+		background: #fff7ec;
+		padding-bottom: calc(150rpx + env(safe-area-inset-bottom));
+		box-sizing: border-box;
+		color: #25180c;
+	}
+	.page-shell {
+		padding: 0 24rpx 30rpx;
 		box-sizing: border-box;
 	}
 	.page-top {
-		background: linear-gradient(180deg, #ff9d00 0%, #ff9a00 100%);
-		padding-top: calc(var(--status-bar-height) + 10rpx);
-		padding-bottom: 26rpx;
-		box-shadow: 0 12rpx 30rpx rgba(255, 160, 0, 0.22);
+		margin: 0 -24rpx;
+		padding: calc(var(--status-bar-height) + 8rpx) 24rpx 30rpx;
+		background: linear-gradient(180deg, #ff9d00 0%, #ffb63e 58%, #fff7ec 100%);
 	}
 	.top-bar {
-		height: 88rpx;
+		height: 90rpx;
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
-		padding: 0 26rpx;
 	}
 	.back-btn,
 	.top-spacer {
-		width: 72rpx;
-		height: 72rpx;
+		width: 70rpx;
+		height: 70rpx;
 		display: flex;
 		align-items: center;
 		justify-content: center;
@@ -213,38 +269,182 @@ export default {
 		width: 34rpx;
 		height: 34rpx;
 	}
-	.top-title {
-		font-size: 54rpx;
-		font-weight: 700;
-		color: #ffffff;
-		text-shadow: 0 4rpx 8rpx rgba(126, 77, 0, 0.25);
-	}
-	.chat-scroll {
-		height: calc(100vh - 430rpx - env(safe-area-inset-bottom));
-	}
-	.chat-inner {
-		padding: 32rpx 26rpx 24rpx;
-	}
-	.bubble-row {
+	.brand-block {
 		display: flex;
+		align-items: center;
+		gap: 16rpx;
+		color: #ffffff;
+	}
+	.brand-logo {
+		width: 74rpx;
+		height: 74rpx;
+		border-radius: 22rpx;
+		background: #ffffff;
+		box-shadow: 0 10rpx 24rpx rgba(128, 74, 0, 0.18);
+	}
+	.brand-copy {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+	}
+	.brand-en {
+		font-size: 30rpx;
+		font-weight: 800;
+		line-height: 1.1;
+	}
+	.brand-cn {
+		margin-top: 6rpx;
+		font-size: 24rpx;
+		font-weight: 700;
+		line-height: 1.1;
+		opacity: 0.92;
+	}
+	.hero-card {
+		position: relative;
+		height: 224rpx;
+		border-radius: 34rpx;
+		background: linear-gradient(105deg, #ffffff 0%, #ffffff 54%, #fff0d6 100%);
+		border: 6rpx solid rgba(255, 255, 255, 0.96);
+		box-shadow: 0 20rpx 52rpx rgba(169, 98, 0, 0.12);
+		overflow: hidden;
+		margin-top: -12rpx;
 		margin-bottom: 28rpx;
 	}
-	.bubble-row-user {
-		justify-content: flex-end;
+	.hero-copy {
+		position: relative;
+		z-index: 2;
+		padding: 42rpx 210rpx 0 34rpx;
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
 	}
-	.bubble-row-ai {
+	.hero-title {
+		font-size: 42rpx;
+		font-weight: 800;
+		line-height: 1.16;
+		color: #25180c;
+	}
+	.hero-subtitle {
+		margin-top: 16rpx;
+		font-size: 25rpx;
+		line-height: 1.45;
+		color: #8a5a18;
+	}
+	.online-pill {
+		margin-top: 16rpx;
+		height: 42rpx;
+		padding: 0 18rpx;
+		border-radius: 999rpx;
+		background: #fff7ec;
+		display: flex;
+		align-items: center;
+		gap: 10rpx;
+		font-size: 22rpx;
+		color: #6d440a;
+	}
+	.online-dot {
+		width: 14rpx;
+		height: 14rpx;
+		border-radius: 50%;
+		background: #28c48c;
+	}
+	.hero-character {
+		position: absolute;
+		right: 18rpx;
+		bottom: 18rpx;
+		width: 160rpx;
+		height: 160rpx;
+		border-radius: 48rpx;
+		background: linear-gradient(180deg, #fff6e7 0%, #ffd998 100%);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		box-shadow: inset 0 0 0 4rpx rgba(255, 255, 255, 0.8);
+	}
+	.hero-icon {
+		width: 92rpx;
+		height: 92rpx;
+	}
+	.chat-scroll {
+		height: 548rpx;
+	}
+	.chat-inner {
+		padding: 4rpx 4rpx 20rpx;
+		box-sizing: border-box;
+	}
+	.ai-notice {
+		margin-bottom: 24rpx;
+		padding: 18rpx 22rpx;
+		border-radius: 18rpx;
+		background: rgba(255, 247, 224, 0.98);
+		border: 2rpx solid rgba(241, 140, 0, 0.36);
+		color: #8a5200;
+		font-size: 24rpx;
+		line-height: 1.5;
+		text-align: center;
+		box-shadow: 0 10rpx 24rpx rgba(255, 157, 0, 0.1);
+	}
+	.message-row {
+		display: flex;
+		margin-bottom: 30rpx;
+	}
+	.message-row-ai {
 		justify-content: flex-start;
+	}
+	.message-row-user {
+		justify-content: flex-end;
+		align-items: flex-start;
+	}
+	.ai-avatar-wrap {
+		width: 76rpx;
+		margin-right: 18rpx;
+		padding-top: 10rpx;
+	}
+	.ai-avatar {
+		width: 76rpx;
+		height: 76rpx;
+		border-radius: 26rpx;
+		background: #ffffff;
+		border: 4rpx solid #fff4df;
+		box-shadow: 0 10rpx 22rpx rgba(143, 86, 0, 0.1);
+	}
+	.message-main {
+		max-width: 610rpx;
+		display: flex;
+		flex-direction: column;
+	}
+	.speaker-line {
+		display: flex;
+		align-items: center;
+		gap: 8rpx;
+		margin: 0 0 8rpx 4rpx;
+		color: #9f6d25;
+		font-size: 22rpx;
+		font-weight: 600;
+	}
+	.speaker-line-user {
+		justify-content: flex-end;
+		margin-right: 4rpx;
+	}
+	.ai-tag {
+		height: 26rpx;
+		line-height: 26rpx;
+		padding: 0 10rpx;
+		border-radius: 999rpx;
+		background: #fff0d2;
+		color: #d97900;
+		font-size: 18rpx;
+		font-weight: 700;
 	}
 	.bubble {
 		position: relative;
-		max-width: 82%;
-		padding: 28rpx 30rpx;
-		border-radius: 32rpx;
+		padding: 24rpx 28rpx;
+		border-radius: 26rpx;
 		box-shadow: 0 14rpx 34rpx rgba(46, 29, 3, 0.08);
 	}
 	.bubble-text {
-		font-size: 28rpx;
-		line-height: 1.75;
+		font-size: 27rpx;
+		line-height: 1.72;
 		color: #2d2418;
 		word-break: break-word;
 		white-space: pre-wrap;
@@ -253,83 +453,79 @@ export default {
 		background: linear-gradient(180deg, #ffe89c 0%, #fff0c6 100%);
 		border-bottom-right-radius: 10rpx;
 	}
-	.bubble-user::after {
-		content: '';
-		position: absolute;
-		right: -2rpx;
-		bottom: -2rpx;
-		width: 34rpx;
-		height: 34rpx;
-		background: linear-gradient(180deg, #ffe8a0 0%, #fff1cc 100%);
-		clip-path: polygon(100% 0, 0 100%, 100% 100%);
-	}
 	.bubble-ai {
 		background: #ffffff;
 		border: 1rpx solid rgba(236, 227, 212, 0.95);
 		border-bottom-left-radius: 10rpx;
 	}
-	.bubble-ai::after {
-		content: '';
-		position: absolute;
-		left: -2rpx;
-		bottom: -2rpx;
+	.question-panel {
+		margin-top: 20rpx;
+		padding: 24rpx;
+		border-radius: 28rpx;
+		background: #ffffff;
+		box-shadow: 0 18rpx 42rpx rgba(163, 102, 8, 0.1);
+	}
+	.question-head {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		margin-bottom: 18rpx;
+	}
+	.question-title {
+		font-size: 30rpx;
+		font-weight: 800;
+		color: #2c1c0d;
+	}
+	.refresh-btn {
+		height: 48rpx;
+		padding: 0 18rpx;
+		border-radius: 999rpx;
+		background: #fff3df;
+		color: #c06c00;
+		font-size: 22rpx;
+		display: flex;
+		align-items: center;
+		gap: 6rpx;
+	}
+	.refresh-icon {
+		font-size: 24rpx;
+	}
+	.question-grid {
+		display: grid;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: 16rpx;
+	}
+	.question-card {
+		min-width: 0;
+		height: 86rpx;
+		padding: 0 18rpx;
+		border-radius: 22rpx;
+		background: #fffaf3;
+		border: 2rpx solid rgba(255, 179, 64, 0.28);
+		display: flex;
+		align-items: center;
+		box-sizing: border-box;
+	}
+	.question-icon {
 		width: 34rpx;
 		height: 34rpx;
-		background: #ffffff;
-		border-left: 1rpx solid rgba(236, 227, 212, 0.95);
-		border-bottom: 1rpx solid rgba(236, 227, 212, 0.95);
-		clip-path: polygon(0 0, 0 100%, 100% 100%);
+		margin-right: 12rpx;
 	}
-	.shortcut-panel {
-		position: fixed;
-		left: 0;
-		right: 0;
-		bottom: calc(126rpx + env(safe-area-inset-bottom));
-		padding: 0 26rpx;
-	}
-	.switch-row {
-		width: 420rpx;
-		margin: 0 auto 22rpx;
-		padding: 8rpx;
-		border-radius: 999rpx;
-		background: #ffffff;
-		border: 4rpx solid #f18c00;
-		display: flex;
-	}
-	.switch-pill {
+	.question-label {
 		flex: 1;
-		height: 70rpx;
-		line-height: 70rpx;
-		text-align: center;
-		font-size: 30rpx;
-		font-weight: 600;
-		color: #b16500;
-		border-radius: 999rpx;
-	}
-	.switch-pill-active {
-		background: linear-gradient(180deg, #ffb321 0%, #ff9400 100%);
-		color: #ffffff;
-		box-shadow: 0 8rpx 16rpx rgba(255, 157, 0, 0.24);
-	}
-	.chip-list {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 14rpx;
-	}
-	.chip-item {
-		padding: 14rpx 24rpx;
-		border-radius: 999rpx;
-		background: rgba(255, 248, 233, 0.98);
-		border: 2rpx solid rgba(255, 170, 27, 0.42);
-		color: #9b5d00;
+		min-width: 0;
 		font-size: 24rpx;
-		box-shadow: 0 8rpx 18rpx rgba(255, 170, 27, 0.08);
+		font-weight: 650;
+		color: #5b390a;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
 	}
-	.chip-item-outline {
-		background: #fff;
-		border-color: #f18c00;
-		color: #eb7d00;
-		font-weight: 600;
+	.question-arrow {
+		margin-left: 8rpx;
+		font-size: 34rpx;
+		color: #d97900;
+		line-height: 1;
 	}
 	.composer {
 		position: fixed;
@@ -342,21 +538,27 @@ export default {
 		padding: 18rpx 24rpx calc(18rpx + env(safe-area-inset-bottom));
 		background: rgba(255, 255, 255, 0.98);
 		border-top: 1rpx solid #f0e6d8;
+		box-sizing: border-box;
+		z-index: 20;
 	}
 	.composer-input {
 		flex: 1;
-		height: 92rpx;
+		height: 88rpx;
 		padding: 0 28rpx;
 		border-radius: 999rpx;
-		border: 2rpx solid rgba(241, 140, 0, 0.4);
+		border: 2rpx solid rgba(241, 140, 0, 0.35);
 		background: #fffdf8;
-		font-size: 30rpx;
+		font-size: 28rpx;
 		color: #2d2418;
+		box-shadow: 0 8rpx 22rpx rgba(255, 157, 0, 0.06) inset;
+	}
+	.composer-placeholder {
+		color: #b99a69;
 	}
 	.send-btn {
-		width: 110rpx;
-		height: 92rpx;
-		border-radius: 999rpx;
+		width: 90rpx;
+		height: 90rpx;
+		border-radius: 50%;
 		background: linear-gradient(180deg, #ffb11a 0%, #ff9400 100%);
 		display: flex;
 		align-items: center;
@@ -367,7 +569,7 @@ export default {
 		opacity: 0.68;
 	}
 	.send-icon {
-		font-size: 38rpx;
+		font-size: 36rpx;
 		color: #ffffff;
 		transform: translateX(2rpx);
 	}
