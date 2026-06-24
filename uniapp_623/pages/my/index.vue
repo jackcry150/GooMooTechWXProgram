@@ -34,7 +34,7 @@
 							</view>
 							<view class="stat-item stat-divider">
 								<text class="stat-number">{{ userInfo.snailShells || 0 }}</text>
-								<text class="stat-label">我的猫饼</text>
+								<text class="stat-label">我的积分</text>
 							</view>
 						</view>
 					</view>
