@@ -27,7 +27,7 @@
 					</view>
 				</view>
 				<view class="hero-character">
-					<image class="hero-icon" src="/static/image/icon_customer.png" mode="aspectFit"></image>
+					<image class="hero-icon" src="/static/image/goomoo-ai-avatar.png" mode="aspectFit"></image>
 				</view>
 			</view>
 
@@ -41,7 +41,7 @@
 						:class="['message-row', item.role === 'user' ? 'message-row-user' : 'message-row-ai']"
 					>
 						<view v-if="item.role !== 'user'" class="ai-avatar-wrap">
-							<image class="ai-avatar" src="/static/image/default_avatar.jpg" mode="aspectFill"></image>
+							<image class="ai-avatar" src="/static/image/goomoo-ai-avatar.png" mode="aspectFill"></image>
 						</view>
 						<view class="message-main">
 							<view :class="['speaker-line', item.role === 'user' ? 'speaker-line-user' : '']">
