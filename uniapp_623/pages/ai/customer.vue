@@ -26,9 +26,7 @@
 						<text>在线</text>
 					</view>
 				</view>
-				<view class="hero-character">
-					<image class="hero-icon" src="/static/image/goomoo-ai-avatar.png" mode="aspectFit"></image>
-				</view>
+				<image class="hero-character" src="/static/image/goomoo-ai-xiaomu.png" mode="aspectFill"></image>
 			</view>
 
 			<scroll-view class="chat-scroll" scroll-y :scroll-into-view="scrollIntoView">
@@ -303,7 +301,7 @@ export default {
 		position: relative;
 		height: 224rpx;
 		border-radius: 34rpx;
-		background: linear-gradient(105deg, #ffffff 0%, #ffffff 54%, #fff0d6 100%);
+		background: #fff7eb;
 		border: 6rpx solid rgba(255, 255, 255, 0.96);
 		box-shadow: 0 20rpx 52rpx rgba(169, 98, 0, 0.12);
 		overflow: hidden;
@@ -313,7 +311,7 @@ export default {
 	.hero-copy {
 		position: relative;
 		z-index: 2;
-		padding: 42rpx 210rpx 0 34rpx;
+		padding: 42rpx 300rpx 0 34rpx;
 		display: flex;
 		flex-direction: column;
 		align-items: flex-start;
@@ -350,20 +348,10 @@ export default {
 	}
 	.hero-character {
 		position: absolute;
-		right: 18rpx;
-		bottom: 18rpx;
-		width: 160rpx;
-		height: 160rpx;
-		border-radius: 48rpx;
-		background: linear-gradient(180deg, #fff6e7 0%, #ffd998 100%);
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		box-shadow: inset 0 0 0 4rpx rgba(255, 255, 255, 0.8);
-	}
-	.hero-icon {
-		width: 92rpx;
-		height: 92rpx;
+		inset: 0;
+		z-index: 1;
+		width: 100%;
+		height: 100%;
 	}
 	.chat-scroll {
 		height: 548rpx;
