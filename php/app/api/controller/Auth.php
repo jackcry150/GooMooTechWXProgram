@@ -8,9 +8,6 @@ use think\facade\Request;
 
 class Auth
 {
-    private $appid = 'wxfcc20942c4074693';
-    private $secret = 'fac8bbc449de6a99c4fa96ad8b6729e0';
-
     public function phoneLogin()
     {
         $data['code'] = 100;
@@ -32,6 +29,9 @@ class Auth
             $sessionInfo = $this->getSessionInfo($code);
             if (!$sessionInfo || isset($sessionInfo['errcode'])) {
                 $data['msg'] = '获取 session_key 失败';
+                if (is_array($sessionInfo)) {
+                    $data['msg'] .= ': ' . ($sessionInfo['errcode'] ?? '') . ' ' . ($sessionInfo['errmsg'] ?? '');
+                }
                 return json($data);
             }
 
@@ -112,7 +112,8 @@ class Auth
 
     public function getSessionInfo($code)
     {
-        $url = 'https://api.weixin.qq.com/sns/jscode2session?appid=' . $this->appid . '&secret=' . $this->secret . '&js_code=' . $code . '&grant_type=authorization_code';
+        $paymentConfig = brand_payment_config();
+        $url = 'https://api.weixin.qq.com/sns/jscode2session?appid=' . $paymentConfig['wechatMiniAppId'] . '&secret=' . $paymentConfig['wechatMiniSecret'] . '&js_code=' . $code . '&grant_type=authorization_code';
 
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $url);

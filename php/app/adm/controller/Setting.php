@@ -38,6 +38,19 @@ class Setting
         } else {
             $info = Db::name('setting')->where('id', 1)->find();
         }
+        $info = $info ?: [];
+        foreach (['id', 'name', 'link', 'contactUs', 'address', 'email', 'lotteryCost', 'lotteryRule'] as $column) {
+            $info[$column] = $info[$column] ?? '';
+        }
+        if ($info['lotteryCost'] === '') {
+            $info['lotteryCost'] = 10;
+        }
+        $info['wechatMiniAppId'] = $info['wechatMiniAppId'] ?? '';
+        $info['wechatMiniSecret'] = $info['wechatMiniSecret'] ?? '';
+        $info['huifuMerchantId'] = $info['huifuMerchantId'] ?? '';
+        $info['huifuPrivateKey'] = $info['huifuPrivateKey'] ?? '';
+        $info['huifuNotifyUrl'] = $info['huifuNotifyUrl'] ?? '';
+        $info['paymentSplitEnabled'] = $info['paymentSplitEnabled'] ?? 0;
         View::assign('info', $info);
         View::assign('app_code', $appCode);
         View::assign('appCodeOptions', app_code_options());
@@ -65,6 +78,11 @@ class Setting
                 $post['app_code'] = $appCode;
             } else {
                 unset($post['app_code']);
+            }
+            foreach (['wechatMiniAppId', 'wechatMiniSecret', 'huifuMerchantId', 'huifuPrivateKey', 'huifuNotifyUrl', 'paymentSplitEnabled'] as $column) {
+                if (!table_has_column('setting', $column)) {
+                    unset($post[$column]);
+                }
             }
 
             $id = $post['id'] ?? '';

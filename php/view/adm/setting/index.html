@@ -40,33 +40,33 @@
         <div class="row cl">
             <label class="form-label col-xs-4 col-sm-3" for="name">网址名称：</label>
             <div class="formControls col-xs-8 col-sm-9">
-                <input class="input-text" data-verify="网址名称不能为空" id="name" name="name" type="text" value="{$info.name}">
+                <input class="input-text" data-verify="网址名称不能为空" id="name" name="name" type="text" value="{$info.name|default=''}">
             </div>
         </div>
 
         <div class="row cl">
             <label class="form-label col-xs-4 col-sm-3" for="link">网址：</label>
             <div class="formControls col-xs-8 col-sm-9">
-                <input class="input-text" data-verify="网址不能为空" id="link" name="link" placeholder="" type="text" value="{$info.link}">
+                <input class="input-text" data-verify="网址不能为空" id="link" name="link" placeholder="" type="text" value="{$info.link|default=''}">
             </div>
         </div>
 
         <div class="row cl">
             <label class="form-label col-xs-4 col-sm-3" for="contactUs">联系我们：</label>
             <div class="formControls col-xs-8 col-sm-9">
-                <textarea class="textarea" cols="" data-verify="联系我们不能为空" id="contactUs" name="contactUs" rows="">{$info.contactUs}</textarea>
+                <textarea class="textarea" cols="" data-verify="联系我们不能为空" id="contactUs" name="contactUs" rows="">{$info.contactUs|default=''}</textarea>
             </div>
         </div>
         <div class="row cl">
             <label class="form-label col-xs-4 col-sm-3" for="address">公司地址：</label>
             <div class="formControls col-xs-8 col-sm-9">
-                <input class="input-text" data-verify="公司地址不能为空" id="address" name="address" placeholder="" type="text" value="{$info.address}">
+                <input class="input-text" data-verify="公司地址不能为空" id="address" name="address" placeholder="" type="text" value="{$info.address|default=''}">
             </div>
         </div>
         <div class="row cl">
             <label class="form-label col-xs-4 col-sm-3" for="address">公司邮箱：</label>
             <div class="formControls col-xs-8 col-sm-9">
-                <input class="input-text" data-verify="公司邮箱不能为空" id="email" name="email" placeholder="" type="text" value="{$info.email}">
+                <input class="input-text" data-verify="公司邮箱不能为空" id="email" name="email" placeholder="" type="text" value="{$info.email|default=''}">
             </div>
         </div>
         <div class="row cl">
@@ -78,13 +78,55 @@
         <div class="row cl">
             <label class="form-label col-xs-4 col-sm-3" for="lotteryRule">抽奖规则：</label>
             <div class="formControls col-xs-8 col-sm-9">
-                <textarea class="textarea" id="lotteryRule" name="lotteryRule" rows="">{$info.lotteryRule}</textarea>
+                <textarea class="textarea" id="lotteryRule" name="lotteryRule" rows="">{$info.lotteryRule|default=''}</textarea>
+            </div>
+        </div>
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-3" for="wechatMiniAppId">小程序 AppID：</label>
+            <div class="formControls col-xs-8 col-sm-9">
+                <input class="input-text" id="wechatMiniAppId" name="wechatMiniAppId" type="text" value="{$info.wechatMiniAppId|default=''}" placeholder="微信小程序 AppID">
+            </div>
+        </div>
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-3" for="wechatMiniSecret">小程序 Secret：</label>
+            <div class="formControls col-xs-8 col-sm-9">
+                <input class="input-text" id="wechatMiniSecret" name="wechatMiniSecret" type="password" value="{$info.wechatMiniSecret|default=''}" placeholder="微信小程序 Secret" autocomplete="new-password">
+            </div>
+        </div>
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-3" for="huifuMerchantId">汇付商户号：</label>
+            <div class="formControls col-xs-8 col-sm-9">
+                <input class="input-text" id="huifuMerchantId" name="huifuMerchantId" type="text" value="{$info.huifuMerchantId|default=''}" placeholder="款项进入该商户号绑定的结算账户">
+            </div>
+        </div>
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-3" for="huifuNotifyUrl">支付回调地址：</label>
+            <div class="formControls col-xs-8 col-sm-9">
+                <input class="input-text" id="huifuNotifyUrl" name="huifuNotifyUrl" type="text" value="{$info.huifuNotifyUrl|default=''}" placeholder="例如：https://api.example.com/api/order/notify">
+            </div>
+        </div>
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-3" for="paymentSplitEnabled">启用支付分账：</label>
+            <div class="formControls col-xs-8 col-sm-9">
+                <span class="select-box">
+                    <select class="select" id="paymentSplitEnabled" name="paymentSplitEnabled">
+                        <option value="0" {if condition="($info['paymentSplitEnabled'] ?? 0) == 0"}selected{/if}>否，全部入账到本商户</option>
+                        <option value="1" {if condition="($info['paymentSplitEnabled'] ?? 0) == 1"}selected{/if}>是，按商品分账字段分润</option>
+                    </select>
+                </span>
+            </div>
+        </div>
+
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-3" for="huifuPrivateKey">汇付私钥：</label>
+            <div class="formControls col-xs-8 col-sm-9">
+                <textarea class="textarea" id="huifuPrivateKey" name="huifuPrivateKey" rows="" placeholder="支持填入 PEM 私钥或去掉头尾后的 base64 私钥">{$info.huifuPrivateKey|default=''}</textarea>
             </div>
         </div>
 
         <div class="row cl">
             <div class="col-9 col-offset-3">
-                <input name="id" type="hidden" value="{$info.id}"/>
+                <input name="id" type="hidden" value="{$info.id|default=''}"/>
                 <input name="app_code" type="hidden" value="{$app_code}"/>
                 <input class="btn btn-primary radius" id="edit" type="button" value="&nbsp;&nbsp;提交&nbsp;&nbsp;">
             </div>
@@ -105,7 +147,7 @@
             $.each(content, function (i, item) {
                 let id = $('#' + content[i].name);
                 let verify = id.data("verify");
-                if (item['value'] == '' && verify != '') {
+                if (item['value'] == '' && verify) {
                     layer.msg(verify, {time: 1000});
                     id.focus();
                     flag = 1;
@@ -122,6 +164,10 @@
                     dataType: 'json',
                     success: function (data) {
                         layer.msg(data.msg, {time: 1000});
+                        return false;
+                    },
+                    error: function () {
+                        layer.msg('提交失败，请稍后重试', {time: 1500});
                         return false;
                     }
                 });

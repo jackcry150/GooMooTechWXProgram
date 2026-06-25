@@ -122,11 +122,35 @@ function lotteryStockText($stock)
 
 function app_code_options()
 {
-    return [
+    static $options = null;
+    if ($options !== null) {
+        return $options;
+    }
+
+    $options = [
         'goomoo' => 'GooMoo',
         'hasuki' => 'Hasuki',
         'common' => '通用',
     ];
+
+    try {
+        if (table_has_column('setting', 'app_code')) {
+            $codes = Db::name('setting')
+                ->whereNotNull('app_code')
+                ->where('app_code', '<>', '')
+                ->column('app_code');
+            foreach ($codes as $code) {
+                $code = strtolower(trim((string) $code));
+                if ($code !== '' && !isset($options[$code])) {
+                    $options[$code] = strtoupper($code);
+                }
+            }
+        }
+    } catch (\Throwable $e) {
+        // 数据库初始化前使用默认小程序选项。
+    }
+
+    return $options;
 }
 
 function normalize_app_code_value($appCode = '')
@@ -261,6 +285,68 @@ function table_has_column($table, $column)
     $exists = !empty($columns);
     $tableColumnMap[$cacheKey] = $exists;
     return $exists;
+}
+
+function config_bool_value($value, $default = false)
+{
+    if ($value === null || $value === '') {
+        return $default;
+    }
+    if (is_bool($value)) {
+        return $value;
+    }
+    return in_array(strtolower(trim((string) $value)), ['1', 'true', 'yes', 'on'], true);
+}
+
+function brand_payment_config($appCode = '')
+{
+    $appCode = normalize_app_code_value($appCode ?: current_app_code());
+    $notifyUrl = env('HUIFU_NOTIFY_URL', '');
+    if (!$notifyUrl) {
+        $notifyUrl = rtrim(Request::domain(), '/') . '/api/order/notify';
+    }
+
+    $config = [
+        'appCode' => $appCode,
+        'wechatMiniAppId' => env('wechat.mini_appid', env('WECHAT_MINI_APPID', '')),
+        'wechatMiniSecret' => env('wechat.mini_secret', env('WECHAT_MINI_SECRET', '')),
+        'huifuMerchantId' => env('HUIFU_MERCHANT_ID', ''),
+        'huifuPrivateKey' => env('HUIFU_PRIVATE_KEY', ''),
+        'huifuNotifyUrl' => $notifyUrl,
+        'paymentSplitEnabled' => config_bool_value(env('PAYMENT_SPLIT_ENABLED', false), false),
+    ];
+
+    if (table_has_app_code('setting')) {
+        $query = Db::name('setting');
+        apply_app_code_scope($query, 'setting', $appCode, true);
+        $setting = $query->orderRaw(build_app_code_priority_order($appCode))
+            ->order('id asc')
+            ->find();
+    } else {
+        $setting = Db::name('setting')->where('id', 1)->find();
+    }
+
+    if (!$setting) {
+        return $config;
+    }
+
+    $fieldMap = [
+        'wechatMiniAppId' => 'wechatMiniAppId',
+        'wechatMiniSecret' => 'wechatMiniSecret',
+        'huifuMerchantId' => 'huifuMerchantId',
+        'huifuPrivateKey' => 'huifuPrivateKey',
+        'huifuNotifyUrl' => 'huifuNotifyUrl',
+    ];
+    foreach ($fieldMap as $column => $key) {
+        if (array_key_exists($column, $setting) && trim((string) $setting[$column]) !== '') {
+            $config[$key] = trim((string) $setting[$column]);
+        }
+    }
+    if (array_key_exists('paymentSplitEnabled', $setting)) {
+        $config['paymentSplitEnabled'] = config_bool_value($setting['paymentSplitEnabled'], $config['paymentSplitEnabled']);
+    }
+
+    return $config;
 }
 
 /**
