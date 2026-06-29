@@ -47,6 +47,8 @@ sync_php() {
         --exclude 'config/ai.local.php' \
         --exclude 'config/ai-chat-config.php' \
         --exclude 'config/rag.local.php' \
+        --exclude 'config/xhs.php' \
+        --exclude 'config/xhs.local.php' \
         --exclude 'config/shopify-publisher-config.php' \
         --exclude 'vendor/' \
         --exclude 'composer.phar' \

@@ -1,0 +1,43 @@
+CREATE TABLE IF NOT EXISTS `mp_xhs_user_bind` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `userId` int(11) NOT NULL DEFAULT '0' COMMENT '小程序用户ID',
+  `phone` varchar(20) NOT NULL DEFAULT '' COMMENT '绑定时校验的小程序手机号',
+  `xhsOpenId` varchar(128) NOT NULL DEFAULT '' COMMENT '小红书店铺维度用户openId',
+  `firstOrderId` varchar(64) NOT NULL DEFAULT '' COMMENT '首次绑定的小红书订单号',
+  `sellerId` varchar(64) NOT NULL DEFAULT '' COMMENT '小红书商家ID',
+  `shopId` varchar(64) NOT NULL DEFAULT '' COMMENT '小红书店铺ID',
+  `shopName` varchar(120) NOT NULL DEFAULT '' COMMENT '小红书店铺名称',
+  `status` tinyint(1) NOT NULL DEFAULT '1' COMMENT '绑定状态：1有效 0无效',
+  `bindTime` datetime DEFAULT NULL COMMENT '首次绑定时间',
+  `updateTime` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_xhs_open_id` (`xhsOpenId`),
+  KEY `idx_user_id` (`userId`),
+  KEY `idx_phone` (`phone`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='小红书用户与小程序用户绑定表';
+
+CREATE TABLE IF NOT EXISTS `mp_xhs_order_sync` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `orderId` varchar(64) NOT NULL DEFAULT '' COMMENT '小红书订单号',
+  `xhsOpenId` varchar(128) NOT NULL DEFAULT '' COMMENT '小红书店铺维度用户openId',
+  `userId` int(11) NOT NULL DEFAULT '0' COMMENT '绑定的小程序用户ID',
+  `shopId` varchar(64) NOT NULL DEFAULT '' COMMENT '小红书店铺ID',
+  `shopName` varchar(120) NOT NULL DEFAULT '' COMMENT '小红书店铺名称',
+  `orderStatus` int(11) NOT NULL DEFAULT '0' COMMENT '小红书订单状态',
+  `orderAfterSalesStatus` int(11) NOT NULL DEFAULT '0' COMMENT '小红书售后状态',
+  `cancelStatus` int(11) NOT NULL DEFAULT '0' COMMENT '取消状态',
+  `totalPayAmount` int(11) NOT NULL DEFAULT '0' COMMENT '订单实付金额，单位分',
+  `earnedShells` int(11) NOT NULL DEFAULT '0' COMMENT '本单发放积分',
+  `pointsStatus` tinyint(1) NOT NULL DEFAULT '0' COMMENT '积分状态：0未发放 1已发放',
+  `rawDetail` mediumtext COMMENT '小红书订单详情原始数据',
+  `lastSyncTime` datetime DEFAULT NULL COMMENT '最近同步时间',
+  `rewardTime` datetime DEFAULT NULL COMMENT '积分发放时间',
+  `createTime` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updateTime` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_order_id` (`orderId`),
+  KEY `idx_xhs_open_id` (`xhsOpenId`),
+  KEY `idx_user_id` (`userId`),
+  KEY `idx_points_status` (`pointsStatus`),
+  KEY `idx_last_sync_time` (`lastSyncTime`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='小红书订单积分同步表';

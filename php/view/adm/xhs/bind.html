@@ -1,0 +1,125 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta content="webkit|ie-comp|ie-stand" name="renderer">
+    <meta content="IE=edge,chrome=1" http-equiv="X-UA-Compatible">
+    <meta content="width=device-width,initial-scale=1,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no" name="viewport"/>
+    <link href="/static/h-ui/css/H-ui.min.css" rel="stylesheet" type="text/css"/>
+    <link href="/static/h-ui.admin/css/H-ui.admin.css" rel="stylesheet" type="text/css"/>
+    <link href="/static/Hui-iconfont/1.0.8/iconfont.css" rel="stylesheet" type="text/css"/>
+    <link href="/static/h-ui.admin/skin/default/skin.css" rel="stylesheet" type="text/css"/>
+    <title>小红书绑定审核</title>
+</head>
+<body>
+<nav class="breadcrumb">
+    <i class="Hui-iconfont">&#xe67f;</i> 首页
+    <span class="c-gray en">&gt;</span> 渠道管理
+    <span class="c-gray en">&gt;</span> 小红书绑定审核
+    <a class="btn btn-success radius r" href="javascript:location.replace(location.href);" style="line-height:1.6em;margin-top:3px" title="刷新"><i class="Hui-iconfont">&#xe68f;</i></a>
+</nav>
+<div class="page-container">
+    <div class="Huialert Huialert-info">
+        首次同步只创建待审核记录。请在小红书商家后台核对订单真实手机号，确认与小程序手机号一致后再点通过。
+    </div>
+    <div class="text-c">
+        <form action="" method="get">
+            <input class="input-text" name="orderId" placeholder="小红书订单号" style="width:220px" type="text" value="{$orderId}">
+            <input class="input-text" name="phone" placeholder="小程序手机号" style="width:160px" type="text" value="{$phone}">
+            <span class="select-box inline">
+                <select class="select" name="status">
+                    <option value="">全部状态</option>
+                    {foreach name="statusMap" item="v" key="k"}
+                    <option value="{$k}" {if condition="(string)$k === (string)$status"} selected {/if}>{$v}</option>
+                    {/foreach}
+                </select>
+            </span>
+            <button class="btn btn-success radius" type="submit"><i class="Hui-iconfont">&#xe665;</i> 搜索</button>
+            <a class="btn btn-default radius" href="/adm/xhs/bind">重置</a>
+        </form>
+    </div>
+    <div class="mt-10">
+        <table class="table table-border table-bordered table-hover table-bg">
+            <thead>
+            <tr class="text-c">
+                <th width="70">ID</th>
+                <th width="190">小红书订单号</th>
+                <th width="90">用户ID</th>
+                <th width="140">昵称</th>
+                <th width="130">小程序手机号</th>
+                <th width="80">积分</th>
+                <th width="180">店铺</th>
+                <th width="90">状态</th>
+                <th width="160">提交时间</th>
+                <th width="160">更新时间</th>
+                <th width="150">操作</th>
+            </tr>
+            </thead>
+            <tbody>
+            {if condition="empty($list)"}
+            <tr class="text-c">
+                <td colspan="11">暂无数据</td>
+            </tr>
+            {else /}
+            {foreach name="list" item="v"}
+            <tr class="text-c" id="row-{$v.id}">
+                <td>{$v.id}</td>
+                <td>{$v.firstOrderId}</td>
+                <td>{$v.userId}</td>
+                <td>{$v.nickName}</td>
+                <td>{$v.phoneDisplay}</td>
+                <td>{$v.snailShells}</td>
+                <td class="text-l">
+                    {$v.shopName|default='-'}
+                    {if condition="$v.shopId"}<div style="font-size:12px;color:#999;">{$v.shopId}</div>{/if}
+                </td>
+                <td><span class="status-text" style="color:{$v.statusColor};font-weight:bold;">{$v.statusText}</span></td>
+                <td>{$v.bindTime|default='-'}</td>
+                <td>{$v.updateTime|default='-'}</td>
+                <td class="td-manage">
+                    {if condition="$v.statusValue == 0"}
+                    <a href="javascript:;" onclick="reviewBind('{$v.id}', 'approve')" style="text-decoration:none;color:#1ccf00;">通过</a>
+                    &nbsp;|&nbsp;
+                    <a href="javascript:;" onclick="reviewBind('{$v.id}', 'reject')" style="text-decoration:none;color:#dc0000;">拒绝</a>
+                    {else /}
+                    -
+                    {/if}
+                </td>
+            </tr>
+            {/foreach}
+            {/if}
+            </tbody>
+        </table>
+        <div class="pages">{$page|raw}<div style="clear:both;"></div></div>
+    </div>
+</div>
+<script type="text/javascript" src="/static/js/jquery.min.js"></script>
+<script type="text/javascript" src="/static/layer/2.4/layer.js"></script>
+<script type="text/javascript" src="/static/h-ui/js/H-ui.min.js"></script>
+<script type="text/javascript" src="/static/h-ui.admin/js/H-ui.admin.js"></script>
+<script>
+function reviewBind(id, action) {
+    var text = action === 'approve' ? '确认审核通过？通过后该小红书账号后续订单会自动发积分。' : '确认拒绝该绑定申请？';
+    layer.confirm(text, function(index) {
+        $.ajax({
+            type: 'POST',
+            url: '/adm/xhs/review',
+            data: { id: id, action: action },
+            dataType: 'json',
+            success: function(res) {
+                if (res.code == 1) {
+                    layer.msg(res.msg || '操作成功', {icon: 1, time: 1000}, function(){ location.reload(); });
+                } else {
+                    layer.msg(res.msg || '操作失败', {icon: 2, time: 1800});
+                }
+            },
+            error: function() {
+                layer.msg('网络请求失败', {icon: 2, time: 1800});
+            }
+        });
+        layer.close(index);
+    });
+}
+</script>
+</body>
+</html>
