@@ -1,4 +1,4 @@
-<template>
+﻿<template>
 	<view class="order-detail">
 		<!-- 加载中 -->
 		<view v-if="loading && !order.id" class="loading-wrap">
@@ -112,6 +112,18 @@
 				<view class="info-row">
 					<text class="info-label">支付方式</text>
 					<text class="info-value">{{ order.paymentMethod || '微信支付' }}</text>
+				</view>
+				<view class="info-row" v-if="snailShellsUsed > 0">
+					<text class="info-label">积分抵扣</text>
+					<text class="info-value price">{{ snailShellsUsed }}积分，抵扣¥{{ snailShellsDiscountAmount }}</text>
+				</view>
+				<view class="info-row" v-if="showPayAmount">
+					<text class="info-label">实付金额</text>
+					<text class="info-value price">¥{{ payAmountText }}</text>
+				</view>
+				<view class="info-row" v-if="snailShellsEarned > 0">
+					<text class="info-label">获得积分</text>
+					<text class="info-value highlight">+{{ snailShellsEarned }}</text>
 				</view>
 				<view class="info-row" v-if="remarkText">
 					<text class="info-label">备注</text>
@@ -240,6 +252,21 @@
 				if (!r || (typeof r === 'string' && !r.trim())) return ''
 				return r.trim() === '无' ? '' : r
 			},
+			snailShellsUsed() {
+				return parseInt(this.order.snailShellsUsed || 0) || 0
+			},
+			snailShellsEarned() {
+				return parseInt(this.order.snailShellsEarned || 0) || 0
+			},
+			snailShellsDiscountAmount() {
+				return this.formatAmount(this.order.snailShellsDiscountAmount)
+			},
+			payAmountText() {
+				return this.formatAmount(this.order.payAmount != null ? this.order.payAmount : this.order.totalPrice)
+			},
+			showPayAmount() {
+				return this.order.payAmount != null && (this.snailShellsUsed > 0 || this.formatAmount(this.order.payAmount) !== this.formatAmount(this.order.totalPrice))
+			},
 			showPayBtn() {
 				const s = this.order.status
 				return !this.order.isPresale && (s === 1 || s === 8)
@@ -276,6 +303,10 @@
 			}
 		},
 		methods: {
+			formatAmount(value) {
+				const num = parseFloat(value)
+				return isNaN(num) ? '0.00' : num.toFixed(2)
+			},
 			async loadOrderDetail(orderId) {
 				if (!orderId) return Promise.resolve()
 				this.loading = true
@@ -344,7 +375,7 @@
 			goToAiCustomer() {
 				const orderId = this.orderId || (this.order && this.order.id) || ''
 				uni.navigateTo({
-					url: `/pages/ai/customer?scene=aftersale&orderId=${orderId}&sourcePage=order`
+					url: '/pages/customer/customer'
 				})
 			},
 			goProduct(id) {
@@ -493,7 +524,7 @@
 			async handleConfirmReceipt() {
 				uni.showModal({
 					title: '确认收货',
-					content: '确认已收到商品？确认后将获得猫饼奖励',
+					content: '确认已收到商品？确认后将获得积分奖励',
 					success: async (res) => {
 						if (!res.confirm) return
 						uni.showLoading({ title: '处理中...' })

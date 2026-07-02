@@ -26,7 +26,7 @@
 						<text>在线</text>
 					</view>
 				</view>
-				<image class="hero-character" src="/static/image/goomoo-ai-xiaomu.png" mode="aspectFill"></image>
+				<image class="hero-character" src="/static/image/goomoo-ai-xiaomu.jpg" mode="aspectFill"></image>
 			</view>
 
 			<scroll-view class="chat-scroll" scroll-y :scroll-into-view="scrollIntoView">
@@ -39,7 +39,7 @@
 						:class="['message-row', item.role === 'user' ? 'message-row-user' : 'message-row-ai']"
 					>
 						<view v-if="item.role !== 'user'" class="ai-avatar-wrap">
-							<image class="ai-avatar" src="/static/image/goomoo-ai-avatar.png" mode="aspectFill"></image>
+							<image class="ai-avatar" src="/static/image/goomoo-ai-avatar.jpg" mode="aspectFill"></image>
 						</view>
 						<view class="message-main">
 							<view :class="['speaker-line', item.role === 'user' ? 'speaker-line-user' : '']">

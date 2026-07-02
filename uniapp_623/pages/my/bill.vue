@@ -1,12 +1,12 @@
-<template>
+﻿<template>
 	<view class="lottery-page">
 		<view class="hero-card">
 			<view class="hero-copy">
-				<text class="hero-title">猫饼抽奖机</text>
-				<text class="hero-subtitle">消耗猫饼，换一次随机惊喜</text>
+				<text class="hero-title">积分抽奖机</text>
+				<text class="hero-subtitle">消耗积分，换一次随机惊喜</text>
 			</view>
 			<view class="shell-balance">
-				<text class="shell-label">当前猫饼</text>
+				<text class="shell-label">当前积分</text>
 				<text class="shell-value">{{ userInfo.snailShells || 0 }}</text>
 			</view>
 		</view>
@@ -14,7 +14,7 @@
 		<view class="rule-card">
 			<view class="section-head">
 				<text class="section-title">抽奖规则</text>
-				<text class="section-cost">每次消耗 {{ cost }} 猫饼</text>
+				<text class="section-cost">每次消耗 {{ cost }} 积分</text>
 			</view>
 			<text class="rule-text">{{ ruleText }}</text>
 		</view>
@@ -23,7 +23,7 @@
 			<button class="draw-btn" :disabled="drawing" @click="startDraw">
 				{{ drawButtonText }}
 			</button>
-			<text class="draw-tip" v-if="(userInfo.snailShells || 0) < cost">当前猫饼不足，先去完成订单或活动获取猫饼</text>
+			<text class="draw-tip" v-if="(userInfo.snailShells || 0) < cost">当前积分不足，先去完成订单或活动获取积分</text>
 		</view>
 
 		<view class="prize-card">
@@ -76,7 +76,7 @@
 		data() {
 			return {
 				cost: 10,
-				ruleText: '每次抽奖消耗固定数量猫饼，奖品和概率以后台配置为准。',
+				ruleText: '每次抽奖消耗固定数量积分，奖品和概率以后台配置为准。',
 				userInfo: {
 					snailShells: 0
 				},
@@ -87,7 +87,7 @@
 		},
 		computed: {
 			drawButtonText() {
-				return this.drawing ? '抽奖中...' : `立即抽奖 -${this.cost} 猫饼`
+				return this.drawing ? '抽奖中...' : `立即抽奖 -${this.cost} 积分`
 			}
 		},
 		onShow() {
@@ -110,7 +110,7 @@
 			},
 			formatPrizeDesc(item) {
 				if (item.rewardType == 2 && item.rewardValue > 0) {
-					return `获得 ${item.rewardValue} 猫饼`
+					return `获得 ${item.rewardValue} 积分`
 				}
 				if (item.rewardType == 3 && item.rewardValue > 0) {
 					return `获得 ${item.rewardValue} 张收藏卡`
@@ -150,7 +150,7 @@
 				}
 				if ((this.userInfo.snailShells || 0) < this.cost) {
 					uni.showToast({
-						title: '猫饼不足',
+						title: '积分不足',
 						icon: 'none'
 					})
 					return

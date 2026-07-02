@@ -1,11 +1,10 @@
 <template>
 	<view class="login-page">
-		<image class="login-bg" mode="aspectFill" src="/static/image/login-bg-concept.png"></image>
+		<image class="login-bg" mode="aspectFill" src="/static/image/login-bg-concept.jpg"></image>
 		<view class="login-panel">
 			<button class="login-btn" open-type="getPhoneNumber" @getphonenumber="getPhoneNumber" :disabled="!protocol">
 				<view class="login-btn-inner">
-					<image class="login-btn-icon" mode="aspectFit" src="/static/image/wechat-login-icon.svg"></image>
-					<text>微信手机号一键登录</text>
+					<text>手机号快捷登录</text>
 				</view>
 			</button>
 			<view class="login-no" @click="goToBack()">
@@ -88,7 +87,7 @@
 
 				} else {
 					uni.showToast({
-						title: '用户拒绝授权',
+						title: '未完成手机号快捷登录',
 						icon: 'none'
 					});
 				}

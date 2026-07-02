@@ -1,3 +1,5 @@
+const APP_CODE = 'goomoo'
+
 // API请求工具类
 class Request {
 	constructor() {
@@ -10,7 +12,8 @@ class Request {
 		// #endif
 		this.timeout = 10000
 		this.header = {
-			'Content-Type': 'application/json'
+			'Content-Type': 'application/json',
+			'X-App-Code': APP_CODE
 		}
 	}
 
@@ -213,6 +216,11 @@ export const api = {
 		avatar: (data) => request.post('/user/avatar', data),
 		// 退出登录
 		logout: () => request.post('/user/logout'),
+	},
+	// 小红书积分同步
+	xhs: {
+		status: () => request.get('/xhs/order/status'),
+		bind: (params) => request.post('/xhs/order/bind', params),
 	},
 	// 抽奖相关
 	lottery: {

@@ -44,11 +44,11 @@
 			<view class="welfare-banner" @click="goToGroup">
 				<image class="banner-bg-image" src="/static/image/my-welfare-banner-bg.png" mode="scaleToFill" />
 				<view class="banner-copy">
-					<text class="banner-title">社群福利·惊喜不断</text>
-					<text class="banner-desc">新品资讯·专属福利</text>
+					<text class="banner-title">添加官方企微</text>
+					<text class="banner-desc">获取新品提醒与专属优惠</text>
 				</view>
 				<view class="banner-btn">
-					<text>加入群聊</text>
+					<text>立即添加</text>
 					<text class="banner-btn-arrow">›</text>
 				</view>
 			</view>
@@ -103,7 +103,14 @@
 					<view v-if="showLotteryEntry" class="function-item" @click="goToBill()">
 						<view class="function-main">
 							<view class="function-icon"><image class="nav-item-image" src="/static/image/icon_document.png" mode="aspectFit"></image></view>
-							<text class="function-text">猫饼抽奖</text>
+							<text class="function-text">积分抽奖</text>
+						</view>
+						<text class="chevron">›</text>
+					</view>
+					<view class="function-item" @click="goToXhsSync()">
+						<view class="function-main">
+							<view class="function-icon"><image class="nav-item-image" src="/static/image/icon_document.png" mode="aspectFit"></image></view>
+							<text class="function-text">小红书积分同步</text>
 						</view>
 						<text class="chevron">›</text>
 					</view>
@@ -335,9 +342,20 @@
 				}
 			},
 
+			goToXhsSync() {
+				const token = uni.getStorageSync('token')
+				if (!token) {
+					this.goLogin()
+				} else {
+					uni.navigateTo({
+						url: '/pages/my/xhs-sync'
+					})
+				}
+			},
+
 			goToCustomer() {
 				uni.navigateTo({
-					url: '/pages/ai/customer?scene=presale&sourcePage=my'
+					url: '/pages/customer/customer'
 				})
 			},
 

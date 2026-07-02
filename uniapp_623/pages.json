@@ -1,4 +1,4 @@
-﻿{
+{
   "pages": [
     {
       "path": "pages/index/index",
@@ -145,6 +145,13 @@
       }
     },
     {
+      "path": "pages/my/xhs-sync",
+      "style": {
+        "navigationBarTitleText": "小红书积分同步",
+        "navigationBarBackgroundColor": "#ffffff"
+      }
+    },
+    {
       "path": "pages/my/privacy",
       "style": {
         "navigationBarTitleText": "协议"
@@ -153,21 +160,13 @@
     {
       "path": "pages/my/bill",
       "style": {
-        "navigationBarTitleText": "猫饼抽奖"
+        "navigationBarTitleText": "积分抽奖"
       }
     },
     {
       "path": "pages/my/group",
       "style": {
         "navigationBarTitleText": "加入官方群"
-      }
-    },
-    {
-      "path": "pages/ai/customer",
-      "style": {
-        "navigationBarTitleText": "智能客服",
-        "navigationStyle": "custom",
-        "backgroundColor": "#fffdf8"
       }
     },
     {

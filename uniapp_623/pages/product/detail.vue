@@ -448,7 +448,7 @@
 			goToCustomer() {
 				const productId = this.product && this.product.id ? this.product.id : ''
 				uni.navigateTo({
-					url: `/pages/ai/customer?scene=presale&productId=${productId}&sourcePage=product`
+					url: '/pages/customer/customer'
 				})
 			},
 
