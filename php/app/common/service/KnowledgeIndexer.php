@@ -155,6 +155,13 @@ class KnowledgeIndexer
             'status' => $status,
             'contentHash' => $contentHash,
         ];
+        if ($this->sourceReviewSupported() && $type !== 'manual') {
+            $data['reviewStatus'] = 2;
+            $data['reviewerId'] = 0;
+            $data['reviewerName'] = 'system';
+            $data['reviewedAt'] = date('Y-m-d H:i:s');
+            $data['reviewRemark'] = '';
+        }
 
         if ($existing) {
             Db::name('ai_knowledge_source')->where('id', $existing['id'])->update($data);
@@ -179,6 +186,10 @@ class KnowledgeIndexer
         Db::name('ai_knowledge_chunk')->where('sourceId', $sourceId)->update(['embeddingStatus' => 2, 'embeddingError' => 'superseded']);
         $chunks = (new KnowledgeChunker())->chunk((string) ($source['title'] ?? ''), (string) ($source['content'] ?? ''));
         $queued = 0;
+        $sourceEnabled = intval($source['status'] ?? 1) === 1;
+        $sourceApproved = $this->sourceApprovedForEmbedding($source);
+        $embeddingStatus = ($sourceEnabled && $sourceApproved) ? 0 : 2;
+        $embeddingError = $sourceEnabled ? ($sourceApproved ? '' : 'source not approved') : 'source disabled';
 
         foreach ($chunks as $index => $chunk) {
             $contentHash = hash('sha256', $chunk['content']);
@@ -193,8 +204,8 @@ class KnowledgeIndexer
                 'content' => (string) ($chunk['content'] ?? ''),
                 'contentHash' => $contentHash,
                 'qdrantPointId' => $pointId,
-                'embeddingStatus' => intval($source['status'] ?? 1) === 1 ? 0 : 2,
-                'embeddingError' => intval($source['status'] ?? 1) === 1 ? '' : 'source disabled',
+                'embeddingStatus' => $embeddingStatus,
+                'embeddingError' => $embeddingError,
             ];
 
             $existing = Db::name('ai_knowledge_chunk')
@@ -209,7 +220,7 @@ class KnowledgeIndexer
                 $chunkId = Db::name('ai_knowledge_chunk')->insertGetId($chunkData);
             }
 
-            if (intval($source['status'] ?? 1) === 1) {
+            if ($sourceEnabled && $sourceApproved) {
                 Db::name('ai_embedding_job')->insert([
                     'chunkId' => $chunkId,
                     'jobType' => 'upsert',
@@ -223,6 +234,25 @@ class KnowledgeIndexer
         return ['ok' => true, 'queued' => $queued, 'error' => ''];
     }
 
+    private function sourceReviewSupported(): bool
+    {
+        if (function_exists('table_has_column')) {
+            return table_has_column('ai_knowledge_source', 'reviewStatus');
+        }
+        return false;
+    }
+
+    private function sourceApprovedForEmbedding(array $source): bool
+    {
+        if (!$this->sourceReviewSupported()) {
+            return true;
+        }
+        $sourceType = (string) ($source['sourceType'] ?? 'manual');
+        if ($sourceType !== 'manual' && !array_key_exists('reviewStatus', $source)) {
+            return true;
+        }
+        return intval($source['reviewStatus'] ?? 1) === 2;
+    }
     private function buildProductContent(array $product): string
     {
         $lines = [];

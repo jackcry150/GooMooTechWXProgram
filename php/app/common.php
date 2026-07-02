@@ -102,7 +102,7 @@ function lotteryRewardType($key = '')
 {
     $data = [
         1 => '谢谢参与',
-        2 => '猫饼',
+        2 => '积分',
         3 => '收藏卡',
         4 => '实物奖品',
     ];
@@ -301,6 +301,8 @@ function config_bool_value($value, $default = false)
 function brand_payment_config($appCode = '')
 {
     $appCode = normalize_app_code_value($appCode ?: current_app_code());
+    $hasPaymentSplitColumn = table_has_column('setting', 'paymentSplitEnabled');
+    $defaultSplitEnabled = !$hasPaymentSplitColumn;
     $notifyUrl = env('HUIFU_NOTIFY_URL', '');
     if (!$notifyUrl) {
         $notifyUrl = rtrim(Request::domain(), '/') . '/api/order/notify';
@@ -308,12 +310,12 @@ function brand_payment_config($appCode = '')
 
     $config = [
         'appCode' => $appCode,
-        'wechatMiniAppId' => env('wechat.mini_appid', env('WECHAT_MINI_APPID', '')),
-        'wechatMiniSecret' => env('wechat.mini_secret', env('WECHAT_MINI_SECRET', '')),
-        'huifuMerchantId' => env('HUIFU_MERCHANT_ID', ''),
+        'wechatMiniAppId' => env('wechat.mini_appid', env('WECHAT_MINI_APPID', 'wxfcc20942c4074693')),
+        'wechatMiniSecret' => env('wechat.mini_secret', env('WECHAT_MINI_SECRET', 'fac8bbc449de6a99c4fa96ad8b6729e0')),
+        'huifuMerchantId' => env('HUIFU_MERCHANT_ID', '6666000184930633'),
         'huifuPrivateKey' => env('HUIFU_PRIVATE_KEY', ''),
         'huifuNotifyUrl' => $notifyUrl,
-        'paymentSplitEnabled' => config_bool_value(env('PAYMENT_SPLIT_ENABLED', false), false),
+        'paymentSplitEnabled' => config_bool_value(env('PAYMENT_SPLIT_ENABLED', $defaultSplitEnabled), $defaultSplitEnabled),
     ];
 
     if (table_has_app_code('setting')) {
@@ -344,6 +346,42 @@ function brand_payment_config($appCode = '')
     }
     if (array_key_exists('paymentSplitEnabled', $setting)) {
         $config['paymentSplitEnabled'] = config_bool_value($setting['paymentSplitEnabled'], $config['paymentSplitEnabled']);
+    }
+
+    return $config;
+}
+
+function snail_shells_discount_config($appCode = '')
+{
+    $appCode = normalize_app_code_value($appCode ?: current_app_code());
+    $config = [
+        'enabled' => config_bool_value(env('SNAIL_SHELLS_DISCOUNT_ENABLED', true), true),
+        'exchangeRate' => max(1, intval(env('SNAIL_SHELLS_EXCHANGE_RATE', 10))),
+        'maxPercent' => max(0, min(100, floatval(env('SNAIL_SHELLS_DISCOUNT_PERCENT', 20)))),
+    ];
+
+    if (table_has_app_code('setting')) {
+        $query = Db::name('setting');
+        apply_app_code_scope($query, 'setting', $appCode, true);
+        $setting = $query->orderRaw(build_app_code_priority_order($appCode))
+            ->order('id asc')
+            ->find();
+    } else {
+        $setting = Db::name('setting')->where('id', 1)->find();
+    }
+
+    if (!$setting) {
+        return $config;
+    }
+
+    if (array_key_exists('snailShellsDiscountEnabled', $setting)) {
+        $config['enabled'] = config_bool_value($setting['snailShellsDiscountEnabled'], $config['enabled']);
+    }
+    if (array_key_exists('snailShellsExchangeRate', $setting) && intval($setting['snailShellsExchangeRate']) > 0) {
+        $config['exchangeRate'] = intval($setting['snailShellsExchangeRate']);
+    }
+    if (array_key_exists('snailShellsDiscountPercent', $setting)) {
+        $config['maxPercent'] = max(0, min(100, floatval($setting['snailShellsDiscountPercent'])));
     }
 
     return $config;

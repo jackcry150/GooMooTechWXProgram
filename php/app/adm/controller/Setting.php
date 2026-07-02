@@ -51,6 +51,9 @@ class Setting
         $info['huifuPrivateKey'] = $info['huifuPrivateKey'] ?? '';
         $info['huifuNotifyUrl'] = $info['huifuNotifyUrl'] ?? '';
         $info['paymentSplitEnabled'] = $info['paymentSplitEnabled'] ?? 0;
+        $info['snailShellsDiscountEnabled'] = $info['snailShellsDiscountEnabled'] ?? 1;
+        $info['snailShellsExchangeRate'] = $info['snailShellsExchangeRate'] ?? 10;
+        $info['snailShellsDiscountPercent'] = $info['snailShellsDiscountPercent'] ?? 20;
         View::assign('info', $info);
         View::assign('app_code', $appCode);
         View::assign('appCodeOptions', app_code_options());
@@ -79,7 +82,7 @@ class Setting
             } else {
                 unset($post['app_code']);
             }
-            foreach (['wechatMiniAppId', 'wechatMiniSecret', 'huifuMerchantId', 'huifuPrivateKey', 'huifuNotifyUrl', 'paymentSplitEnabled'] as $column) {
+            foreach (['wechatMiniAppId', 'wechatMiniSecret', 'huifuMerchantId', 'huifuPrivateKey', 'huifuNotifyUrl', 'paymentSplitEnabled', 'snailShellsDiscountEnabled', 'snailShellsExchangeRate', 'snailShellsDiscountPercent'] as $column) {
                 if (!table_has_column('setting', $column)) {
                     unset($post[$column]);
                 }

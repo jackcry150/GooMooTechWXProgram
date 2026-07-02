@@ -2,6 +2,7 @@
 
 namespace app\api\controller;
 
+use app\common\service\AiSafetyService;
 use app\common\service\RagRetriever;
 use Exception;
 use think\facade\Db;
@@ -27,9 +28,70 @@ class AiService
             $orderId = intval(Request::post('orderId', 0));
             $sourcePage = trim((string) Request::post('sourcePage', ''));
             $userId = $this->getAuthorizedUserId();
+            $appCode = normalize_app_code_value(Request::post('appCode', Request::header('X-App-Code', 'hasuki')));
+            $ip = (string) Request::ip();
+            $safety = new AiSafetyService();
 
             if ($content === '') {
                 $data['msg'] = 'content required';
+                return json($data);
+            }
+
+            $baseSafetyPayload = [
+                'app_code' => $appCode,
+                'userId' => $userId,
+                'sessionId' => 0,
+                'scene' => $scene,
+                'sourcePage' => $sourcePage,
+                'question' => $content,
+                'ip' => $ip,
+            ];
+
+            $rateLimit = $safety->rateLimit($userId, $ip, $appCode);
+            if (empty($rateLimit['ok'])) {
+                $reply = $rateLimit['safeReply'] ?? $safety->getSafeReply('rate_limit');
+                $safety->log(array_merge($baseSafetyPayload, [
+                    'reply' => $reply,
+                    'checkStage' => 'rate_limit',
+                    'action' => 'rate_limit',
+                    'finalAction' => 'rate_limit',
+                ]));
+                $data['code'] = 429;
+                $data['msg'] = '提问过于频繁，请稍后再试';
+                $data['data'] = [
+                    'reply' => $reply,
+                    'scene' => $scene,
+                    'productId' => $productId,
+                    'orderId' => $orderId,
+                    'needTransfer' => 0,
+                    'sessionId' => 0,
+                ];
+                return json($data);
+            }
+
+            $inputCheck = $safety->checkText($content, $appCode, 'input');
+            if (empty($inputCheck['ok'])) {
+                $reply = $inputCheck['safeReply'] ?? $safety->getSafeReply($inputCheck['action'] ?? 'block');
+                $needTransfer = ($inputCheck['action'] ?? '') === 'transfer' ? 1 : 0;
+                $safety->log(array_merge($baseSafetyPayload, [
+                    'reply' => $reply,
+                    'checkStage' => 'input',
+                    'hitWords' => $inputCheck['hitWords'] ?? [],
+                    'category' => $inputCheck['category'] ?? '',
+                    'level' => intval($inputCheck['level'] ?? 0),
+                    'action' => $inputCheck['action'] ?? 'block',
+                    'finalAction' => $inputCheck['finalAction'] ?? ($inputCheck['action'] ?? 'block'),
+                ]));
+                $data['code'] = 200;
+                $data['msg'] = 'success';
+                $data['data'] = [
+                    'reply' => $reply,
+                    'scene' => $scene,
+                    'productId' => $productId,
+                    'orderId' => $orderId,
+                    'needTransfer' => $needTransfer,
+                    'sessionId' => 0,
+                ];
                 return json($data);
             }
 
@@ -38,9 +100,11 @@ class AiService
                 'scene' => $scene,
                 'productId' => $productId,
                 'orderId' => $orderId,
-                'app_code' => Request::post('appCode', Request::header('X-App-Code', 'hasuki')),
+                'app_code' => $appCode,
             ]);
-            $knowledge['ragContexts'] = $ragResult['contexts'] ?? [];
+            $ragContexts = $ragResult['contexts'] ?? [];
+            $retrievalSourceIds = $this->extractRetrievalSourceIds($ragContexts);
+            $knowledge['ragContexts'] = $ragContexts;
             $fallbackReply = $scene === 'aftersale'
                 ? $this->buildAftersaleReply($content, $knowledge, $userId)
                 : $this->buildPresaleReply($content, $knowledge);
@@ -49,6 +113,12 @@ class AiService
             $reply = $this->requestCloudReply($scene, $content, $knowledge, $needTransfer);
             if (!$reply) {
                 $reply = $fallbackReply;
+            }
+
+            $outputCheck = $safety->checkText($reply, $appCode, 'output');
+            if (empty($outputCheck['ok'])) {
+                $reply = $outputCheck['safeReply'] ?? $safety->getSafeReply($outputCheck['action'] ?? 'block');
+                $needTransfer = 1;
             }
 
             $sessionId = $this->persistConversation([
@@ -60,8 +130,21 @@ class AiService
                 'question' => $content,
                 'reply' => $reply,
                 'needTransfer' => $needTransfer,
-                'ragContexts' => $ragResult['contexts'] ?? [],
+                'ragContexts' => $ragContexts,
             ]);
+
+            $safety->log(array_merge($baseSafetyPayload, [
+                'sessionId' => $sessionId,
+                'reply' => $reply,
+                'checkStage' => 'output',
+                'hitWords' => $outputCheck['hitWords'] ?? [],
+                'category' => $outputCheck['category'] ?? '',
+                'level' => intval($outputCheck['level'] ?? 0),
+                'action' => $outputCheck['action'] ?? 'allow',
+                'finalAction' => empty($outputCheck['ok']) ? ($outputCheck['finalAction'] ?? ($outputCheck['action'] ?? 'block')) : 'allow',
+                'retrievalSourceIds' => $retrievalSourceIds,
+                'retrievalContext' => $ragContexts,
+            ]));
 
             $data['code'] = 200;
             $data['msg'] = 'success';
@@ -80,6 +163,19 @@ class AiService
         }
     }
 
+    private function extractRetrievalSourceIds($ragContexts)
+    {
+        $ids = [];
+        if (!is_array($ragContexts)) {
+            return $ids;
+        }
+        foreach ($ragContexts as $context) {
+            if (isset($context['sourceId'])) {
+                $ids[] = intval($context['sourceId']);
+            }
+        }
+        return array_values(array_unique($ids));
+    }
     private function requestCloudReply($scene, $userQuestion, $knowledge, $needTransfer)
     {
         $config = $this->loadAiConfig();

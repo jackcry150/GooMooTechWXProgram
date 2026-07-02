@@ -3,6 +3,7 @@
 namespace app\api\controller;
 
 use Exception;
+use think\facade\Cache;
 use think\facade\Db;
 use think\facade\Request;
 
@@ -19,23 +20,28 @@ class Auth
             }
 
             $code = Request::post('code');
+            $phoneCode = Request::post('phoneCode', '');
             $encryptedData = Request::post('encryptedData');
             $iv = Request::post('iv');
 
-            if (empty($code) || empty($encryptedData) || empty($iv)) {
+            if (empty($code) || (empty($phoneCode) && (empty($encryptedData) || empty($iv)))) {
                 return json($data);
             }
 
+            $paymentConfig = brand_payment_config();
             $sessionInfo = $this->getSessionInfo($code);
             if (!$sessionInfo || isset($sessionInfo['errcode'])) {
                 $data['msg'] = '获取 session_key 失败';
-                if (is_array($sessionInfo)) {
-                    $data['msg'] .= ': ' . ($sessionInfo['errcode'] ?? '') . ' ' . ($sessionInfo['errmsg'] ?? '');
-                }
                 return json($data);
             }
 
-            $phoneInfo = $this->decryptPhoneNumber($encryptedData, $iv, $sessionInfo['session_key']);
+            $phoneInfo = [];
+            if (!empty($phoneCode)) {
+                $phoneInfo = $this->getPhoneNumberByCode($phoneCode, $paymentConfig);
+            }
+            if (!$phoneInfo && !empty($encryptedData) && !empty($iv)) {
+                $phoneInfo = $this->decryptPhoneNumber($encryptedData, $iv, $sessionInfo['session_key']);
+            }
             if (!$phoneInfo) {
                 $data['msg'] = '解密手机号失败';
                 return json($data);
@@ -129,6 +135,79 @@ class Auth
         curl_close($ch);
 
         return json_decode($response, true);
+    }
+
+    public function getPhoneNumberByCode($phoneCode, $paymentConfig)
+    {
+        $accessToken = $this->getWechatAccessToken($paymentConfig);
+        if (!$accessToken) {
+            return false;
+        }
+
+        $url = 'https://api.weixin.qq.com/wxa/business/getuserphonenumber?access_token=' . $accessToken;
+        $payload = json_encode(['code' => $phoneCode], JSON_UNESCAPED_UNICODE);
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 3);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 5);
+        $response = curl_exec($ch);
+        if ($response === false) {
+            curl_close($ch);
+            return false;
+        }
+        curl_close($ch);
+
+        $result = json_decode($response, true);
+        if (!$result || intval($result['errcode'] ?? -1) !== 0 || empty($result['phone_info'])) {
+            return false;
+        }
+
+        return [
+            'purePhoneNumber' => $result['phone_info']['purePhoneNumber'] ?? ($result['phone_info']['phoneNumber'] ?? ''),
+        ];
+    }
+
+    public function getWechatAccessToken($paymentConfig)
+    {
+        $appid = $paymentConfig['wechatMiniAppId'] ?? '';
+        $secret = $paymentConfig['wechatMiniSecret'] ?? '';
+        if (!$appid || !$secret) {
+            return false;
+        }
+
+        $cacheKey = 'wechat_access_token:' . md5($appid);
+        $cached = Cache::get($cacheKey);
+        if ($cached) {
+            return $cached;
+        }
+
+        $url = 'https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=' . $appid . '&secret=' . $secret;
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 3);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 5);
+        $response = curl_exec($ch);
+        if ($response === false) {
+            curl_close($ch);
+            return false;
+        }
+        curl_close($ch);
+
+        $result = json_decode($response, true);
+        if (!$result || empty($result['access_token'])) {
+            return false;
+        }
+
+        $expires = max(300, intval($result['expires_in'] ?? 7200) - 300);
+        Cache::set($cacheKey, $result['access_token'], $expires);
+        return $result['access_token'];
     }
 
     public function decryptPhoneNumber($encryptedData, $iv, $sessionKey)

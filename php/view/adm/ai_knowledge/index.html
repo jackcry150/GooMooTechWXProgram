@@ -27,6 +27,14 @@
                     <option value="news" {if $sourceType=='news'}selected{/if}>资讯</option>
                 </select>
             </span>
+            {if $hasReview}
+            <span class="select-box inline" style="width:130px;">
+                <select class="select" name="reviewStatus">
+                    <option value="">全部审核</option>
+                    {foreach name="reviewStatusMap" key="k" item="v"}<option value="{$k}" {if condition="(string)$k === (string)$reviewStatus"}selected{/if}>{$v}</option>{/foreach}
+                </select>
+            </span>
+            {/if}
             <button class="btn btn-success radius" type="submit"><i class="Hui-iconfont">&#xe665;</i> 搜索</button>
             <button class="btn btn-primary radius" onclick="show_html('新增知识','/adm/ai_knowledge/add')" type="button"><i class="Hui-iconfont">&#xe600;</i> 新增人工知识</button>
             <button class="btn btn-secondary radius" onclick="runJobs()" type="button">处理向量队列</button>
@@ -41,6 +49,7 @@
                 <th>小程序</th>
                 <th>标题</th>
                 <th>状态</th>
+                {if $hasReview}<th>审核</th>{/if}
                 <th>切片</th>
                 <th>待处理</th>
                 <th>最后索引</th>
@@ -55,11 +64,12 @@
                 <td>{$v.app_code}</td>
                 <td class="text-l">{$v.title}</td>
                 <td>{if $v.status==1}启用{else}停用{/if}</td>
+                {if $hasReview}<td>{$v.reviewStatusText}<br><span class="c-999">{$v.reviewerName|default=''}</span></td>{/if}
                 <td>{$v.chunkCount}</td>
                 <td>{$v.pendingJobCount}</td>
                 <td>{$v.lastIndexedAt|default=''}</td>
                 <td>
-                    {if $v.sourceType=='manual'}<a href="javascript:;" onclick="show_html('编辑知识','/adm/ai_knowledge/edit?id={$v.id}')">编辑</a> | <a href="javascript:;" onclick="delKnowledge({$v.id})">删除</a> | {/if}
+                    {if $v.sourceType=='manual'}<a href="javascript:;" onclick="show_html('编辑知识','/adm/ai_knowledge/edit?id={$v.id}')">编辑</a> | {if $hasReview}<a href="javascript:;" onclick="approveKnowledge({$v.id})">通过</a> | <a href="javascript:;" onclick="rejectKnowledge({$v.id})">驳回</a> | {/if}<a href="javascript:;" onclick="delKnowledge({$v.id})">删除</a> | {/if}
                     <a href="javascript:;" onclick="syncKnowledge({$v.id})">同步</a> |
                     <a href="javascript:;" onclick="show_html('切片','/adm/ai_knowledge/chunks?id={$v.id}')">切片</a>
                 </td>
@@ -79,6 +89,21 @@ function syncKnowledge(id) {
     $.post('/adm/ai_knowledge/sync', {id: id}, function (res) {
         layer.msg(res.msg || '完成', {time: 1200}, function () { location.reload(); });
     }, 'json');
+}
+function approveKnowledge(id) {
+    layer.confirm('确认通过这条人工知识？通过后会加入向量化队列。', function () {
+        $.post('/adm/ai_knowledge/approve', {id: id}, function (res) {
+            layer.msg(res.msg || '完成', {time: 1200}, function () { location.reload(); });
+        }, 'json');
+    });
+}
+function rejectKnowledge(id) {
+    layer.prompt({title: '驳回原因，可留空', formType: 2}, function (text, index) {
+        layer.close(index);
+        $.post('/adm/ai_knowledge/reject', {id: id, remark: text}, function (res) {
+            layer.msg(res.msg || '完成', {time: 1200}, function () { location.reload(); });
+        }, 'json');
+    });
 }
 function delKnowledge(id) {
     layer.confirm('确认删除这条人工知识？', function () {

@@ -1,4 +1,4 @@
-<!DOCTYPE HTML>
+﻿<!DOCTYPE HTML>
 <html>
 <head>
     <meta charset="utf-8">
@@ -70,7 +70,7 @@
             </div>
         </div>
         <div class="row cl">
-            <label class="form-label col-xs-4 col-sm-3" for="lotteryCost">单次抽奖消耗猫饼：</label>
+            <label class="form-label col-xs-4 col-sm-3" for="lotteryCost">单次抽奖消耗积分：</label>
             <div class="formControls col-xs-8 col-sm-9">
                 <input class="input-text" data-verify="抽奖消耗不能为空" id="lotteryCost" name="lotteryCost" type="number" min="1" value="{$info.lotteryCost|default='10'}">
             </div>
@@ -114,6 +114,29 @@
                         <option value="1" {if condition="($info['paymentSplitEnabled'] ?? 0) == 1"}selected{/if}>是，按商品分账字段分润</option>
                     </select>
                 </span>
+            </div>
+        </div>
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-3" for="snailShellsDiscountEnabled">启用积分抵扣：</label>
+            <div class="formControls col-xs-8 col-sm-9">
+                <span class="select-box">
+                    <select class="select" id="snailShellsDiscountEnabled" name="snailShellsDiscountEnabled">
+                        <option value="1" {if condition="($info['snailShellsDiscountEnabled'] ?? 1) == 1"}selected{/if}>是，允许下单抵扣</option>
+                        <option value="0" {if condition="($info['snailShellsDiscountEnabled'] ?? 1) == 0"}selected{/if}>否，暂不允许抵扣</option>
+                    </select>
+                </span>
+            </div>
+        </div>
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-3" for="snailShellsExchangeRate">积分兑换比例：</label>
+            <div class="formControls col-xs-8 col-sm-9">
+                <input class="input-text" id="snailShellsExchangeRate" name="snailShellsExchangeRate" type="number" min="1" value="{$info.snailShellsExchangeRate|default=10}" placeholder="默认 10，表示 10 积分抵 1 元">
+            </div>
+        </div>
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-3" for="snailShellsDiscountPercent">单笔抵扣上限：</label>
+            <div class="formControls col-xs-8 col-sm-9">
+                <input class="input-text" id="snailShellsDiscountPercent" name="snailShellsDiscountPercent" type="number" min="0" max="100" step="0.01" value="{$info.snailShellsDiscountPercent|default=20}" placeholder="订单金额百分比，默认 20">
             </div>
         </div>
 

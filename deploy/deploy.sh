@@ -16,6 +16,22 @@ NGINX_CONTAINER="${NGINX_CONTAINER:-nginx-prod}"
 DEPLOY_PHP="${DEPLOY_PHP:-1}"
 DEPLOY_NGINX="${DEPLOY_NGINX:-0}"
 
+AI_SAFETY_REQUIRED_FILES=(
+    "app/api/controller/AiService.php"
+    "app/common/service/KnowledgeIndexer.php"
+    "app/common/service/AiSafetyService.php"
+    "app/adm/controller/AiKnowledge.php"
+    "app/adm/controller/AiSafety.php"
+    "app/command/AiSafetyClean.php"
+    "config/console.php"
+    "config/ai_safety.php"
+    "view/adm/ai_knowledge/index.html"
+    "view/adm/ai_safety/logs.html"
+    "view/adm/ai_safety/words.html"
+    "view/adm/ai_safety/word_add.html"
+    "view/adm/ai_safety/word_edit.html"
+    "database/patch_20260702_ai_customer_safety.sql"
+)
 log() {
     printf '[deploy] %s\n' "$*"
 }
@@ -28,12 +44,21 @@ fail() {
 require_command() {
     command -v "$1" >/dev/null 2>&1 || fail "缺少命令：$1"
 }
+require_ai_safety_files() {
+    local base_dir="$1"
+    local scope_name="$2"
+
+    for file in "${AI_SAFETY_REQUIRED_FILES[@]}"; do
+        [ -e "${base_dir}/${file}" ] || fail "${scope_name} 缺少 AI 客服安全文件：${file}"
+    done
+}
 
 sync_php() {
     log "开始同步 PHP 项目到 ${LIVE_PHP_DIR}"
     [ -d "${SOURCE_PHP_DIR}" ] || fail "源码目录不存在：${SOURCE_PHP_DIR}"
     require_command rsync
     require_command docker
+    require_ai_safety_files "${SOURCE_PHP_DIR}" "源码目录"
 
     mkdir -p "${LIVE_PHP_DIR}"
 
@@ -54,6 +79,8 @@ sync_php() {
         --exclude 'composer.phar' \
         --exclude 'composer-setup.php' \
         "${SOURCE_PHP_DIR}/" "${LIVE_PHP_DIR}/"
+
+    require_ai_safety_files "${LIVE_PHP_DIR}" "线上 PHP 目录"
 
     log "确保容器内工具完整"
     docker exec "${PHP_CONTAINER}" bash -c "apt-get update -qq && apt-get install -y -qq zip git 2>&1" || log "工具安装失败，跳过"

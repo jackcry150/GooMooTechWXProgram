@@ -1,0 +1,45 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta content="width=device-width,initial-scale=1" name="viewport"/>
+    <link href="/static/h-ui/css/H-ui.min.css" rel="stylesheet" type="text/css"/>
+    <link href="/static/h-ui.admin/css/H-ui.admin.css" rel="stylesheet" type="text/css"/>
+    <link href="/static/Hui-iconfont/1.0.8/iconfont.css" rel="stylesheet" type="text/css"/>
+    <title>敏感词管理</title>
+</head>
+<body>
+<nav class="breadcrumb"><i class="Hui-iconfont">&#xe67f;</i> 首页 <span class="c-gray en">&gt;</span> AI客服 <span class="c-gray en">&gt;</span> 敏感词管理 <a class="btn btn-success radius r" href="javascript:location.replace(location.href);" style="line-height:1.6em;margin-top:3px" title="刷新"><i class="Hui-iconfont">&#xe68f;</i></a></nav>
+<div class="page-container">
+    <div class="text-c">
+        <form action="" method="get">
+            <span class="select-box inline" style="width:130px;"><select class="select" name="app_code"><option value="">全部小程序</option>{foreach name="appCodeOptions" key="k" item="v"}<option value="{$k}" {if $app_code==$k}selected{/if}>{$v}</option>{/foreach}</select></span>
+            <input class="input-text" name="category" placeholder="分类" style="width:120px" type="text" value="{$category}">
+            <input class="input-text" name="keyword" placeholder="敏感词" style="width:160px" type="text" value="{$keyword}">
+            <span class="select-box inline" style="width:110px;"><select class="select" name="status"><option value="">全部状态</option><option value="1" {if condition="(string)$status === '1'"}selected{/if}>启用</option><option value="2" {if condition="(string)$status === '2'"}selected{/if}>停用</option></select></span>
+            <button class="btn btn-success radius" type="submit"><i class="Hui-iconfont">&#xe665;</i> 搜索</button>
+            <button class="btn btn-primary radius" onclick="show_html('新增敏感词','/adm/ai_safety/wordAdd')" type="button"><i class="Hui-iconfont">&#xe600;</i> 新增</button>
+        </form>
+    </div>
+    <div class="mt-10">
+        <table class="table table-border table-bordered table-hover table-bg">
+            <thead><tr class="text-c"><th>ID</th><th>小程序</th><th>敏感词</th><th>分类</th><th>等级</th><th>动作</th><th>状态</th><th>备注</th><th>更新时间</th><th>操作</th></tr></thead>
+            <tbody>
+            {foreach name="list" item="v"}
+            <tr class="text-c">
+                <td>{$v.id}</td><td>{$v.app_code}</td><td>{$v.word}</td><td>{$v.category}</td><td>{$v.level}</td><td>{$v.action}</td><td>{if $v.status==1}启用{else}停用{/if}</td><td class="text-l">{$v.remark}</td><td>{$v.updateTime|default=''}</td>
+                <td><a href="javascript:;" onclick="show_html('编辑敏感词','/adm/ai_safety/wordEdit?id={$v.id}')">编辑</a> | {if $v.status==1}<a href="javascript:;" onclick="setStatus({$v.id},2)">停用</a>{else}<a href="javascript:;" onclick="setStatus({$v.id},1)">启用</a>{/if} | <a href="javascript:;" onclick="delWord({$v.id})">删除</a></td>
+            </tr>
+            {/foreach}
+            </tbody>
+        </table>
+        <div class="page-bootstrap">{$page|raw}</div>
+    </div>
+</div>
+<script src="/static/js/jquery.min.js"></script><script src="/static/layer/2.4/layer.js"></script><script src="/static/h-ui.admin/js/H-ui.admin.js"></script>
+<script>
+function setStatus(id, status){ $.post('/adm/ai_safety/wordStatus',{id:id,status:status},function(res){ layer.msg(res.msg || '完成',{time:1200},function(){location.reload();}); },'json'); }
+function delWord(id){ layer.confirm('确认删除该敏感词？',function(){ $.post('/adm/ai_safety/wordDelete',{id:id},function(res){ layer.msg(res.msg || '完成',{time:1200},function(){location.reload();}); },'json'); }); }
+</script>
+</body>
+</html>
