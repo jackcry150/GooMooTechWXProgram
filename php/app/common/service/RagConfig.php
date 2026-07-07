@@ -42,6 +42,8 @@ class RagConfig
             'embedding_timeout' => 20,
             'search_limit' => 6,
             'score_threshold' => 0.35,
+            'intent_reject_threshold' => 0.88,
+            'intent_handoff_threshold' => 0.80,
         ];
     }
 }

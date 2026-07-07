@@ -2,6 +2,7 @@
 
 namespace app\command;
 
+use app\common\service\AiIntentMatcher;
 use app\common\service\KnowledgeIndexer;
 use think\console\Command;
 use think\console\Input;
@@ -18,7 +19,8 @@ class RagSync extends Command
             ->addOption('products', null, Option::VALUE_NONE, 'Sync product sources')
             ->addOption('news', null, Option::VALUE_NONE, 'Sync news sources')
             ->addOption('all', null, Option::VALUE_NONE, 'Sync all business sources')
-            ->addOption('jobs', null, Option::VALUE_OPTIONAL, 'Run pending embedding jobs', 0);
+            ->addOption('jobs', null, Option::VALUE_OPTIONAL, 'Run pending embedding jobs', 0)
+            ->addOption('intents', null, Option::VALUE_OPTIONAL, 'Run pending semantic intent embeddings', 0);
     }
 
     protected function execute(Input $input, Output $output)
@@ -28,6 +30,7 @@ class RagSync extends Command
         $syncProducts = $syncAll || (bool) $input->getOption('products');
         $syncNews = $syncAll || (bool) $input->getOption('news');
         $jobLimit = intval($input->getOption('jobs'));
+        $intentLimit = intval($input->getOption('intents'));
 
         if ($syncProducts) {
             $count = 0;
@@ -61,8 +64,16 @@ class RagSync extends Command
             }
         }
 
-        if (!$syncProducts && !$syncNews && $jobLimit <= 0) {
-            $output->writeln('Nothing to do. Use --all, --products, --news, or --jobs=50.');
+        if ($intentLimit > 0) {
+            $result = (new AiIntentMatcher())->runPendingEmbeddings($intentLimit);
+            $output->writeln('intents processed: ' . intval($result['processed'] ?? 0) . ', failed: ' . intval($result['failed'] ?? 0));
+            if (empty($result['ok']) && !empty($result['error'])) {
+                $output->writeln('intents error: ' . $result['error']);
+            }
+        }
+
+        if (!$syncProducts && !$syncNews && $jobLimit <= 0 && $intentLimit <= 0) {
+            $output->writeln('Nothing to do. Use --all, --products, --news, --jobs=50, or --intents=50.');
         }
 
         return 0;

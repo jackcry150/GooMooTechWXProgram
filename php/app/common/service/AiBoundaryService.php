@@ -15,7 +15,10 @@ class AiBoundaryService
         $productId = intval($context['productId'] ?? 0);
         $orderId = intval($context['orderId'] ?? 0);
         $userId = intval($context['userId'] ?? 0);
-        $lowerQuestion = mb_strtolower($question, 'UTF-8');
+        $normalizer = new AiTextNormalizer();
+        $textViews = is_array($context['normalizedText'] ?? null)
+            ? $context['normalizedText']
+            : $normalizer->normalize($question);
 
         $rules = $this->loadRules($appCode);
         foreach ($rules as $rule) {
@@ -23,11 +26,25 @@ class AiBoundaryService
             if ($routeType === 'allow' || $routeType === 'clarify') {
                 continue;
             }
-            $matched = $this->matchRule($rule, $lowerQuestion);
+            $matched = $this->matchRule($rule, $textViews, $normalizer);
             if ($matched === null) {
                 continue;
             }
-            return $this->buildResult($routeType, (string) ($rule['taskType'] ?? ''), $matched, $scene, $productId, $orderId, $userId);
+            return $this->buildResult($routeType, (string) ($rule['taskType'] ?? ''), $matched['reason'], $scene, $productId, $orderId, $userId, $matched['matchedVia'] ?? '');
+        }
+
+        $semantic = $this->matchSemanticIntent($context['questionVector'] ?? [], $appCode);
+        if ($semantic !== null && !empty($semantic['finalRoute'])) {
+            return $this->buildResult(
+                (string) $semantic['finalRoute'],
+                (string) ($semantic['taskType'] ?? 'semantic_intent'),
+                (string) ($semantic['reason'] ?? ''),
+                $scene,
+                $productId,
+                $orderId,
+                $userId,
+                'semantic'
+            );
         }
 
         foreach ($rules as $rule) {
@@ -35,14 +52,14 @@ class AiBoundaryService
             if ($routeType !== 'clarify') {
                 continue;
             }
-            $matched = $this->matchRule($rule, $lowerQuestion);
+            $matched = $this->matchRule($rule, $textViews, $normalizer);
             if ($matched === null) {
                 continue;
             }
-            return $this->buildResult('clarify', (string) ($rule['taskType'] ?? ''), $matched, $scene, $productId, $orderId, $userId);
+            return $this->buildResult('clarify', (string) ($rule['taskType'] ?? ''), $matched['reason'], $scene, $productId, $orderId, $userId, $matched['matchedVia'] ?? '');
         }
 
-        if ($productId <= 0 && $orderId <= 0 && $this->isVagueQuestion($lowerQuestion)) {
+        if ($productId <= 0 && $orderId <= 0 && $this->isVagueQuestion((string) ($textViews['compact'] ?? ''))) {
             return $this->buildResult('clarify', 'missing_context', 'question is vague and has no product/order context', $scene, $productId, $orderId, $userId);
         }
 
@@ -51,11 +68,11 @@ class AiBoundaryService
             if ($routeType !== 'allow') {
                 continue;
             }
-            $matched = $this->matchRule($rule, $lowerQuestion);
+            $matched = $this->matchRule($rule, $textViews, $normalizer);
             if ($matched === null) {
                 continue;
             }
-            return $this->buildResult('allow', (string) ($rule['taskType'] ?? ''), $matched, $scene, $productId, $orderId, $userId);
+            return $this->buildResult('allow', (string) ($rule['taskType'] ?? ''), $matched['reason'], $scene, $productId, $orderId, $userId, $matched['matchedVia'] ?? '');
         }
 
         return $this->buildResult('allow', 'general_customer_service', 'no boundary rule matched', $scene, $productId, $orderId, $userId);
@@ -72,7 +89,7 @@ class AiBoundaryService
         }
         if ($finalRoute === 'handoff') {
             $summary = $this->buildFactSummary($knowledge);
-            return '这个问题需要人工客服进一步核实处理，AI客服不会承诺退款、赔偿或具体发货时间。' . ($summary !== '' ? "\n" . $summary : '');
+            return '这个问题需要人工客服进一步核实处理，AI客服只做事实整理，不作处理结果承诺。' . ($summary !== '' ? "\n" . $summary : '');
         }
 
         return '';
@@ -107,16 +124,93 @@ class AiBoundaryService
         return '事实摘要：' . implode('；', $lines);
     }
 
-    private function matchRule(array $rule, string $lowerQuestion): ?string
+    private function matchRule(array $rule, array $textViews, AiTextNormalizer $normalizer): ?array
     {
         $keywords = $this->splitKeywords($rule['keywords'] ?? []);
-        if (empty($keywords) || !$this->containsAny($lowerQuestion, $keywords)) {
+        if (empty($keywords)) {
             return null;
         }
-        return 'matched rule keywords: ' . implode(',', array_slice($keywords, 0, 5));
+
+        $routeType = strtolower((string) ($rule['routeType'] ?? 'allow'));
+        $aggressive = $routeType === 'reject';
+        foreach ($keywords as $keyword) {
+            $keywordViews = $normalizer->keywordViews($keyword);
+            $matchedVia = $this->matchKeywordViews($textViews, $keywordViews, $aggressive);
+            if ($matchedVia === '') {
+                continue;
+            }
+            return [
+                'reason' => 'matched rule keyword: ' . $keyword . ' via ' . $matchedVia,
+                'matchedVia' => $matchedVia,
+            ];
+        }
+        return null;
     }
 
-    private function buildResult(string $routeType, string $taskType, string $reason, string $scene, int $productId, int $orderId, int $userId): array
+    private function matchKeywordViews(array $textViews, array $keywordViews, bool $aggressive): string
+    {
+        $views = $aggressive ? ['raw', 'compact', 'canonical', 'pinyin', 'pinyinInitials'] : ['raw', 'compact'];
+        foreach ($views as $view) {
+            $content = (string) ($textViews[$view] ?? '');
+            $keyword = (string) ($keywordViews[$view] ?? '');
+            if ($keyword === '' || $content === '') {
+                continue;
+            }
+            if (($view === 'pinyin' || $view === 'pinyinInitials') && empty($keywordViews['pinyinComplete'])) {
+                continue;
+            }
+            if (($view === 'pinyin' || $view === 'pinyinInitials') && strlen($keyword) < 4) {
+                if ($content === $keyword) {
+                    return $view;
+                }
+                continue;
+            }
+            if (mb_strpos($content, $keyword, 0, 'UTF-8') !== false) {
+                return $view;
+            }
+        }
+        return '';
+    }
+
+    private function matchSemanticIntent($questionVector, string $appCode): ?array
+    {
+        if (!is_array($questionVector) || empty($questionVector)) {
+            return null;
+        }
+
+        try {
+            $match = (new AiIntentMatcher())->match($questionVector, $appCode);
+            if ($match === null) {
+                return null;
+            }
+            $config = RagConfig::load();
+            $rejectThreshold = floatval($config['intent_reject_threshold'] ?? 0.88);
+            $handoffThreshold = floatval($config['intent_handoff_threshold'] ?? 0.80);
+            $score = floatval($match['score'] ?? 0);
+            $routeType = strtolower((string) ($match['routeType'] ?? 'handoff'));
+            $finalRoute = '';
+            if ($routeType === 'reject' && $score >= $rejectThreshold) {
+                $finalRoute = 'reject';
+            } elseif ($score >= $handoffThreshold) {
+                $finalRoute = $routeType === 'reject' ? 'handoff' : $routeType;
+                if (!in_array($finalRoute, ['handoff', 'clarify'], true)) {
+                    $finalRoute = 'handoff';
+                }
+            }
+            if ($finalRoute === '') {
+                return null;
+            }
+            return [
+                'finalRoute' => $finalRoute,
+                'taskType' => (string) ($match['taskType'] ?? 'semantic_intent'),
+                'reason' => 'semantic_intent matched example "' . (string) ($match['exampleText'] ?? '') . '" score=' . $score . ' route=' . $routeType,
+            ];
+        } catch (Throwable $e) {
+            return null;
+        }
+    }
+
+    private function buildResult(string $routeType, string $taskType, string $reason, string $scene, int $productId, int $orderId, int $userId, string $matchedVia = ''): array
     {
         $routeType = strtolower(trim($routeType));
         if (!in_array($routeType, ['allow', 'handoff', 'reject', 'clarify'], true)) {
@@ -146,6 +240,7 @@ class AiBoundaryService
             'actionBoundary' => $actionBoundary,
             'finalRoute' => $routeType,
             'reason' => $reason,
+            'matchedVia' => $matchedVia,
         ];
     }
 
@@ -179,9 +274,11 @@ class AiBoundaryService
     private function defaultRules(): array
     {
         return [
-            ['routeType' => 'reject', 'taskType' => 'illegal_or_abuse', 'keywords' => '毒品,枪支,赌博,诈骗,洗钱,跑分,绕平台交易,私下交易,跳过平台,导出数据'],
-            ['routeType' => 'reject', 'taskType' => 'privacy_request', 'keywords' => '他人订单,别人订单,其他用户,手机号,完整地址,身份证,隐私,人肉,导出订单'],
-            ['routeType' => 'handoff', 'taskType' => 'refund_request', 'keywords' => '退款,退货,退定金,退尾款,refund,chargeback'],
+            ['routeType' => 'reject', 'taskType' => 'illegal_or_abuse', 'keywords' => '毒品,枪支,赌博,诈骗,洗钱,跑分,绕平台交易,私下交易,跳过平台,导出数据,导出全部,全部订单数据'],
+            ['routeType' => 'reject', 'taskType' => 'abusive_language', 'keywords' => '操你妈,草你妈,艹你妈,曹尼玛,你妈逼,妈逼,傻逼,煞笔,cnm,nmsl'],
+            ['routeType' => 'reject', 'taskType' => 'privacy_request', 'keywords' => '他人订单,别人订单,其他用户,手机号,完整地址,身份证,隐私,人肉,导出订单,订单数据,全部订单'],
+            ['routeType' => 'reject', 'taskType' => 'off_platform_trade', 'keywords' => '绕平台交易,私下交易,跳过平台,加微信直接买,微信直接买,平台外交易'],
+            ['routeType' => 'handoff', 'taskType' => 'refund_request', 'keywords' => '退款,退货,退定金,退一下,退一下定金,退尾款,退掉,能不能退,申请退,refund,chargeback'],
             ['routeType' => 'handoff', 'taskType' => 'complaint_or_compensation', 'keywords' => '投诉,赔偿,补偿,维权,仲裁,法务,律师,质量问题,破损,少件,错发'],
             ['routeType' => 'handoff', 'taskType' => 'shipping_commitment', 'keywords' => '承诺发货,保证发货,具体发货时间,必须发货,什么时候一定发,最晚什么时候发'],
             ['routeType' => 'handoff', 'taskType' => 'order_exception', 'keywords' => '订单异常,支付异常,扣款没订单,重复扣款,订单丢了,无法下单'],
@@ -229,7 +326,7 @@ class AiBoundaryService
         if (mb_strlen($text, 'UTF-8') <= 6 && $this->containsAny($text, ['这个', '这个商品', '这个订单', '怎么', '咋办', '怎么样', '啥情况', '咨询'])) {
             return true;
         }
-        return $this->containsAny($text, ['这个怎么样', '这个怎么弄', '这个能买吗', '这个啥情况', '帮我看看这个']);
+        return $this->containsAny($text, ['这个怎么样', '这个商品怎么样', '这个怎么弄', '这个订单怎么弄', '这个能买吗', '这个啥情况', '帮我看看这个']);
     }
 
     private function tableExists(string $name): bool

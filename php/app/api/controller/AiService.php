@@ -4,6 +4,9 @@ namespace app\api\controller;
 
 use app\common\service\AiSafetyService;
 use app\common\service\AiBoundaryService;
+use app\common\service\AiTextNormalizer;
+use app\common\service\EmbeddingClient;
+use app\common\service\RagConfig;
 use app\common\service\RagRetriever;
 use Exception;
 use think\facade\Db;
@@ -32,6 +35,8 @@ class AiService
             $appCode = normalize_app_code_value(Request::post('appCode', Request::header('X-App-Code', 'hasuki')));
             $ip = (string) Request::ip();
             $safety = new AiSafetyService();
+            $normalizer = new AiTextNormalizer();
+            $normalizedText = $normalizer->normalize($content);
             $boundaryTrace = [
                 'taskBoundary' => '',
                 'dataBoundary' => '',
@@ -91,6 +96,7 @@ class AiService
                     'reply' => $reply,
                     'checkStage' => 'input',
                     'hitWords' => $inputCheck['hitWords'] ?? [],
+                    'matchedVia' => $inputCheck['matchedVia'] ?? [],
                     'category' => $inputCheck['category'] ?? '',
                     'level' => intval($inputCheck['level'] ?? 0),
                     'action' => $inputCheck['action'] ?? 'block',
@@ -116,6 +122,7 @@ class AiService
             }
 
             $knowledge = $this->buildKnowledgeContext($scene, $productId, $orderId, $userId);
+            $questionVector = $this->buildQuestionVector($content);
             $boundaryService = new AiBoundaryService();
             $boundary = $boundaryService->route($content, [
                 'scene' => $scene,
@@ -123,6 +130,8 @@ class AiService
                 'orderId' => $orderId,
                 'userId' => $userId,
                 'app_code' => $appCode,
+                'normalizedText' => $normalizedText,
+                'questionVector' => $questionVector,
             ]);
             $boundaryTrace = [
                 'taskBoundary' => $boundary['taskBoundary'] ?? '',
@@ -130,6 +139,7 @@ class AiService
                 'actionBoundary' => $boundary['actionBoundary'] ?? '',
                 'finalRoute' => $boundary['finalRoute'] ?? 'allow',
                 'reason' => $boundary['reason'] ?? '',
+                'matchedVia' => $boundary['matchedVia'] ?? '',
             ];
             if (($boundaryTrace['finalRoute'] ?? 'allow') !== 'allow') {
                 $reply = $boundaryService->buildRouteReply($boundary, $knowledge);
@@ -156,6 +166,7 @@ class AiService
                     'actionBoundary' => $boundaryTrace['actionBoundary'],
                     'finalRoute' => $boundaryTrace['finalRoute'],
                     'routeReason' => $boundaryTrace['reason'],
+                    'matchedVia' => $boundaryTrace['matchedVia'],
                     'retrievalSourceIds' => [],
                     'retrievalContext' => [],
                 ]));
@@ -178,6 +189,7 @@ class AiService
                 'productId' => $productId,
                 'orderId' => $orderId,
                 'app_code' => $appCode,
+                'questionVector' => $questionVector,
             ]);
             $ragContexts = $ragResult['contexts'] ?? [];
             $retrievalSourceIds = $this->extractRetrievalSourceIds($ragContexts);
@@ -220,6 +232,7 @@ class AiService
                 'reply' => $reply,
                 'checkStage' => 'output',
                 'hitWords' => $outputCheck['hitWords'] ?? [],
+                'matchedVia' => $outputCheck['matchedVia'] ?? [],
                 'category' => $outputCheck['category'] ?? '',
                 'level' => intval($outputCheck['level'] ?? 0),
                 'action' => $outputCheck['action'] ?? 'allow',
@@ -229,6 +242,7 @@ class AiService
                 'actionBoundary' => $boundaryTrace['actionBoundary'],
                 'finalRoute' => $boundaryTrace['finalRoute'],
                 'routeReason' => $boundaryTrace['reason'],
+                'matchedVia' => $boundaryTrace['matchedVia'],
                 'retrievalSourceIds' => $retrievalSourceIds,
                 'retrievalContext' => $ragContexts,
             ]));
@@ -251,6 +265,19 @@ class AiService
         }
     }
 
+    private function buildQuestionVector(string $content): array
+    {
+        if (!RagConfig::enabled()) {
+            return [];
+        }
+        try {
+            $config = RagConfig::load();
+            $embed = (new EmbeddingClient($config))->embed($content);
+            return !empty($embed['ok']) && is_array($embed['embedding'] ?? null) ? $embed['embedding'] : [];
+        } catch (Exception $e) {
+            return [];
+        }
+    }
     private function extractRetrievalSourceIds($ragContexts)
     {
         $ids = [];

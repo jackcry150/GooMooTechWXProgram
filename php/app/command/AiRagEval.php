@@ -3,6 +3,9 @@
 namespace app\command;
 
 use app\common\service\AiBoundaryService;
+use app\common\service\AiIntentMatcher;
+use app\common\service\EmbeddingClient;
+use app\common\service\RagConfig;
 use app\common\service\RagRetriever;
 use think\console\Command;
 use think\console\Input;
@@ -48,12 +51,30 @@ class AiRagEval extends Command
         foreach ($cases as $case) {
             $query = (string) ($case['query'] ?? '');
             $scene = (string) ($case['scene'] ?? 'presale');
+            $appCode = (string) ($case['app_code'] ?? 'goomoo');
+            $requiresSemantic = !empty($case['requires_semantic']);
+            $questionVector = $requiresSemantic ? $this->buildQuestionVector($query) : [];
+            if ($requiresSemantic && (empty($questionVector) || !(new AiIntentMatcher())->hasUsableExamples($appCode))) {
+                $this->record($summary, 'route', 'SKIP');
+                $this->record($summary, 'retrieval', 'SKIP');
+                $this->record($summary, 'answer', 'SKIP');
+                $this->record($summary, 'citation', 'SKIP');
+                $output->writeln('case=' . (string) ($case['id'] ?? ''));
+                $output->writeln('route=SKIP expected=' . (string) ($case['expected_route'] ?? 'allow') . ' actual=semantic_unavailable');
+                $output->writeln('retrieval=SKIP missing=- sourceIds=-');
+                $output->writeln('answer=SKIP missing=-');
+                $output->writeln('citation=SKIP sources=0');
+                $output->writeln('');
+                continue;
+            }
+
             $route = $boundaryService->route($query, [
                 'scene' => $scene,
                 'productId' => intval($case['productId'] ?? 0),
                 'orderId' => intval($case['orderId'] ?? 0),
                 'userId' => intval($case['userId'] ?? 0),
-                'app_code' => (string) ($case['app_code'] ?? 'goomoo'),
+                'app_code' => $appCode,
+                'questionVector' => $questionVector,
             ]);
             $actualRoute = (string) ($route['finalRoute'] ?? 'allow');
             $expectedRoute = (string) ($case['expected_route'] ?? 'allow');
@@ -66,7 +87,8 @@ class AiRagEval extends Command
                     'scene' => $scene,
                     'productId' => intval($case['productId'] ?? 0),
                     'orderId' => intval($case['orderId'] ?? 0),
-                    'app_code' => (string) ($case['app_code'] ?? 'goomoo'),
+                    'app_code' => $appCode,
+                    'questionVector' => $questionVector,
                 ]);
                 $contexts = is_array($retrieval['contexts'] ?? null) ? $retrieval['contexts'] : [];
             }
@@ -112,6 +134,19 @@ class AiRagEval extends Command
         return $this->hasFailures($summary) ? 1 : 0;
     }
 
+
+    private function buildQuestionVector(string $query): array
+    {
+        if (!RagConfig::enabled()) {
+            return [];
+        }
+        try {
+            $embed = (new EmbeddingClient(RagConfig::load()))->embed($query);
+            return !empty($embed['ok']) && is_array($embed['embedding'] ?? null) ? $embed['embedding'] : [];
+        } catch (Throwable $e) {
+            return [];
+        }
+    }
     private function loadCases(): array
     {
         $file = dirname(__DIR__, 2) . DIRECTORY_SEPARATOR . 'database' . DIRECTORY_SEPARATOR . 'rag_eval_cases.json';

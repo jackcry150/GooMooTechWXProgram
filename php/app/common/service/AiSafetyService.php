@@ -43,6 +43,9 @@ class AiSafetyService
             return $this->allowResult($stage);
         }
 
+        $normalizer = new AiTextNormalizer();
+        $textViews = $normalizer->normalize($text);
+
         try {
             $words = Db::name('ai_sensitive_word')
                 ->where('status', 1)
@@ -55,21 +58,24 @@ class AiSafetyService
         }
 
         $hitWords = [];
+        $matchedVia = [];
         $categories = [];
         $level = 0;
         $action = 'allow';
         foreach ($words as $row) {
             $word = trim((string) ($row['word'] ?? ''));
-            if ($word === '' || mb_stripos($text, $word, 0, 'UTF-8') === false) {
+            $rowLevel = intval($row['level'] ?? 1);
+            $rowAction = strtolower(trim((string) ($row['action'] ?? 'block')));
+            $via = $this->matchSensitiveWord($textViews, $normalizer->keywordViews($word), $rowLevel >= 2 || $rowAction === 'block');
+            if ($word === '' || $via === '') {
                 continue;
             }
             $hitWords[] = $word;
+            $matchedVia[] = $word . ':' . $via;
             $category = trim((string) ($row['category'] ?? ''));
             if ($category !== '') {
                 $categories[] = $category;
             }
-            $rowLevel = intval($row['level'] ?? 1);
-            $rowAction = strtolower(trim((string) ($row['action'] ?? 'block')));
             $level = max($level, $rowLevel);
             if ($rowLevel >= 2 || $rowAction === 'block') {
                 $action = 'block';
@@ -79,6 +85,7 @@ class AiSafetyService
         }
 
         $hitWords = array_values(array_unique($hitWords));
+        $matchedVia = array_values(array_unique($matchedVia));
         $categories = array_values(array_unique($categories));
         if (empty($hitWords)) {
             return $this->allowResult($stage);
@@ -90,6 +97,7 @@ class AiSafetyService
             'action' => $action,
             'finalAction' => $action,
             'hitWords' => $hitWords,
+            'matchedVia' => $matchedVia,
             'category' => implode(',', $categories),
             'level' => $level,
             'safeReply' => $this->getSafeReply($action),
@@ -129,6 +137,7 @@ class AiSafetyService
                 'finalRoute' => mb_substr((string) ($payload['finalRoute'] ?? ''), 0, 20, 'UTF-8'),
                 'routeReason' => mb_substr((string) ($payload['routeReason'] ?? ''), 0, 500, 'UTF-8'),
                 'reviewStatus' => intval($payload['reviewStatus'] ?? 0),
+                'matchedVia' => mb_substr($this->joinValue($payload['matchedVia'] ?? ''), 0, 500, 'UTF-8'),
             ];
             foreach ($optionalColumns as $column => $value) {
                 if ($this->tableHasColumn('ai_safety_log', $column)) {
@@ -181,6 +190,31 @@ class AiSafetyService
         return $result;
     }
 
+    private function matchSensitiveWord(array $textViews, array $keywordViews, bool $aggressive): string
+    {
+        $views = $aggressive ? ['raw', 'compact', 'canonical', 'pinyin', 'pinyinInitials'] : ['raw', 'compact'];
+        foreach ($views as $view) {
+            $content = (string) ($textViews[$view] ?? '');
+            $keyword = (string) ($keywordViews[$view] ?? '');
+            if ($keyword === '' || $content === '') {
+                continue;
+            }
+            if (($view === 'pinyin' || $view === 'pinyinInitials') && empty($keywordViews['pinyinComplete'])) {
+                continue;
+            }
+            if (($view === 'pinyin' || $view === 'pinyinInitials') && strlen($keyword) < 4) {
+                if ($content === $keyword) {
+                    return $view;
+                }
+                continue;
+            }
+            if (mb_strpos($content, $keyword, 0, 'UTF-8') !== false) {
+                return $view;
+            }
+        }
+        return '';
+    }
+
     private function allowResult(string $stage): array
     {
         return [
@@ -189,6 +223,7 @@ class AiSafetyService
             'action' => 'allow',
             'finalAction' => 'allow',
             'hitWords' => [],
+            'matchedVia' => [],
             'category' => '',
             'level' => 0,
             'safeReply' => '',

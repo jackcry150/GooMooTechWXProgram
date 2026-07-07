@@ -15,14 +15,18 @@ class RagRetriever
 
         try {
             $config = RagConfig::load();
-            $embed = (new EmbeddingClient($config))->embed($question);
-            if (!$embed['ok']) {
-                return ['enabled' => true, 'contexts' => [], 'error' => $embed['error']];
+            $questionVector = is_array($options['questionVector'] ?? null) ? $options['questionVector'] : [];
+            if (empty($questionVector)) {
+                $embed = (new EmbeddingClient($config))->embed($question);
+                if (!$embed['ok']) {
+                    return ['enabled' => true, 'contexts' => [], 'error' => $embed['error']];
+                }
+                $questionVector = $embed['embedding'];
             }
 
             $filter = $this->buildFilter($options);
             $search = (new QdrantClient($config))->search(
-                $embed['embedding'],
+                $questionVector,
                 $filter,
                 intval($config['search_limit'] ?? 6),
                 floatval($config['score_threshold'] ?? 0.35)

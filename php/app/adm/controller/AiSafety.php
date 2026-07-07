@@ -2,6 +2,7 @@
 
 namespace app\adm\controller;
 
+use app\common\service\AiIntentMatcher;
 use think\facade\Db;
 use think\facade\Request;
 use think\facade\Session;
@@ -201,6 +202,64 @@ class AiSafety
         }
         $res = Db::name('ai_safety_log')->where('id', $id)->update(['reviewStatus' => $status]);
         return json(['code' => $res === false ? 0 : 1, 'msg' => $res === false ? '标记失败' : '标记成功']);
+    }
+
+    public function logIntentExample()
+    {
+        if (!$this->tableExists('ai_intent_example')) {
+            return json(['code' => 0, 'msg' => '意图示例表尚未初始化，请先执行数据库 patch']);
+        }
+        $id = intval(Request::post('id', 0));
+        $routeType = $this->normalizeRouteType(Request::post('routeType', 'handoff'));
+        $taskType = trim((string) Request::post('taskType', ''));
+        if ($id <= 0 || $taskType === '') {
+            return json(['code' => 0, 'msg' => '参数错误']);
+        }
+        $log = Db::name('ai_safety_log')->where('id', $id)->find();
+        $question = trim((string) ($log['question'] ?? ''));
+        if (!$log || $question === '') {
+            return json(['code' => 0, 'msg' => '日志问题为空']);
+        }
+        $exists = Db::name('ai_intent_example')
+            ->where('app_code', normalize_app_code_value($log['app_code'] ?? 'common'))
+            ->where('routeType', $routeType)
+            ->where('taskType', $taskType)
+            ->where('text', $question)
+            ->find();
+        if ($exists) {
+            $exampleId = intval($exists['id']);
+        } else {
+            $exampleId = Db::name('ai_intent_example')->insertGetId([
+                'app_code' => normalize_app_code_value($log['app_code'] ?? 'common'),
+                'routeType' => $routeType,
+                'taskType' => $taskType,
+                'text' => $question,
+                'embeddingStatus' => 0,
+                'status' => 1,
+                'sort' => 100,
+                'createTime' => date('Y-m-d H:i:s'),
+                'updateTime' => date('Y-m-d H:i:s'),
+            ]);
+        }
+        $embed = (new AiIntentMatcher())->embedAndSave($exampleId);
+        Db::name('ai_safety_log')->where('id', $id)->update(['reviewStatus' => 3]);
+        return json(['code' => 1, 'msg' => !empty($embed['ok']) ? '已加入意图库并生成向量' : ('已加入意图库，向量待补：' . ($embed['error'] ?? 'embedding failed'))]);
+    }
+
+    private function normalizeRouteType($routeType): string
+    {
+        $routeType = strtolower(trim((string) $routeType));
+        return in_array($routeType, ['reject', 'handoff', 'clarify'], true) ? $routeType : 'handoff';
+    }
+
+    private function tableExists(string $table): bool
+    {
+        try {
+            Db::name($table)->limit(1)->select();
+            return true;
+        } catch (\Throwable $e) {
+            return false;
+        }
     }
 
     private function reviewStatusMap(): array

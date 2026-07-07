@@ -29,7 +29,7 @@
     <div class="mt-10">
         <table class="table table-border table-bordered table-hover table-bg">
             <thead><tr class="text-c"><th>ID</th><th>时间</th><th>小程序</th><th>用户</th><th>场景</th><th>阶段</th><th>动作</th>{if $hasBoundaryTrace}<th>路由</th><th>边界</th>{/if}<th>命中词</th><th>分类</th><th>问题</th><th>回复</th><th>来源</th>{if $hasReviewStatus}<th>复盘</th>{/if}</tr></thead>
-            <tbody>{foreach name="list" item="v"}<tr class="text-c"><td>{$v.id}</td><td>{$v.createTime}</td><td>{$v.app_code}</td><td>{$v.userId}</td><td>{$v.scene}</td><td>{$v.checkStage}</td><td>{$v.finalAction}</td>{if $hasBoundaryTrace}<td>{$v.finalRoute|default=''}</td><td class="text-l">{$v.taskBoundary|default=''}<br>{$v.dataBoundary|default=''}<br>{$v.actionBoundary|default=''}<br><span class="c-999">{$v.routeReason|default=''}</span></td>{/if}<td>{$v.hitWords}</td><td>{$v.category}</td><td class="text-l">{$v.question}</td><td class="text-l">{$v.reply}</td><td>{$v.retrievalSourceIds}</td>{if $hasReviewStatus}<td><span id="review-{$v.id}">{$v.reviewStatusText|default='未复盘'}</span><br><a href="javascript:;" onclick="markReview({$v.id},1)">误杀</a> | <a href="javascript:;" onclick="markReview({$v.id},2)">漏拦截</a> | <a href="javascript:;" onclick="markReview({$v.id},3)">已补词</a> | <a href="javascript:;" onclick="markReview({$v.id},4)">已转人工</a></td>{/if}</tr>{/foreach}</tbody>
+            <tbody>{foreach name="list" item="v"}<tr class="text-c"><td>{$v.id}</td><td>{$v.createTime}</td><td>{$v.app_code}</td><td>{$v.userId}</td><td>{$v.scene}</td><td>{$v.checkStage}</td><td>{$v.finalAction}</td>{if $hasBoundaryTrace}<td>{$v.finalRoute|default=''}</td><td class="text-l">{$v.taskBoundary|default=''}<br>{$v.dataBoundary|default=''}<br>{$v.actionBoundary|default=''}<br><span class="c-999">{$v.routeReason|default=''}</span></td>{/if}<td>{$v.hitWords}</td><td>{$v.category}</td><td class="text-l">{$v.question}</td><td class="text-l">{$v.reply}</td><td>{$v.retrievalSourceIds}</td>{if $hasReviewStatus}<td><span id="review-{$v.id}">{$v.reviewStatusText|default='未复盘'}</span><br><a href="javascript:;" onclick="markReview({$v.id},1)">误杀</a> | <a href="javascript:;" onclick="markReview({$v.id},2)">漏拦截</a> | <a href="javascript:;" onclick="markReview({$v.id},3)">已补词</a> | <a href="javascript:;" onclick="addIntent({$v.id})">入意图库</a> | <a href="javascript:;" onclick="markReview({$v.id},4)">已转人工</a></td>{/if}</tr>{/foreach}</tbody>
         </table>
         <div class="page-bootstrap">{$page|raw}</div>
     </div>
@@ -41,5 +41,14 @@ function markReview(id, status) {
         layer.msg(res.msg || '完成', {time: 1000}, function () { if (res.code === 1) location.reload(); });
     }, 'json');
 }
-</script>
+function addIntent(id) {
+    layer.prompt({title: '输入 routeType,taskType，例如 reject,privacy_request', formType: 0, value: 'handoff,refund_request'}, function (text, index) {
+        var parts = (text || '').split(',');
+        if (parts.length < 2) { layer.msg('格式：routeType,taskType'); return; }
+        layer.close(index);
+        $.post('/adm/ai_safety/logIntentExample', {id: id, routeType: $.trim(parts[0]), taskType: $.trim(parts[1])}, function (res) {
+            layer.msg(res.msg || '完成', {time: 1600}, function () { if (res.code === 1) location.reload(); });
+        }, 'json');
+    });
+}</script>
 </body></html>
