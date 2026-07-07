@@ -36,9 +36,9 @@ jobs:
             changed_files="$(git diff --name-only "${{ github.event.before }}" "${{ github.sha }}")"
           fi
 
-
           php_changed=0
           nginx_changed=0
+          deploy_changed=0
 
           while IFS= read -r file; do
             [ -z "${file}" ] && continue
@@ -49,18 +49,22 @@ jobs:
               nginx/default.conf)
                 nginx_changed=1
                 ;;
+              deploy/*|.github/workflows/backend-deploy.yml)
+                deploy_changed=1
+                ;;
             esac
           done <<< "${changed_files}"
 
           echo "php_changed=${php_changed}" >> "${GITHUB_OUTPUT}"
           echo "nginx_changed=${nginx_changed}" >> "${GITHUB_OUTPUT}"
+          echo "deploy_changed=${deploy_changed}" >> "${GITHUB_OUTPUT}"
 
       - name: Skip when no server-side changes
-        if: steps.changes.outputs.php_changed == '0' && steps.changes.outputs.nginx_changed == '0'
-        run: echo "No backend or nginx changes detected, skip deploy."
+        if: steps.changes.outputs.php_changed == '0' && steps.changes.outputs.nginx_changed == '0' && steps.changes.outputs.deploy_changed == '0'
+        run: echo "No backend, nginx, or deploy-script changes detected, skip deploy."
 
       - name: Prepare SSH
-        if: steps.changes.outputs.php_changed == '1' || steps.changes.outputs.nginx_changed == '1'
+        if: steps.changes.outputs.php_changed == '1' || steps.changes.outputs.nginx_changed == '1' || steps.changes.outputs.deploy_changed == '1'
         shell: bash
         env:
           DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
@@ -75,7 +79,7 @@ jobs:
           ssh-keyscan -p "${DEPLOY_PORT:-22}" -H "${DEPLOY_HOST}" >> ~/.ssh/known_hosts 2>/dev/null
 
       - name: Deploy to server
-        if: steps.changes.outputs.php_changed == '1' || steps.changes.outputs.nginx_changed == '1'
+        if: steps.changes.outputs.php_changed == '1' || steps.changes.outputs.nginx_changed == '1' || steps.changes.outputs.deploy_changed == '1'
         shell: bash
         env:
           DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
@@ -90,6 +94,12 @@ jobs:
           ssh -p "${DEPLOY_PORT:-22}" "${DEPLOY_USER}@${DEPLOY_HOST}" "
             set -euo pipefail
             cd '${DEPLOY_REPO_PATH}'
+            if ! git diff --quiet -- deploy/deploy.sh || ! git diff --cached --quiet -- deploy/deploy.sh; then
+              mkdir -p /root/backups/goomootech/deploy
+              backup_file=\"/root/backups/goomootech/deploy/deploy.sh.\$(date +%Y%m%d%H%M%S).github-actions-bak\"
+              cp deploy/deploy.sh \"\${backup_file}\"
+              git stash push -m \"github-actions backup deploy.sh \$(date +%Y%m%d%H%M%S)\" -- deploy/deploy.sh || true
+            fi
             git fetch origin '${BRANCH_NAME}'
             git checkout '${BRANCH_NAME}'
             git pull --ff-only origin '${BRANCH_NAME}'
