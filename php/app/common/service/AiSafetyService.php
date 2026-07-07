@@ -122,6 +122,19 @@ class AiSafetyService
                 'retrievalContext' => $this->encodeContext($payload['retrievalContext'] ?? ''),
                 'createTime' => date('Y-m-d H:i:s'),
             ];
+            $optionalColumns = [
+                'taskBoundary' => mb_substr((string) ($payload['taskBoundary'] ?? ''), 0, 50, 'UTF-8'),
+                'dataBoundary' => mb_substr((string) ($payload['dataBoundary'] ?? ''), 0, 50, 'UTF-8'),
+                'actionBoundary' => mb_substr((string) ($payload['actionBoundary'] ?? ''), 0, 50, 'UTF-8'),
+                'finalRoute' => mb_substr((string) ($payload['finalRoute'] ?? ''), 0, 20, 'UTF-8'),
+                'routeReason' => mb_substr((string) ($payload['routeReason'] ?? ''), 0, 500, 'UTF-8'),
+                'reviewStatus' => intval($payload['reviewStatus'] ?? 0),
+            ];
+            foreach ($optionalColumns as $column => $value) {
+                if ($this->tableHasColumn('ai_safety_log', $column)) {
+                    $data[$column] = $value;
+                }
+            }
             Db::name('ai_safety_log')->insert($data);
         } catch (Throwable $e) {
         }
@@ -202,6 +215,23 @@ class AiSafetyService
             return true;
         } catch (Throwable $e) {
             $cache[$name] = false;
+            return false;
+        }
+    }
+
+    private function tableHasColumn(string $table, string $column): bool
+    {
+        if (function_exists('table_has_column')) {
+            return table_has_column($table, $column);
+        }
+
+        try {
+            $table = preg_replace('/[^a-zA-Z0-9_]/', '', $table);
+            $column = preg_replace('/[^a-zA-Z0-9_]/', '', $column);
+            $tableName = Db::getConfig('prefix') . $table;
+            $result = Db::query('SHOW COLUMNS FROM `' . $tableName . '` LIKE ?', [$column]);
+            return !empty($result);
+        } catch (Throwable $e) {
             return false;
         }
     }

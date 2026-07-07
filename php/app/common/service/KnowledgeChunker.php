@@ -4,10 +4,11 @@ namespace app\common\service;
 
 class KnowledgeChunker
 {
-    public function chunk(string $title, string $content, int $maxChars = 650, int $overlapChars = 80): array
+    public function chunk(string $title, string $content, int $maxChars = 650, int $overlapChars = 80, string $aliases = ''): array
     {
         $title = trim(strip_tags($title));
         $text = $this->normalize($content);
+        $aliasText = $this->normalize($aliases);
         if ($text === '') {
             return [];
         }
@@ -24,7 +25,7 @@ class KnowledgeChunker
             if ($slice !== '') {
                 $chunks[] = [
                     'title' => $title,
-                    'content' => $title === '' ? $slice : ('标题：' . $title . "\n内容：" . $slice),
+                    'content' => $this->buildChunkContent($title, $aliasText, $slice),
                 ];
             }
             $offset += $maxChars - $overlapChars;
@@ -33,6 +34,18 @@ class KnowledgeChunker
         return $chunks;
     }
 
+    private function buildChunkContent(string $title, string $aliases, string $slice): string
+    {
+        $parts = [];
+        if ($title !== '') {
+            $parts[] = '标题：' . $title;
+        }
+        if ($aliases !== '') {
+            $parts[] = '别名：' . $aliases;
+        }
+        $parts[] = '内容：' . $slice;
+        return implode("\n", $parts);
+    }
     private function normalize(string $content): string
     {
         $content = html_entity_decode(strip_tags($content), ENT_QUOTES | ENT_HTML5, 'UTF-8');

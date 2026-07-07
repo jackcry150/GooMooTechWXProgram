@@ -3,6 +3,7 @@
 namespace app\api\controller;
 
 use app\common\service\AiSafetyService;
+use app\common\service\AiBoundaryService;
 use app\common\service\RagRetriever;
 use Exception;
 use think\facade\Db;
@@ -31,6 +32,13 @@ class AiService
             $appCode = normalize_app_code_value(Request::post('appCode', Request::header('X-App-Code', 'hasuki')));
             $ip = (string) Request::ip();
             $safety = new AiSafetyService();
+            $boundaryTrace = [
+                'taskBoundary' => '',
+                'dataBoundary' => '',
+                'actionBoundary' => '',
+                'finalRoute' => '',
+                'reason' => '',
+            ];
 
             if ($content === '') {
                 $data['msg'] = 'content required';
@@ -55,6 +63,11 @@ class AiService
                     'checkStage' => 'rate_limit',
                     'action' => 'rate_limit',
                     'finalAction' => 'rate_limit',
+                    'taskBoundary' => 'rate_limit',
+                    'dataBoundary' => 'not_evaluated',
+                    'actionBoundary' => 'rate_limit',
+                    'finalRoute' => 'reject',
+                    'routeReason' => 'rate limit exceeded',
                 ]));
                 $data['code'] = 429;
                 $data['msg'] = '提问过于频繁，请稍后再试';
@@ -65,6 +78,7 @@ class AiService
                     'orderId' => $orderId,
                     'needTransfer' => 0,
                     'sessionId' => 0,
+                    'finalRoute' => 'reject',
                 ];
                 return json($data);
             }
@@ -81,6 +95,11 @@ class AiService
                     'level' => intval($inputCheck['level'] ?? 0),
                     'action' => $inputCheck['action'] ?? 'block',
                     'finalAction' => $inputCheck['finalAction'] ?? ($inputCheck['action'] ?? 'block'),
+                    'taskBoundary' => 'sensitive_input',
+                    'dataBoundary' => 'blocked_by_input_filter',
+                    'actionBoundary' => 'safe_reply',
+                    'finalRoute' => ($inputCheck['action'] ?? '') === 'transfer' ? 'handoff' : 'reject',
+                    'routeReason' => 'sensitive word input check',
                 ]));
                 $data['code'] = 200;
                 $data['msg'] = 'success';
@@ -91,11 +110,69 @@ class AiService
                     'orderId' => $orderId,
                     'needTransfer' => $needTransfer,
                     'sessionId' => 0,
+                    'finalRoute' => ($inputCheck['action'] ?? '') === 'transfer' ? 'handoff' : 'reject',
                 ];
                 return json($data);
             }
 
             $knowledge = $this->buildKnowledgeContext($scene, $productId, $orderId, $userId);
+            $boundaryService = new AiBoundaryService();
+            $boundary = $boundaryService->route($content, [
+                'scene' => $scene,
+                'productId' => $productId,
+                'orderId' => $orderId,
+                'userId' => $userId,
+                'app_code' => $appCode,
+            ]);
+            $boundaryTrace = [
+                'taskBoundary' => $boundary['taskBoundary'] ?? '',
+                'dataBoundary' => $boundary['dataBoundary'] ?? '',
+                'actionBoundary' => $boundary['actionBoundary'] ?? '',
+                'finalRoute' => $boundary['finalRoute'] ?? 'allow',
+                'reason' => $boundary['reason'] ?? '',
+            ];
+            if (($boundaryTrace['finalRoute'] ?? 'allow') !== 'allow') {
+                $reply = $boundaryService->buildRouteReply($boundary, $knowledge);
+                $needTransfer = ($boundaryTrace['finalRoute'] === 'handoff') ? 1 : 0;
+                $sessionId = $this->persistConversation([
+                    'userId' => $userId,
+                    'scene' => $scene,
+                    'sourcePage' => $sourcePage,
+                    'productId' => $productId,
+                    'orderId' => $orderId,
+                    'question' => $content,
+                    'reply' => $reply,
+                    'needTransfer' => $needTransfer,
+                    'ragContexts' => [],
+                ]);
+                $safety->log(array_merge($baseSafetyPayload, [
+                    'sessionId' => $sessionId,
+                    'reply' => $reply,
+                    'checkStage' => 'boundary',
+                    'action' => $boundaryTrace['finalRoute'],
+                    'finalAction' => $boundaryTrace['finalRoute'],
+                    'taskBoundary' => $boundaryTrace['taskBoundary'],
+                    'dataBoundary' => $boundaryTrace['dataBoundary'],
+                    'actionBoundary' => $boundaryTrace['actionBoundary'],
+                    'finalRoute' => $boundaryTrace['finalRoute'],
+                    'routeReason' => $boundaryTrace['reason'],
+                    'retrievalSourceIds' => [],
+                    'retrievalContext' => [],
+                ]));
+                $data['code'] = 200;
+                $data['msg'] = 'success';
+                $data['data'] = [
+                    'reply' => $reply,
+                    'scene' => $scene,
+                    'productId' => $productId,
+                    'orderId' => $orderId,
+                    'needTransfer' => $needTransfer,
+                    'sessionId' => $sessionId,
+                    'finalRoute' => $boundaryTrace['finalRoute'],
+                ];
+                return json($data);
+            }
+
             $ragResult = (new RagRetriever())->retrieve($content, [
                 'scene' => $scene,
                 'productId' => $productId,
@@ -110,9 +187,14 @@ class AiService
                 : $this->buildPresaleReply($content, $knowledge);
             $needTransfer = $this->shouldSuggestTransfer($content) ? 1 : 0;
 
-            $reply = $this->requestCloudReply($scene, $content, $knowledge, $needTransfer);
-            if (!$reply) {
-                $reply = $fallbackReply;
+            if (empty($ragContexts) && empty($knowledge['product']) && empty($knowledge['order'])) {
+                $reply = '当前没有足够的商品资料，建议从商品详情页进入咨询或转人工客服';
+                $needTransfer = 1;
+            } else {
+                $reply = $this->requestCloudReply($scene, $content, $knowledge, $needTransfer);
+                if (!$reply) {
+                    $reply = $fallbackReply;
+                }
             }
 
             $outputCheck = $safety->checkText($reply, $appCode, 'output');
@@ -142,6 +224,11 @@ class AiService
                 'level' => intval($outputCheck['level'] ?? 0),
                 'action' => $outputCheck['action'] ?? 'allow',
                 'finalAction' => empty($outputCheck['ok']) ? ($outputCheck['finalAction'] ?? ($outputCheck['action'] ?? 'block')) : 'allow',
+                'taskBoundary' => $boundaryTrace['taskBoundary'],
+                'dataBoundary' => $boundaryTrace['dataBoundary'],
+                'actionBoundary' => $boundaryTrace['actionBoundary'],
+                'finalRoute' => $boundaryTrace['finalRoute'],
+                'routeReason' => $boundaryTrace['reason'],
                 'retrievalSourceIds' => $retrievalSourceIds,
                 'retrievalContext' => $ragContexts,
             ]));
@@ -155,6 +242,7 @@ class AiService
                 'orderId' => $orderId,
                 'needTransfer' => $needTransfer,
                 'sessionId' => $sessionId,
+                'finalRoute' => $boundaryTrace['finalRoute'],
             ];
             return json($data);
         } catch (Exception $e) {
@@ -229,6 +317,7 @@ class AiService
             'You are the customer service assistant for JuMao mini app.',
             'Only answer from the provided retrieved knowledge, product facts, order facts, settings, and policy articles.',
             'Do not invent product, order, refund, logistics, or platform policy details.',
+            'Do not promise refunds, compensation, or exact shipping times; summarize facts and suggest human support for those actions.',
             'If retrieved knowledge is weak or missing, say the current information is insufficient and suggest human support.',
             'If the issue involves compensation, complaints, quality disputes, law, special refunds, or manual review, advise transfer to human support.',
             'Keep the answer concise, polite, and natural.',

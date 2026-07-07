@@ -54,6 +54,7 @@ class AiKnowledge
         View::assign('sourceType', $sourceType);
         View::assign('reviewStatus', $reviewStatus);
         View::assign('hasReview', $hasReview);
+        View::assign('hasAliases', $this->aliasesSupported());
         View::assign('reviewStatusMap', $this->reviewStatusMap());
         return View::fetch();
     }
@@ -64,6 +65,7 @@ class AiKnowledge
             $post = Request::post();
             $title = trim((string) ($post['title'] ?? ''));
             $content = trim((string) ($post['content'] ?? ''));
+            $aliases = trim((string) ($post['aliases'] ?? ''));
             if ($title === '' || $content === '') {
                 return json(['code' => 0, 'msg' => '标题和内容不能为空']);
             }
@@ -76,8 +78,11 @@ class AiKnowledge
                 'title' => $title,
                 'content' => $content,
                 'status' => intval($post['status'] ?? 1),
-                'contentHash' => hash('sha256', $title . "\n" . $content),
+                'contentHash' => hash('sha256', $title . "\n" . $aliases . "\n" . $content),
             ];
+            if ($this->aliasesSupported()) {
+                $insert['aliases'] = $aliases;
+            }
             if ($this->reviewSupported()) {
                 $insert['reviewStatus'] = 1;
                 $insert['reviewerId'] = 0;
@@ -93,6 +98,7 @@ class AiKnowledge
 
         View::assign('appCodeOptions', app_code_options());
         View::assign('selectedAppCode', 'goomoo');
+        View::assign('hasAliases', $this->aliasesSupported());
         return View::fetch();
     }
 
@@ -108,11 +114,12 @@ class AiKnowledge
 
             $title = trim((string) ($post['title'] ?? ''));
             $content = trim((string) ($post['content'] ?? ''));
+            $aliases = trim((string) ($post['aliases'] ?? ''));
             if ($title === '' || $content === '') {
                 return json(['code' => 0, 'msg' => '标题和内容不能为空']);
             }
 
-            $contentHash = hash('sha256', $title . "\n" . $content);
+            $contentHash = hash('sha256', $title . "\n" . $aliases . "\n" . $content);
             $update = [
                 'app_code' => normalize_app_code_value($post['app_code'] ?? 'goomoo'),
                 'title' => $title,
@@ -120,6 +127,9 @@ class AiKnowledge
                 'status' => intval($post['status'] ?? 1),
                 'contentHash' => $contentHash,
             ];
+            if ($this->aliasesSupported()) {
+                $update['aliases'] = $aliases;
+            }
             if ($this->reviewSupported() && $contentHash !== (string) ($info['contentHash'] ?? '')) {
                 $update['reviewStatus'] = 1;
                 $update['reviewerId'] = 0;
@@ -140,6 +150,7 @@ class AiKnowledge
         View::assign('info', $info);
         View::assign('appCodeOptions', app_code_options());
         View::assign('selectedAppCode', normalize_app_code_value($info['app_code'] ?? 'goomoo'));
+        View::assign('hasAliases', $this->aliasesSupported());
         return View::fetch();
     }
 
@@ -237,6 +248,11 @@ class AiKnowledge
     private function reviewSupported(): bool
     {
         return function_exists('table_has_column') && table_has_column('ai_knowledge_source', 'reviewStatus');
+    }
+
+    private function aliasesSupported(): bool
+    {
+        return function_exists('table_has_column') && table_has_column('ai_knowledge_source', 'aliases');
     }
 
     private function reviewStatusMap(): array

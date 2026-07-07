@@ -17,7 +17,7 @@ class KnowledgeIndexer
         $appCode = $this->normalizeAppCode($product['app_code'] ?? 'goomoo');
         $title = trim(($product['subtitle'] ?? '') . ' ' . ($product['title'] ?? ''));
         $content = $this->buildProductContent($product);
-        return $this->upsertSource('product', $productId, $appCode, $title, $content, intval($product['status'] ?? 1) === 1 ? 1 : 2);
+        return $this->upsertSource('product', $productId, $appCode, $title, $content, intval($product['status'] ?? 1) === 1 ? 1 : 2, '');
     }
 
     public function syncNews(int $newsId): array
@@ -28,7 +28,7 @@ class KnowledgeIndexer
         }
 
         $appCode = $this->normalizeAppCode($news['app_code'] ?? 'goomoo');
-        return $this->upsertSource('news', $newsId, $appCode, (string) ($news['title'] ?? ''), (string) ($news['content'] ?? ''), 1);
+        return $this->upsertSource('news', $newsId, $appCode, (string) ($news['title'] ?? ''), (string) ($news['content'] ?? ''), 1, '');
     }
 
     public function syncManualSource(int $sourceId): array
@@ -141,9 +141,9 @@ class KnowledgeIndexer
         return ['ok' => true, 'processed' => $processed, 'failed' => $failed, 'error' => ''];
     }
 
-    private function upsertSource(string $type, int $originId, string $appCode, string $title, string $content, int $status): array
+    private function upsertSource(string $type, int $originId, string $appCode, string $title, string $content, int $status, string $aliases = ''): array
     {
-        $contentHash = hash('sha256', $title . "\n" . $content . "\n" . $status);
+        $contentHash = hash('sha256', $title . "\n" . $aliases . "\n" . $content . "\n" . $status);
         $where = ['sourceType' => $type, 'sourceId' => $originId, 'app_code' => $appCode];
         $existing = Db::name('ai_knowledge_source')->where($where)->find();
         $data = [
@@ -155,6 +155,9 @@ class KnowledgeIndexer
             'status' => $status,
             'contentHash' => $contentHash,
         ];
+        if ($this->sourceAliasesSupported()) {
+            $data['aliases'] = $aliases;
+        }
         if ($this->sourceReviewSupported() && $type !== 'manual') {
             $data['reviewStatus'] = 2;
             $data['reviewerId'] = 0;
@@ -184,7 +187,7 @@ class KnowledgeIndexer
         }
 
         Db::name('ai_knowledge_chunk')->where('sourceId', $sourceId)->update(['embeddingStatus' => 2, 'embeddingError' => 'superseded']);
-        $chunks = (new KnowledgeChunker())->chunk((string) ($source['title'] ?? ''), (string) ($source['content'] ?? ''));
+        $chunks = (new KnowledgeChunker())->chunk((string) ($source['title'] ?? ''), (string) ($source['content'] ?? ''), 650, 80, (string) ($source['aliases'] ?? ''));
         $queued = 0;
         $sourceEnabled = intval($source['status'] ?? 1) === 1;
         $sourceApproved = $this->sourceApprovedForEmbedding($source);
@@ -238,6 +241,14 @@ class KnowledgeIndexer
     {
         if (function_exists('table_has_column')) {
             return table_has_column('ai_knowledge_source', 'reviewStatus');
+        }
+        return false;
+    }
+
+    private function sourceAliasesSupported(): bool
+    {
+        if (function_exists('table_has_column')) {
+            return table_has_column('ai_knowledge_source', 'aliases');
         }
         return false;
     }

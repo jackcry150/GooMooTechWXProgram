@@ -6,6 +6,7 @@ return [
     // 指令定义
     'commands' => [
         'rag:sync' => app\command\RagSync::class,
+        'ai:rag-eval' => app\command\AiRagEval::class,
         'ai:safety-clean' => app\command\AiSafetyClean::class,
     ],
 ];

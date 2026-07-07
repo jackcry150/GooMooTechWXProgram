@@ -42,7 +42,7 @@ class RagRetriever
                 if (!$chunk || intval($chunk['embeddingStatus'] ?? 0) !== 1) {
                     continue;
                 }
-                $contexts[] = $this->formatContext($chunk, round(floatval($item['score'] ?? 0), 4));
+                $contexts[] = $this->formatContext($chunk, round(floatval($item['score'] ?? 0), 4), 'vector');
             }
 
             if (empty($contexts)) {
@@ -96,7 +96,7 @@ class RagRetriever
 
         $contexts = [];
         foreach ($rows as $row) {
-            $contexts[] = $this->formatContext($row, 1.0);
+            $contexts[] = $this->formatContext($row, 0.30, 'keyword');
         }
 
         return $contexts;
@@ -111,10 +111,35 @@ class RagRetriever
             }
         }
 
-        return array_values(array_unique($terms));
+        if (preg_match_all('/[\x{4e00}-\x{9fa5}]{2,}/u', $question, $matches)) {
+            foreach ($matches[0] as $phrase) {
+                $length = mb_strlen($phrase, 'UTF-8');
+                if ($length <= 6) {
+                    $terms[] = $phrase;
+                }
+                for ($size = 2; $size <= 4; $size++) {
+                    if ($length < $size) {
+                        continue;
+                    }
+                    for ($offset = 0; $offset <= $length - $size; $offset++) {
+                        $term = mb_substr($phrase, $offset, $size, 'UTF-8');
+                        if (!$this->isWeakChineseTerm($term)) {
+                            $terms[] = $term;
+                        }
+                    }
+                }
+            }
+        }
+
+        return array_slice(array_values(array_unique($terms)), 0, 40);
     }
 
-    private function formatContext(array $chunk, float $score): array
+    private function isWeakChineseTerm(string $term): bool
+    {
+        return in_array($term, ['这个', '那个', '什么', '怎么', '一下', '可以', '商品', '订单', '客服', '请问', '帮我'], true);
+    }
+
+    private function formatContext(array $chunk, float $score, string $matchType = 'vector'): array
     {
         return [
             'sourceId' => intval($chunk['sourceId']),
@@ -123,6 +148,7 @@ class RagRetriever
             'title' => (string) $chunk['title'],
             'content' => (string) $chunk['content'],
             'score' => $score,
+            'matchType' => $matchType,
         ];
     }
 }
