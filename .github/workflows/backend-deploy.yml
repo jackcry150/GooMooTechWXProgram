@@ -100,9 +100,9 @@ jobs:
               cp deploy/deploy.sh \"\${backup_file}\"
               git stash push -m \"github-actions backup deploy.sh \$(date +%Y%m%d%H%M%S)\" -- deploy/deploy.sh || true
             fi
-            git fetch origin '${BRANCH_NAME}'
+            git fetch origin '${BRANCH_NAME}' || (echo 'git fetch failed, retrying in 20s' && sleep 20 && git fetch origin '${BRANCH_NAME}') || (echo 'git fetch failed again, retrying in 40s' && sleep 40 && git fetch origin '${BRANCH_NAME}')
             git checkout '${BRANCH_NAME}'
-            git pull --ff-only origin '${BRANCH_NAME}'
+            git pull --ff-only origin '${BRANCH_NAME}' || (echo 'git pull failed, retrying in 20s' && sleep 20 && git pull --ff-only origin '${BRANCH_NAME}') || (echo 'git pull failed again, retrying in 40s' && sleep 40 && git pull --ff-only origin '${BRANCH_NAME}')
             chmod +x deploy/deploy.sh
             DEPLOY_PHP='${PHP_CHANGED}' DEPLOY_NGINX='${NGINX_CHANGED}' ./deploy/deploy.sh
           "
