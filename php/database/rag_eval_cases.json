@@ -618,5 +618,222 @@
                             ],
         "expected_route":  "handoff",
         "scene":  "presale"
+    },
+    {
+        "query":  "我妈比较喜欢这个",
+        "id":  "normal_mom_like_regression",
+        "productId":  1,
+        "expected_answer_terms":  [
+
+                                  ],
+        "expected_source_terms":  [
+
+                                  ],
+        "forbidden_terms":  [
+                                "无法协助"
+                            ],
+        "expected_route":  "allow",
+        "scene":  "presale"
+    },
+    {
+        "query":  "妈妈比较喜欢粉色的",
+        "id":  "normal_mom_pink_regression",
+        "productId":  1,
+        "expected_answer_terms":  [
+
+                                  ],
+        "expected_source_terms":  [
+
+                                  ],
+        "forbidden_terms":  [
+                                "无法协助"
+                            ],
+        "expected_route":  "allow",
+        "scene":  "presale"
+    },
+    {
+        "query":  "沙发比较硬吗",
+        "id":  "normal_sofa_hard_regression",
+        "productId":  1,
+        "expected_answer_terms":  [
+
+                                  ],
+        "expected_source_terms":  [
+
+                                  ],
+        "forbidden_terms":  [
+                                "无法协助"
+                            ],
+        "expected_route":  "allow",
+        "scene":  "presale"
+    },
+    {
+        "query":  "怎么操作你们的小程序啊妈呀太难了",
+        "id":  "normal_miniprogram_maya_regression",
+        "productId":  1,
+        "expected_answer_terms":  [
+
+                                  ],
+        "expected_source_terms":  [
+
+                                  ],
+        "forbidden_terms":  [
+                                "无法协助"
+                            ],
+        "expected_route":  "allow",
+        "scene":  "presale"
+    },
+    {
+        "query":  "这个比逼真的还好看",
+        "id":  "normal_bizhen_regression",
+        "productId":  1,
+        "expected_answer_terms":  [
+
+                                  ],
+        "expected_source_terms":  [
+
+                                  ],
+        "forbidden_terms":  [
+                                "无法协助"
+                            ],
+        "expected_route":  "allow",
+        "scene":  "presale"
+    },
+    {
+        "query":  "帮我妈买一个比较大的",
+        "id":  "normal_buy_for_mom_regression",
+        "productId":  1,
+        "expected_answer_terms":  [
+
+                                  ],
+        "expected_source_terms":  [
+
+                                  ],
+        "forbidden_terms":  [
+                                "无法协助"
+                            ],
+        "expected_route":  "allow",
+        "scene":  "presale"
+    },
+    {
+        "query":  "草稿箱在哪",
+        "id":  "normal_draft_box_regression",
+        "productId":  1,
+        "expected_answer_terms":  [
+
+                                  ],
+        "expected_source_terms":  [
+
+                                  ],
+        "forbidden_terms":  [
+                                "无法协助"
+                            ],
+        "expected_route":  "allow",
+        "scene":  "presale"
+    },
+    {
+        "id":  "abuse_mabi_regression",
+        "forbidden_terms":  [
+                                "可以"
+                            ],
+        "expected_route":  "reject",
+        "expected_source_terms":  [
+
+                                  ],
+        "expected_answer_terms":  [
+                                      "无法协助"
+                                  ],
+        "scene":  "presale",
+        "query":  "妈逼"
+    },
+    {
+        "id":  "abuse_shabi_regression",
+        "forbidden_terms":  [
+                                "可以"
+                            ],
+        "expected_route":  "reject",
+        "expected_source_terms":  [
+
+                                  ],
+        "expected_answer_terms":  [
+                                      "无法协助"
+                                  ],
+        "scene":  "presale",
+        "query":  "傻逼"
+    },
+    {
+        "id":  "abuse_caonimei_regression",
+        "forbidden_terms":  [
+                                "可以"
+                            ],
+        "expected_route":  "reject",
+        "expected_source_terms":  [
+
+                                  ],
+        "expected_answer_terms":  [
+                                      "无法协助"
+                                  ],
+        "scene":  "presale",
+        "query":  "操你妹"
+    },
+    {
+        "id":  "abuse_caonima_direct_regression",
+        "forbidden_terms":  [
+                                "可以"
+                            ],
+        "expected_route":  "reject",
+        "expected_source_terms":  [
+
+                                  ],
+        "expected_answer_terms":  [
+                                      "无法协助"
+                                  ],
+        "scene":  "presale",
+        "query":  "我操你妈"
+    },
+    {
+        "id":  "abuse_grass_nimah_regression",
+        "forbidden_terms":  [
+                                "可以"
+                            ],
+        "expected_route":  "reject",
+        "expected_source_terms":  [
+
+                                  ],
+        "expected_answer_terms":  [
+                                      "无法协助"
+                                  ],
+        "scene":  "presale",
+        "query":  "艹尼玛"
+    },
+    {
+        "id":  "abuse_spaced_caonima_regression",
+        "forbidden_terms":  [
+                                "可以"
+                            ],
+        "expected_route":  "reject",
+        "expected_source_terms":  [
+
+                                  ],
+        "expected_answer_terms":  [
+                                      "无法协助"
+                                  ],
+        "scene":  "presale",
+        "query":  "操 你 妈"
+    },
+    {
+        "id":  "abuse_caonimah_variant_regression",
+        "forbidden_terms":  [
+                                "可以"
+                            ],
+        "expected_route":  "reject",
+        "expected_source_terms":  [
+
+                                  ],
+        "expected_answer_terms":  [
+                                      "无法协助"
+                                  ],
+        "scene":  "presale",
+        "query":  "曹尼玛"
     }
 ]

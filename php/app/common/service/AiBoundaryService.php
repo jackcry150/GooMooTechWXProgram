@@ -149,7 +149,11 @@ class AiBoundaryService
 
     private function matchKeywordViews(array $textViews, array $keywordViews, bool $aggressive): string
     {
-        $views = $aggressive ? ['raw', 'compact', 'canonical', 'pinyin', 'pinyinInitials'] : ['raw', 'compact'];
+        $views = ['raw', 'compact'];
+        $compactKeywordLength = mb_strlen((string) ($keywordViews['compact'] ?? ''), 'UTF-8');
+        if ($aggressive && $compactKeywordLength >= 3) {
+            $views = ['raw', 'compact', 'canonical', 'pinyin', 'pinyinInitials'];
+        }
         foreach ($views as $view) {
             $content = (string) ($textViews[$view] ?? '');
             $keyword = (string) ($keywordViews[$view] ?? '');
@@ -275,7 +279,7 @@ class AiBoundaryService
     {
         return [
             ['routeType' => 'reject', 'taskType' => 'illegal_or_abuse', 'keywords' => '毒品,枪支,赌博,诈骗,洗钱,跑分,绕平台交易,私下交易,跳过平台,导出数据,导出全部,全部订单数据'],
-            ['routeType' => 'reject', 'taskType' => 'abusive_language', 'keywords' => '操你妈,草你妈,艹你妈,曹尼玛,你妈逼,妈逼,傻逼,煞笔,cnm,nmsl'],
+            ['routeType' => 'reject', 'taskType' => 'abusive_language', 'keywords' => '操你妈,草你妈,艹你妈,曹尼玛,你妈逼,妈逼,傻逼,煞笔,cnm,nmsl,操你妹,你妈的,尼玛的,妈的智障,滚你妈'],
             ['routeType' => 'reject', 'taskType' => 'privacy_request', 'keywords' => '他人订单,别人订单,其他用户,手机号,完整地址,身份证,隐私,人肉,导出订单,订单数据,全部订单'],
             ['routeType' => 'reject', 'taskType' => 'off_platform_trade', 'keywords' => '绕平台交易,私下交易,跳过平台,加微信直接买,微信直接买,平台外交易'],
             ['routeType' => 'handoff', 'taskType' => 'refund_request', 'keywords' => '退款,退货,退定金,退一下,退一下定金,退尾款,退掉,能不能退,申请退,refund,chargeback'],

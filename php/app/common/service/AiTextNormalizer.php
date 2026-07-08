@@ -14,16 +14,10 @@ class AiTextNormalizer
         '妮' => '你',
         '妳' => '你',
         '玛' => '妈',
-        '马' => '妈',
         '媽' => '妈',
         '🐎' => '妈',
-        '比' => '逼',
-        '币' => '逼',
         '筆' => '逼',
-        '逼' => '逼',
-        '沙' => '傻',
         '煞' => '傻',
-        '傻' => '傻',
         '訂' => '订',
         '單' => '单',
         '錢' => '钱',
@@ -35,11 +29,9 @@ class AiTextNormalizer
         '號' => '号',
         '碼' => '码',
         '隱' => '隐',
-        '私' => '私',
         '導' => '导',
         '數' => '数',
         '據' => '据',
-        '發' => '发',
         '發' => '发',
         '賠' => '赔',
         '償' => '偿',
@@ -186,6 +178,8 @@ class AiTextNormalizer
                 }
             } elseif (preg_match('/^[a-z0-9]$/', $char)) {
                 $parts[] = $char;
+            } else {
+                $parts[] = '|';
             }
         }
         return ['parts' => $parts, 'hanCount' => $hanCount, 'mappedHanCount' => $mappedHanCount];
@@ -195,7 +189,8 @@ class AiTextNormalizer
     {
         $initials = '';
         foreach ($parts as $part) {
-            $initials .= substr((string) $part, 0, 1);
+            $part = (string) $part;
+            $initials .= $part === '|' ? '|' : substr($part, 0, 1);
         }
         return $initials;
     }

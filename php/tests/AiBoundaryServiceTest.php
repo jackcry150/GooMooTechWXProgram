@@ -97,7 +97,7 @@ if (mb_strpos($reply, '赔偿', 0, 'UTF-8') !== false) {
     exit(1);
 }
 
-foreach (['我操你妈', '草你妈', '艹尼玛', '操 你 妈', '操*你*妈', '曹尼玛', 'caonima', 'cnm'] as $query) {
+foreach (['我操你妈', '草你妈', '艹尼玛', '操 你 妈', '操*你*妈', '曹尼玛', 'caonima', 'cnm', '妈逼', '傻逼', '操你妹'] as $query) {
     $result = $service->route($query, [
         'scene' => 'presale',
         'productId' => 0,
@@ -108,7 +108,7 @@ foreach (['我操你妈', '草你妈', '艹尼玛', '操 你 妈', '操*你*妈'
     assertBoundaryValue('reject', $result['finalRoute'], 'abusive variants should be rejected: ' . $query);
 }
 
-foreach (['操作流程怎么弄', '草稿箱在哪', '这个是曹操皮肤吗', '尾款怎么补'] as $query) {
+foreach (['我妈比较喜欢这个', '妈妈比较喜欢粉色的', '沙发比较硬吗', '怎么操作你们的小程序啊妈呀太难了', '这个比逼真的还好看', '帮我妈买一个比较大的', '操作流程怎么弄', '草稿箱在哪', '这个是曹操皮肤吗', '尾款怎么补'] as $query) {
     $result = $service->route($query, [
         'scene' => 'presale',
         'productId' => 1,

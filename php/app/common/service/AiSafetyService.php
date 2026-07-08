@@ -192,7 +192,11 @@ class AiSafetyService
 
     private function matchSensitiveWord(array $textViews, array $keywordViews, bool $aggressive): string
     {
-        $views = $aggressive ? ['raw', 'compact', 'canonical', 'pinyin', 'pinyinInitials'] : ['raw', 'compact'];
+        $views = ['raw', 'compact'];
+        $compactKeywordLength = mb_strlen((string) ($keywordViews['compact'] ?? ''), 'UTF-8');
+        if ($aggressive && $compactKeywordLength >= 3) {
+            $views = ['raw', 'compact', 'canonical', 'pinyin', 'pinyinInitials'];
+        }
         foreach ($views as $view) {
             $content = (string) ($textViews[$view] ?? '');
             $keyword = (string) ($keywordViews[$view] ?? '');
